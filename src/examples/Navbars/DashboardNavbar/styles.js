@@ -68,6 +68,9 @@ function navbar(theme, ownerState) {
         minHeight: "auto",
         padding: `${pxToRem(4)} ${pxToRem(16)}`,
       },
+      [breakpoints.up("xs")]: {
+        flexDirection: "row",
+      },
     },
   };
 }
@@ -92,6 +95,11 @@ const navbarRow = ({ breakpoints }, { isMini }) => ({
   alignItems: "center",
   justifyContent: "space-between",
   width: "100%",
+
+  [breakpoints.up("xs")]: {
+    justifyContent: isMini ? "end" : "stretch",
+    width: isMini ? "100%" : "max-content",
+  },
 
   [breakpoints.up("md")]: {
     justifyContent: isMini ? "space-between" : "stretch",

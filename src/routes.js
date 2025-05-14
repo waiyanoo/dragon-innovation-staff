@@ -48,6 +48,7 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 import Order from "./layouts/order";
+import OrderHistory from "./layouts/history";
 
 const routes = [
   {
@@ -69,6 +70,14 @@ const routes = [
   {
     type: "collapse",
     name: "Order History",
+    key: "history",
+    icon: <Icon fontSize="small">receipt</Icon>,
+    route: "/history",
+    component: <OrderHistory />,
+  },
+  {
+    type: "collapse",
+    name: "Tables",
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
