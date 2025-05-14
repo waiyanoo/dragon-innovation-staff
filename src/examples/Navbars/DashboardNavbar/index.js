@@ -73,8 +73,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
     }
 
-    /** 
-     The event listener that's calling the handleTransparentNavbar function when 
+    /**
+     The event listener that's calling the handleTransparentNavbar function when
      scrolling the window.
     */
     window.addEventListener("scroll", handleTransparentNavbar);
@@ -135,11 +135,11 @@ function DashboardNavbar({ absolute, light, isMini }) {
         </MDBox>
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox pr={1}>
-              <MDInput label="Search here" />
-            </MDBox>
+            {/*<MDBox pr={1}>*/}
+            {/*  <MDInput label="Search here" />*/}
+            {/*</MDBox>*/}
             <MDBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in/basic">
+              <Link to="/authentication/sign-in">
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
@@ -155,27 +155,27 @@ function DashboardNavbar({ absolute, light, isMini }) {
                   {miniSidenav ? "menu_open" : "menu"}
                 </Icon>
               </IconButton>
-              <IconButton
-                size="small"
-                disableRipple
-                color="inherit"
-                sx={navbarIconButton}
-                onClick={handleConfiguratorOpen}
-              >
-                <Icon sx={iconsStyle}>settings</Icon>
-              </IconButton>
-              <IconButton
-                size="small"
-                disableRipple
-                color="inherit"
-                sx={navbarIconButton}
-                aria-controls="notification-menu"
-                aria-haspopup="true"
-                variant="contained"
-                onClick={handleOpenMenu}
-              >
-                <Icon sx={iconsStyle}>notifications</Icon>
-              </IconButton>
+              {/*<IconButton*/}
+              {/*  size="small"*/}
+              {/*  disableRipple*/}
+              {/*  color="inherit"*/}
+              {/*  sx={navbarIconButton}*/}
+              {/*  onClick={handleConfiguratorOpen}*/}
+              {/*>*/}
+              {/*  <Icon sx={iconsStyle}>settings</Icon>*/}
+              {/*</IconButton>*/}
+              {/*<IconButton*/}
+              {/*  size="small"*/}
+              {/*  disableRipple*/}
+              {/*  color="inherit"*/}
+              {/*  sx={navbarIconButton}*/}
+              {/*  aria-controls="notification-menu"*/}
+              {/*  aria-haspopup="true"*/}
+              {/*  variant="contained"*/}
+              {/*  onClick={handleOpenMenu}*/}
+              {/*>*/}
+              {/*  <Icon sx={iconsStyle}>notifications</Icon>*/}
+              {/*</IconButton>*/}
               {renderMenu()}
             </MDBox>
           </MDBox>
