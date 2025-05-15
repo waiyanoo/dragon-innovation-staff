@@ -49,6 +49,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Icon from "@mui/material/Icon";
 import Order from "./layouts/order";
 import OrderHistory from "./layouts/history";
+import PrivateRoute from "./context/PrivateRoute";
 
 const routes = [
   {
@@ -57,7 +58,11 @@ const routes = [
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
-    component: <Dashboard />,
+    component: (
+      <PrivateRoute>
+        <Dashboard />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -65,7 +70,11 @@ const routes = [
     key: "order",
     icon: <Icon fontSize="small">shopping_cart</Icon>,
     route: "/order",
-    component: <Order />,
+    component: (
+      <PrivateRoute>
+        <Order />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -114,14 +123,6 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
     component: <SignIn />,
-  },
-  {
-    type: "collapse",
-    name: "Sign Up",
-    key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/authentication/sign-up",
-    component: <SignUp />,
   },
 ];
 
