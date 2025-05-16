@@ -58,6 +58,7 @@ const routes = [
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
+    routeToGo: "/dashboard",
     component: (
       <PrivateRoute>
         <Dashboard />
@@ -70,6 +71,7 @@ const routes = [
     key: "order",
     icon: <Icon fontSize="small">shopping_cart</Icon>,
     route: "/order",
+    routeToGo: "/order",
     component: (
       <PrivateRoute>
         <Order />
@@ -82,6 +84,7 @@ const routes = [
     key: "history",
     icon: <Icon fontSize="small">receipt</Icon>,
     route: "/history/:brand",
+    routeToGo: "/history/hanskin",
     component: (
       <PrivateRoute>
         <OrderHistory />
@@ -94,6 +97,7 @@ const routes = [
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
+    routeToGo: "/tables",
     component: <Tables />,
   },
   {
@@ -102,6 +106,7 @@ const routes = [
     key: "billing",
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/billing",
+    routeToGo: "/billing",
     component: <Billing />,
   },
   {
@@ -110,6 +115,7 @@ const routes = [
     key: "notifications",
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
+    routeToGo: "/notifications",
     component: <Notifications />,
   },
   {
@@ -118,6 +124,7 @@ const routes = [
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
+    routeToGo: "/profile",
     component: <Profile />,
   },
   {
@@ -126,6 +133,7 @@ const routes = [
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
+    routeToGo: "/authentication/sign-in",
     component: <SignIn />,
   },
 ];
