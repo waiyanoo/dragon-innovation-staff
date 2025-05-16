@@ -81,8 +81,12 @@ const routes = [
     name: "Order History",
     key: "history",
     icon: <Icon fontSize="small">receipt</Icon>,
-    route: "/history",
-    component: <OrderHistory />,
+    route: "/history/:brand",
+    component: (
+      <PrivateRoute>
+        <OrderHistory />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
