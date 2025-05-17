@@ -3,15 +3,27 @@ import MDBox from "../../../../components/MDBox";
 import MDTypography from "../../../../components/MDTypography";
 import PropTypes from "prop-types";
 import MDBadge from "../../../../components/MDBadge";
+import { useEffect } from "react";
 
-function OrderCard({ data, invoiceNumber, noGutter }) {
+function OrderCard({ data, noGutter, handleClick }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
+
+  useEffect(() => {
+    console.log(data)
+  }, []);
 
   const formattedAmount = new Intl.NumberFormat("en-MM", {
     style: "currency",
     currency: "MMK",
   }).format(data.amount);
+
+  const TimestampDisplay = ( timestamp ) => {
+    const date = timestamp.toDate();
+    return <p>{date.toLocaleString()}</p>;
+  }
+
+  // const formattedDate = new Date(data.updatedAt).toLocaleString();
   return (
     <MDBox
       component="li"
@@ -23,6 +35,7 @@ function OrderCard({ data, invoiceNumber, noGutter }) {
       p={3}
       mb={noGutter ? 0 : 1}
       mt={2}
+      onClick={handleClick}
     >
       <MDBox width="100%" display="flex" flexDirection="column">
         <MDBox
@@ -38,8 +51,10 @@ function OrderCard({ data, invoiceNumber, noGutter }) {
 
           <MDBox display="flex" alignItems="center" mt={{ xs: 0, sm: 0 }} ml={{ xs: -1.5, sm: 0 }}>
             <MDBadge
-              badgeContent={invoiceNumber === "" ? "Pending" : invoiceNumber}
-              color={invoiceNumber === "" ? "warning" : "success"}
+              badgeContent={
+              (data.status === 2 && data.invoiceNumber !== "") ? data.invoiceNumber
+                : data.status === 1 ? "Packed" : "Pending"}
+              color={!data.invoiceNumber ? "warning" : "success"}
               variant="gradient"
               size="md"
             />
@@ -53,6 +68,14 @@ function OrderCard({ data, invoiceNumber, noGutter }) {
             Phone:&nbsp;&nbsp;&nbsp;
             <MDTypography variant="caption" color="text">
               {data.primaryPhone} {data.secondaryPhone ? `, ${data.secondaryPhone}` : ""}
+            </MDTypography>
+          </MDTypography>
+        </MDBox>
+        <MDBox mb={1} lineHeight={0}>
+          <MDTypography variant="caption" fontWeight="medium">
+            State/City:&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="caption" color="text">
+              {data.state}/{data.city}
             </MDTypography>
           </MDTypography>
         </MDBox>
@@ -81,6 +104,16 @@ function OrderCard({ data, invoiceNumber, noGutter }) {
             </MDTypography>
           </MDTypography>
         </MDBox>
+        <MDBox mt={1} lineHeight={0} textAlign="right">
+          <MDTypography variant="caption" color="text" fontWeight="medium">
+            {TimestampDisplay(data.updatedAt)}
+          </MDTypography>
+        </MDBox>
+        <MDBox mt={0} lineHeight={0} textAlign="right">
+          <MDTypography variant="caption" color="text" fontWeight="medium">
+            {data.createdBy}
+          </MDTypography>
+        </MDBox>
       </MDBox>
     </MDBox>
   );
@@ -92,7 +125,7 @@ OrderCard.defaultProps = {
 
 OrderCard.propTypes = {
   data: PropTypes.object.isRequired,
-  invoiceNumber: PropTypes.string,
+  handleClick: PropTypes.func.isRequired,
   noGutter: PropTypes.bool,
 };
 

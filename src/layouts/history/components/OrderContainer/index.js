@@ -1,18 +1,3 @@
-/**
- =========================================================
- * Material Dashboard 2 React - v2.2.0
- =========================================================
-
- * Product Page: https://www.creative-tim.com/product/material-dashboard-react
- * Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
- Coded by www.creative-tim.com
-
- =========================================================
-
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- */
-
 // @mui material components
 import Card from "@mui/material/Card";
 
@@ -27,10 +12,12 @@ import { collection, getDocs, limit, query } from "firebase/firestore";
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
 import MDButton from "../../../../components/MDButton";
-import { FormControl, InputLabel, Select } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
 import MDAlert from "../../../../components/MDAlert";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 
 const data = {
   name: "Ko Hein Lay",
@@ -59,6 +46,10 @@ function OrderContainer({brand}) {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [limitCount, setLimitCount] = useState(10);
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   useEffect(() => {
     filerOrders();
@@ -96,7 +87,8 @@ function OrderContainer({brand}) {
   }
 
   return (
-    <Card id="delete-account">
+    <>
+      <Card id="order-history">
       <MDBox pt={3} px={2}
              display="flex"
              justifyContent="space-between"
@@ -116,7 +108,7 @@ function OrderContainer({brand}) {
             value={brand}
             label="Brand"
             onChange={handleBrandChange}
-            sx={{ lineHeight: "3rem" }}
+            sx={{ lineHeight: "3rem", width: 100 }}
           >
             <MenuItem value="hanskin">Hanskin</MenuItem>
             <MenuItem value="sugarbear">Sugarbear</MenuItem>
@@ -128,7 +120,7 @@ function OrderContainer({brand}) {
         <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
           {
             orders.map(order => (
-              <OrderCard key={order.id} data={order} invoiceNumber="" noGutter />
+              <OrderCard key={order.id} data={order} noGutter handleClick={handleOpen}/>
             ))
           }
         </MDBox>
@@ -144,6 +136,17 @@ function OrderContainer({brand}) {
         </MDBox>
       </MDBox>
     </Card>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Dialog Title</DialogTitle>
+        <DialogContent>
+          <Typography>This is the dialog content.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose} variant="contained">Confirm</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

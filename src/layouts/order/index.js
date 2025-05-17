@@ -12,6 +12,7 @@ import MDButton from "../../components/MDButton";
 import { collection, addDoc, getDocs , serverTimestamp} from 'firebase/firestore';
 import { useNavigate } from "react-router-dom";
 import { auth, database } from "../../firebase";
+import { State_List } from "../../data/common";
 
 
 
@@ -25,12 +26,16 @@ function Order() {
     primaryPhone: "",
     secondaryPhone: "",
     address: "",
+    state:"",
+    city: "",
     items: "",
     amount: "",
     paymentStatus: "COD",
     deliveryType: "1",
     paymentMode: "NoPay",
     remark: "",
+    status: 0,
+    invoiceNumber: "",
   })
 
   const handleChange = (e) => {
@@ -140,6 +145,36 @@ function Order() {
                       variant="outlined"
                       name="secondaryPhone"
                       value={formData.secondaryPhone}
+                      onChange={handleChange}
+                      fullWidth
+                    />
+                  </MDBox>
+                  <MDBox mb={2}>
+                    <FormControl fullWidth variant="outlined">
+                      <InputLabel id="state-select-label">State</InputLabel>
+                      <Select
+                        labelId="state-select-label"
+                        id="state-select"
+                        value={formData.state}
+                        label="state"
+                        name="state"
+                        onChange={handleChange}
+                        sx={{ lineHeight: "3rem" }}
+                      >
+                        {State_List.map((item) => (
+                            <MenuItem key={item} value="item">{item}</MenuItem>
+                          ))
+                        }
+                      </Select>
+                    </FormControl>
+                  </MDBox>
+                  <MDBox mb={2}>
+                    <MDInput
+                      type="text"
+                      label="City"
+                      variant="outlined"
+                      name="city"
+                      value={formData.city}
                       onChange={handleChange}
                       fullWidth
                     />
