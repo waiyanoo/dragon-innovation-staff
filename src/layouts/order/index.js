@@ -7,10 +7,10 @@ import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
 import { FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MDButton from "../../components/MDButton";
-import { collection, addDoc, getDocs , serverTimestamp} from 'firebase/firestore';
-import { useNavigate } from "react-router-dom";
+import { collection, addDoc, doc, getDoc , serverTimestamp} from 'firebase/firestore';
+import { useNavigate, useParams } from "react-router-dom";
 import { auth, database } from "../../firebase";
 import { State_List } from "../../data/common";
 
@@ -19,6 +19,7 @@ import { State_List } from "../../data/common";
 function Order() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+  const { id } = useParams();
 
   const [brand, setBrand] = useState('hanskin');
   const [formData, setFormData] = useState({
@@ -37,6 +38,25 @@ function Order() {
     status: 0,
     invoiceNumber: "",
   })
+
+  useEffect(() => {
+    console.log("what is id", id);
+    async function fetchOrder() {
+      const docRef = doc(database, 'hanskin', id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        console.log(docSnap.data());
+        setFormData(docSnap.data());
+      } else {
+        navigate(`/order`);
+      }
+    }
+
+    if(id){
+      fetchOrder();
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -162,7 +182,7 @@ function Order() {
                         sx={{ lineHeight: "3rem" }}
                       >
                         {State_List.map((item) => (
-                            <MenuItem key={item} value="item">{item}</MenuItem>
+                            <MenuItem key={item} value={item}>{item}</MenuItem>
                           ))
                         }
                       </Select>
@@ -286,7 +306,7 @@ function Order() {
                   </MDBox>
                   <MDBox mt={4} mb={1}>
                     <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                      Create
+                      {id ? 'Update' : 'Create'}
                     </MDButton>
                   </MDBox>
                 </MDBox>

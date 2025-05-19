@@ -57,7 +57,7 @@ const routes = [
     name: "Order",
     key: "order",
     icon: <Icon fontSize="small">shopping_cart</Icon>,
-    route: "/order",
+    route: "/order/:id?",
     routeToGo: "/order",
     component: (
       <PrivateRoute>

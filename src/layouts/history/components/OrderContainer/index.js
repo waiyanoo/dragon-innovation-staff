@@ -19,29 +19,6 @@ import MDAlert from "../../../../components/MDAlert";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 
-const data = {
-  name: "Ko Hein Lay",
-  primaryPhone: "09453159417",
-  secondaryPhone: "09988327954",
-  city: "Yangon",
-  address: "ကနိသာယာမှတ်တိုင်ကဆင်းချယ်ရီလမ်းဆိုရောက်ပါပီ ရွှေပြည်သာ",
-  items:
-    "Tightening cream - 66,000ks\n" +
-    "40%off -39,600ks\n" +
-    "(Exp 7/25)\n" +
-    "\n" +
-    "Multi Oil  - 97,000ks\n" +
-    "30%off -67,900ks\n" +
-    " (Exp 11/25)\n" +
-    "\n" +
-    "Deli 3000ks\n" +
-    "Total 110,500ks",
-  amount: 110500,
-  paymentMode: "Paid",
-  deliveryType: "Express",
-  paymentType: "KPay",
-};
-
 function OrderContainer({brand}) {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -64,6 +41,13 @@ function OrderContainer({brand}) {
     navigate(`/history/${e.target.value}`);
     setLimitCount(10);
     filerOrders();
+  }
+
+  const handleOrderCardClick = (order) => {
+    console.log(order)
+    if(order.status === 0){
+      navigate(`/order/${order.id}`);
+    }
   }
 
   const filerOrders = async () => {
@@ -120,7 +104,7 @@ function OrderContainer({brand}) {
         <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
           {
             orders.map(order => (
-              <OrderCard key={order.id} data={order} noGutter handleClick={handleOpen}/>
+              <OrderCard key={order.id} data={order} noGutter handleClick={() => handleOrderCardClick(order)}/>
             ))
           }
         </MDBox>

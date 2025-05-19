@@ -36,61 +36,46 @@ function Dashboard() {
       <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                color="dark"
                 icon="weekend"
-                title="Bookings"
+                title="Hanskin"
                 count={281}
                 percentage={{
                   color: "success",
                   amount: "+55%",
-                  label: "than lask week",
+                  label: "than last week",
                 }}
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
+                color="primary"
                 icon="leaderboard"
-                title="Today's Users"
+                title="SugarBear"
                 count="2,300"
                 percentage={{
                   color: "success",
                   amount: "+3%",
-                  label: "than last month",
+                  label: "than last week",
                 }}
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
                 icon="store"
-                title="Revenue"
+                title="Mongdies"
                 count="34k"
                 percentage={{
                   color: "success",
                   amount: "+1%",
-                  label: "than yesterday",
-                }}
-              />
-            </MDBox>
-          </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
-                percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Just updated",
+                  label: "than last week",
                 }}
               />
             </MDBox>
@@ -102,9 +87,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
+                  title="Hanskin Sales"
+                  description="Monthly Performance"
+                  date="Just Updated"
                   chart={reportsBarChartData}
                 />
               </MDBox>
@@ -112,13 +97,9 @@ function Dashboard() {
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
-                  color="success"
-                  title="daily sales"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
+                  color="primary"
+                  title="SugarBear sales"
+                  description="Monthly Performance"
                   date="updated 4 min ago"
                   chart={sales}
                 />
@@ -127,26 +108,26 @@ function Dashboard() {
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
-                  color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
+                  color="success"
+                  title="Mongdies Sales"
+                  description="Monthly Performance"
+                  date="Just Updated"
                   chart={tasks}
                 />
               </MDBox>
             </Grid>
           </Grid>
         </MDBox>
-        <MDBox>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={8}>
-              <Projects />
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
-            </Grid>
-          </Grid>
-        </MDBox>
+        {/*<MDBox>*/}
+        {/*  <Grid container spacing={3}>*/}
+        {/*    <Grid item xs={12} md={6} lg={8}>*/}
+        {/*      <Projects />*/}
+        {/*    </Grid>*/}
+        {/*    <Grid item xs={12} md={6} lg={4}>*/}
+        {/*      <OrdersOverview />*/}
+        {/*    </Grid>*/}
+        {/*  </Grid>*/}
+        {/*</MDBox>*/}
       </MDBox>
       <Footer />
     </DashboardLayout>
