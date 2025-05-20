@@ -20,17 +20,15 @@
   9. The `href` key is used to store the external links location.
   10. The `title` key is only for the item with the type of `title` and its used for the title text on the Sidenav.
   10. The `component` key is used to store the component of its route.
-*/
+ */
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
-import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -112,7 +110,11 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     routeToGo: "/profile",
-    component: <Profile />,
+    component:(
+      <PrivateRoute>
+        <Profile />
+      </PrivateRoute>
+    )
   },
   {
     type: "collapse",

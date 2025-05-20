@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 // react-router components
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
@@ -42,6 +42,7 @@ import {
 import { logout } from "../../../services/authService";
 
 function DashboardNavbar({ absolute, light, isMini }) {
+  const navigate = useNavigate();
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
@@ -79,7 +80,12 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
   const handleCloseMenu = () => setOpenMenu(false);
 
-  const handleLogout = async () => await logout();
+  const handleLogout = async () => {
+    logout().then(() => {
+        navigate(`/authentication/sign-in`);
+      }
+    )
+  }
 
   // Render the notifications menu
   const renderMenu = () => (
@@ -129,7 +135,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
             {/*  <MDInput label="Search here" />*/}
             {/*</MDBox>*/}
             <MDBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in">
+              <Link to="/profile">
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
