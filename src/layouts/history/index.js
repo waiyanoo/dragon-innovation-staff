@@ -4,9 +4,6 @@ import Grid from "@mui/material/Grid";
 import MDBox from "../../components/MDBox";
 import OrderContainer from "./components/OrderContainer";
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { database } from "../../firebase";
-import { collection, getDocs, limit } from "firebase/firestore";
 
 function OrderHistory() {
   const { brand } = useParams();

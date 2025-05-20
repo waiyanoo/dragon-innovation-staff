@@ -26,10 +26,10 @@ import { useEffect } from "react";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
-  const { user } = useAuth();
+  const { authUser, userData } = useAuth();
 
   useEffect(() => {
-    console.log("what is", user);
+    console.log("what is", authUser, userData);
   }, []);
   return (
     <DashboardLayout>

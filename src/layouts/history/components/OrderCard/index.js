@@ -19,6 +19,10 @@ function OrderCard({ data, noGutter, handleClick }) {
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+  const handleMenuItemClick = (action) => {
+    setAnchorEl(null);
+    handleClick(action);
+  }
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -64,8 +68,9 @@ function OrderCard({ data, noGutter, handleClick }) {
             </MDTypography>
             <MDBadge
               badgeContent={
-              (data.status === 2 && data.invoiceNumber !== "") ? data.invoiceNumber
-                : data.status === 1 ? "Packed" : "Pending"}
+              data.status === 2  ? "shipped"
+                : data.status === 1 ? "Packed"
+                  : data.status === 3 ? data.invoiceNumber :"Pending"}
               color={!data.invoiceNumber ? "warning" : "success"}
               variant="gradient"
               size="md"
@@ -92,16 +97,16 @@ function OrderCard({ data, noGutter, handleClick }) {
                 'aria-labelledby': 'dropdown-button',
               }}
             >
-              <MenuItem onClick={() => { handleClick('edit'); console.log('Edit clicked'); }}>
+              <MenuItem onClick={() => { handleMenuItemClick('edit'); console.log('Edit clicked'); }} disabled={data.status !== 0}>
                 Edit
               </MenuItem>
-              <MenuItem onClick={() => { handleClick('packed'); console.log('Packed clicked'); }}>
+              <MenuItem onClick={() => { handleMenuItemClick('packed'); console.log('Packed clicked'); }} disabled={data.status >= 1}>
                 Packed
               </MenuItem>
-              <MenuItem onClick={() => { handleClick('shipped'); console.log('Shipped clicked'); }}>
+              <MenuItem onClick={() => { handleMenuItemClick('shipped'); console.log('Shipped clicked'); }} disabled={data.status >= 2}>
                 Shipped
               </MenuItem>
-              <MenuItem onClick={() => { handleClick('invoice'); console.log('Shipped clicked'); }}>
+              <MenuItem onClick={() => { handleMenuItemClick('invoice'); console.log('Shipped clicked'); }}>
                 Set Invoice No.
               </MenuItem>
             </Menu>
@@ -150,7 +155,7 @@ function OrderCard({ data, noGutter, handleClick }) {
         </MDBox>
         <MDBox mt={1} lineHeight={0} textAlign="right">
           <MDTypography variant="caption" color="text" fontWeight="medium">
-            {TimestampDisplay(data.updatedAt)}
+            {TimestampDisplay(data.createdAt)}
           </MDTypography>
         </MDBox>
         <MDBox mt={0} lineHeight={0} textAlign="right">
@@ -159,6 +164,7 @@ function OrderCard({ data, noGutter, handleClick }) {
           </MDTypography>
         </MDBox>
       </MDBox>
+
     </MDBox>
   );
 }

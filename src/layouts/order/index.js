@@ -7,21 +7,25 @@ import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
 import { FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import MDButton from "../../components/MDButton";
-import { collection, addDoc, doc, getDoc , serverTimestamp} from 'firebase/firestore';
-import { useNavigate, useParams } from "react-router-dom";
-import { auth, database } from "../../firebase";
+import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { database } from "../../firebase";
 import { State_List } from "../../data/common";
-
+import MDSnackbar from "../../components/MDSnackbar";
+import { useAuth } from "../../context/AuthContext";
 
 
 function Order() {
   const navigate = useNavigate();
-  const user = auth.currentUser;
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const { userData } = useAuth();
+  const id  = searchParams.get('id');
 
   const [brand, setBrand] = useState('hanskin');
+  const [orderRef, setOrderRef] = useState(null);
+  const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
   const [formData, setFormData] = useState({
     name: "",
     primaryPhone: "",
@@ -40,13 +44,11 @@ function Order() {
   })
 
   useEffect(() => {
-    console.log("what is id", id);
     async function fetchOrder() {
-      const docRef = doc(database, 'hanskin', id);
+      const docRef = doc(database, 'orders', id);
       const docSnap = await getDoc(docRef);
-
       if (docSnap.exists()) {
-        console.log(docSnap.data());
+        setOrderRef(docRef);
         setFormData(docSnap.data());
       } else {
         navigate(`/order`);
@@ -60,7 +62,6 @@ function Order() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("what is name", name, value)
     setFormData(prevState => ({
       ...prevState,
       [name]: value
@@ -72,25 +73,77 @@ function Order() {
     setBrand(value);
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // prevent page reload
-    console.log("Form submitted:", formData);
-
+  const save = async () => {
     const data ={
       ...formData,
-      createdBy: user.uid,
-      updatedAt: serverTimestamp(),
-      updatedBy: user.uid
+      brand: brand,
+      createdBy: userData.name,
+      createdAt: serverTimestamp(),
+      updateHistory: [
+        {
+          updatedAt: new Date(),
+          updatedBy: userData.name
+        }
+      ]
+
     }
 
     try {
-      const docRef = await addDoc(collection(database, brand), data);
-      console.log('Document written with ID: ', docRef.id);
+      const docRef = await addDoc(collection(database, 'orders'), data);
+      setSnack({ open: true, message: 'Order create success.', color: 'success', icon: 'check' })
       navigate(`/history/${brand}`);
     } catch (e) {
-      console.error('Error adding document: ', e);
+      setSnack({ open: true, message: 'Order create failed.', color: 'error', icon: 'warning' })
     }
+  }
+
+  const update = async () => {
+    let data ={
+      ...formData
+    }
+    data.updateHistory.push({
+      updatedAt: new Date(),
+      updatedBy: userData.name
+    })
+
+    try {
+      await updateDoc(orderRef, data);
+      setSnack({ open: true, message: 'Order update success.', color: 'success', icon: 'check' })
+      navigate(`/history/${brand}`);
+    } catch (e) {
+      setSnack({ open: true, message: 'Order update failed.', color: 'error', icon: 'warning' })
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // prevent page reload
+    console.log("Form submitted:", formData);
+    if(id){
+      await update();
+    } else {
+      await save();
+    }
+
   };
+
+  const closeSnack = () => {
+    snack.open = false;
+    setSnack({ ...snack })
+  }
+
+  const renderSnackBar = (
+    <MDSnackbar
+      color={snack.color}
+      icon={snack.icon}
+      title="Dragon Innovation"
+      content={snack.message}
+      dateTime="0 min ago"
+      open={snack.open}
+      onClose={closeSnack}
+      close={closeSnack}
+      bgWhite
+    />
+  );
 
   return (
     <DashboardLayout>
@@ -314,6 +367,7 @@ function Order() {
             </Card>
           </Grid>
         </Grid>
+        {renderSnackBar}
       </MDBox>
     </DashboardLayout>
   );
