@@ -43,11 +43,28 @@ function OrderContainer({brand}) {
     filerOrders();
   }
 
-  const handleOrderCardClick = (order) => {
-    console.log(order)
-    if(order.status === 0){
-      navigate(`/order/${order.id}`);
+  const updateOrder = (state) => {
+
+  }
+
+  const handleOrderCardClick = (e,order) => {
+    console.log(e,order)
+    switch (e) {
+      case "edit":
+        if (order.status === 0) {
+          navigate(`/order/${order.id}`);
+        }
+        break;
+      case "packed":
+        updateOrder("packed");
+        break;
+      case "shipped":
+        updateOrder("shipped");
+        break
+      default:
+        break;
     }
+
   }
 
   const filerOrders = async () => {
@@ -104,7 +121,7 @@ function OrderContainer({brand}) {
         <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
           {
             orders.map(order => (
-              <OrderCard key={order.id} data={order} noGutter handleClick={() => handleOrderCardClick(order)}/>
+              <OrderCard key={order.id} data={order} noGutter handleClick={(e) => handleOrderCardClick(e,order)}/>
             ))
           }
         </MDBox>

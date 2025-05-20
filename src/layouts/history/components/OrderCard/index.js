@@ -3,12 +3,25 @@ import MDBox from "../../../../components/MDBox";
 import MDTypography from "../../../../components/MDTypography";
 import PropTypes from "prop-types";
 import MDBadge from "../../../../components/MDBadge";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import MenuItem from "@mui/material/MenuItem";
+import Menu from "@mui/material/Menu";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Icon from "@mui/material/Icon";
 
 function OrderCard({ data, noGutter, handleClick }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
 
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   useEffect(() => {
     console.log(data)
   }, []);
@@ -35,7 +48,7 @@ function OrderCard({ data, noGutter, handleClick }) {
       p={3}
       mb={noGutter ? 0 : 1}
       mt={2}
-      onClick={handleClick}
+      // onClick={handleClick}
     >
       <MDBox width="100%" display="flex" flexDirection="column">
         <MDBox
@@ -45,11 +58,10 @@ function OrderCard({ data, noGutter, handleClick }) {
           flexDirection={{ xs: "row", sm: "row" }}
           mb={2}
         >
-          <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
-            {data.name}
-          </MDTypography>
-
           <MDBox display="flex" alignItems="center" mt={{ xs: 0, sm: 0 }} ml={{ xs: -1.5, sm: 0 }}>
+            <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
+              {data.name}
+            </MDTypography>
             <MDBadge
               badgeContent={
               (data.status === 2 && data.invoiceNumber !== "") ? data.invoiceNumber
@@ -58,9 +70,41 @@ function OrderCard({ data, noGutter, handleClick }) {
               variant="gradient"
               size="md"
             />
-            {/*<MDButton variant="text" color={darkMode ? "white" : "dark"}>*/}
-            {/*  <Icon>edit</Icon>&nbsp;edit*/}
-            {/*</MDButton>*/}
+          </MDBox>
+          <MDBox>
+            <IconButton
+              id="dropdown-button"
+              aria-controls={open ? 'dropdown-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? 'true' : undefined}
+              onClick={handleMenuClick}
+              variant="contained"
+            >
+              <Icon>more_vert</Icon>
+            </IconButton>
+
+            <Menu
+              id="dropdown-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              MenuListProps={{
+                'aria-labelledby': 'dropdown-button',
+              }}
+            >
+              <MenuItem onClick={() => { handleClick('edit'); console.log('Edit clicked'); }}>
+                Edit
+              </MenuItem>
+              <MenuItem onClick={() => { handleClick('packed'); console.log('Packed clicked'); }}>
+                Packed
+              </MenuItem>
+              <MenuItem onClick={() => { handleClick('shipped'); console.log('Shipped clicked'); }}>
+                Shipped
+              </MenuItem>
+              <MenuItem onClick={() => { handleClick('invoice'); console.log('Shipped clicked'); }}>
+                Set Invoice No.
+              </MenuItem>
+            </Menu>
           </MDBox>
         </MDBox>
         <MDBox mb={1} lineHeight={0}>
