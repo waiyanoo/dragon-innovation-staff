@@ -9,10 +9,14 @@ import Menu from "@mui/material/Menu";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
+import { useAuth } from "../../../../context/AuthContext";
+import { Order_Card_Actions } from "../../../../data/common";
+import order from "../../../order";
 
 function OrderCard({ data, noGutter, handleClick }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
+  const { userData } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -27,7 +31,7 @@ function OrderCard({ data, noGutter, handleClick }) {
     setAnchorEl(null);
   };
   useEffect(() => {
-    console.log(data)
+    console.log(data, userData)
   }, []);
 
   const formattedAmount = new Intl.NumberFormat("en-MM", {
@@ -97,18 +101,35 @@ function OrderCard({ data, noGutter, handleClick }) {
                 'aria-labelledby': 'dropdown-button',
               }}
             >
-              <MenuItem onClick={() => { handleMenuItemClick('edit'); console.log('Edit clicked'); }} disabled={data.status !== 0}>
-                Edit
-              </MenuItem>
-              <MenuItem onClick={() => { handleMenuItemClick('packed'); console.log('Packed clicked'); }} disabled={data.status >= 1}>
-                Packed
-              </MenuItem>
-              <MenuItem onClick={() => { handleMenuItemClick('shipped'); console.log('Shipped clicked'); }} disabled={data.status >= 2}>
-                Shipped
-              </MenuItem>
-              <MenuItem onClick={() => { handleMenuItemClick('invoice'); console.log('Shipped clicked'); }}>
-                Set Invoice No.
-              </MenuItem>
+              {
+                Order_Card_Actions.map((item) => {
+                  const hasAccess = item.roles.includes(userData.role);
+                  const isStatusAllowed = item.statuses.includes(data.status);
+                  const isDisabled = hasAccess && !isStatusAllowed;
+                  if (!hasAccess) return null;
+
+                  return (
+                    <MenuItem key={item.label} onClick={() => { handleMenuItemClick(item.type); }} disabled={isDisabled}>
+                      {item.label}
+                    </MenuItem>
+                  )
+                })
+              }
+              {/*<MenuItem onClick={() => { handleMenuItemClick('edit'); console.log('Edit clicked'); }} disabled={data.status !== 0}>*/}
+              {/*  Edit*/}
+              {/*</MenuItem>*/}
+              {/*<MenuItem onClick={() => { handleMenuItemClick('packed'); console.log('Packed clicked'); }} disabled={data.status >= 1}>*/}
+              {/*  Packed*/}
+              {/*</MenuItem>*/}
+              {/*<MenuItem onClick={() => { handleMenuItemClick('shipped'); console.log('Shipped clicked'); }} disabled={data.status >= 2}>*/}
+              {/*  Shipped*/}
+              {/*</MenuItem>*/}
+              {/*{*/}
+              {/*  userData.role === "admin" ? (<MenuItem onClick={() => { handleMenuItemClick('invoice'); console.log('Shipped clicked'); }}>*/}
+              {/*    Set Invoice No.*/}
+              {/*  </MenuItem>) : null*/}
+              {/*}*/}
+
             </Menu>
           </MDBox>
         </MDBox>
