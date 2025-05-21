@@ -21,16 +21,24 @@ import { useAuth } from "../../context/AuthContext";
 
 function Dashboard() {
   const {userData} = useAuth();
+  const [lastUpdated, setLastUpdated] = useState(null);
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToPack, setOrderToPack] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToShip, setOrderToShip] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [percentageChange, setPercentageChange] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
 
   const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
 
   useEffect(() => {
+    const now = new Date();
+    const currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    console.log("date", currentStart.toLocaleString(), nextMonthStart.toLocaleString(), previousStart.toLocaleString());
     if(userData){
       getCurrentMonthOrders();
       getSixMonthOrders();
@@ -38,8 +46,8 @@ function Dashboard() {
   }, [userData]);
 
   const getDataByDateRange = async (startDate, endDate) => {
-    const start = Timestamp.fromDate(new Date(startDate)); // e.g. "2025-05-01"
-    const end = Timestamp.fromDate(new Date(endDate));     // e.g. "2025-05-31"
+    const start = Timestamp.fromDate(new Date(startDate));
+    const end = Timestamp.fromDate(new Date(endDate));
     let constraints = [];
 
     if(userData.role === "sales") constraints.push("wholesale")
@@ -52,7 +60,7 @@ function Dashboard() {
     const q = query(
       collection(database, "orders"),
       where("createdAt", ">=", start),
-      where("createdAt", "<=", end),
+      where("createdAt", "<", end),
       where("orderType", "in", constraints),
     );
 
@@ -63,9 +71,49 @@ function Dashboard() {
   const getCurrentMonthOrders = () => {
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     getDataByDateRange(firstDay, lastDay).then(orders => {
       calculateDataForDashboard(orders)
+    });
+  }
+
+  const getOrderByType = (orders) => {
+    const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
+    const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
+    const mongdiesOrder = orders.filter(order => order.brand === 'mongdies')
+
+    return {hanskinOrder, sugarBearOrder, mongdiesOrder};
+  }
+
+  const getOrderAmountByType = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
+    const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+
+    return { hanskinTotal, sugarBearTotal, mongdiesTotal };
+  }
+
+  const getPreviousMonthOrders = (HTotal, STotal, MTotal) => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    getDataByDateRange(firstDay, lastDay).then(orders => {
+      const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
+      const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
+
+      const hanskinChange = hanskinTotal > 0
+          ? ((HTotal - hanskinTotal) / hanskinTotal) * 100
+          : 0;
+
+      const sugarbearChange = sugarBearTotal > 0
+        ? ((STotal - sugarBearTotal) / sugarBearTotal) * 100
+        : 0;
+
+      const mongdiesChange = mongdiesTotal > 0
+        ? ((MTotal - mongdiesTotal) / mongdiesTotal) * 100
+        : 0;
+
+      setPercentageChange( { hanskin : hanskinChange, sugarbear : sugarbearChange, mongdies : mongdiesChange});
     });
   }
 
@@ -73,29 +121,24 @@ function Dashboard() {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     getDataByDateRange(sixMonthsAgo, now).then(orders => {
+      setLastUpdated(new Date());
       calculateDataForShipAndPack(orders);
     })
   }
 
   const calculateDataForDashboard = (orders) => {
-    const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
-    const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
-    const mongdiesOrder = orders.filter(order => order.brand === 'mongdies')
-
+    const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
     //Calculate Total
-    const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
-    const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
-    const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
+
+    getPreviousMonthOrders(orders, hanskinTotal, sugarBearTotal, mongdiesTotal);
   }
 
   const calculateDataForShipAndPack = (orders) => {
-    const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
-    const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
-    const mongdiesOrder = orders.filter(order => order.brand === 'mongdies');
-
+    const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
     //Calculate for Chart
     setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin"));
     setSugarbearChartData(calculateForChart(sugarBearOrder, "Sugarbear"));
@@ -155,7 +198,7 @@ function Dashboard() {
                 count={formattedAmount(orderTotal.hanskin)}
                 percentage={{
                   color: "success",
-                  amount: "+55%",
+                  amount: percentageChange.hanskin,
                   label: "than last month",
                 }}
               />
@@ -170,7 +213,7 @@ function Dashboard() {
                 count={formattedAmount(orderTotal.sugarbear)}
                 percentage={{
                   color: "success",
-                  amount: "+3%",
+                  amount: percentageChange.sugarbear,
                   label: "than last month",
                 }}
               />
@@ -185,7 +228,7 @@ function Dashboard() {
                 count={formattedAmount(orderTotal.mongdies)}
                 percentage={{
                   color: "success",
-                  amount: "+1%",
+                  amount: percentageChange.mongdies,
                   label: "than last month",
                 }}
               />
@@ -212,7 +255,7 @@ function Dashboard() {
                   color="info"
                   title="Hanskin sales"
                   description="Monthly Performance"
-                  date="Just Updated"
+                  date={`Last updated: `}
                   chart={hanskinChartData}
                 />
               </MDBox>
@@ -223,7 +266,7 @@ function Dashboard() {
                   color="primary"
                   title="SugarBear sales"
                   description="Monthly Performance"
-                  date="updated 4 min ago"
+                  date={`Last updated: `}
                   chart={sugarbearChartData}
                 />
               </MDBox>
@@ -234,7 +277,7 @@ function Dashboard() {
                   color="success"
                   title="Mongdies Sales"
                   description="Monthly Performance"
-                  date="Just Updated"
+                  date={`Last updated:`}
                   chart={mongdiesChartData}
                 />
               </MDBox>
