@@ -1,20 +1,12 @@
-
-
 import { useEffect, useState } from "react";
 
 // react-router-dom components
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
-import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
 
 // @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -32,14 +24,12 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../firebase";
 
 function Basic() {
-  const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const signInClick = async () => {
     login(email, password)
@@ -71,7 +61,10 @@ function Basic() {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Sign in
+            Dragon Innovation
+          </MDTypography>
+          <MDTypography display="block" variant="button" color="white" my={1}>
+            Please log in to access the internal system.
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>

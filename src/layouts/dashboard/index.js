@@ -1,5 +1,3 @@
-
-
 // @mui material components
 import Grid from "@mui/material/Grid";
 
@@ -19,18 +17,85 @@ import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
 // Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
-import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
-import { useAuth } from "../../context/AuthContext";
-import { useEffect } from "react";
+import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
+import { database } from "../../firebase";
+import { useEffect, useState } from "react";
+import OrderInfoCard from "../../examples/Cards/OrderInfoCard";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
-  const { authUser, userData } = useAuth();
+
+  const [orders, setOrders] = useState([]);
+  const [orderTotalEach, setOrderTotalEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderToPackedEach, setOrderToPackedEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderToShippedEach, setOrderToShippedEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
 
   useEffect(() => {
-    console.log("what is", authUser, userData);
+    getCurrentMonthOrders();
   }, []);
+
+  const getDataByDateRange = async (startDate, endDate) => {
+    const start = Timestamp.fromDate(new Date(startDate)); // e.g. "2025-05-01"
+    const end = Timestamp.fromDate(new Date(endDate));     // e.g. "2025-05-31"
+
+    const q = query(
+      collection(database, "orders"),
+      where("createdAt", ">=", start),
+      where("createdAt", "<=", end)
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  const getCurrentMonthOrders = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    getDataByDateRange(firstDay, lastDay).then(orders => {
+      console.log("what is orders", orders);
+      setOrders(orders);
+      calculateDataForDashboard(orders);
+    });
+  }
+
+  const calculateDataForDashboard = (orders) => {
+    const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
+    const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
+    const mongdiesOrder = orders.filter(order => order.brand === 'mongdies')
+    console.log("orders", hanskinOrder, sugarBearOrder, mongdiesOrder);
+    //Calculate Total
+    const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+
+    //Calculate To Packed
+    const hanskinToPacked = hanskinOrder.filter(order => order.status === 0).length;
+    const sugarbearToPacked = sugarBearOrder.filter(order => order.status === 0).length;
+    const mongdiesToPacked = mongdiesOrder.filter(order => order.status === 0).length;
+
+    //Calculate To Shiped
+    const hanskinToShipped = hanskinOrder.filter(order => order.status === 1).length;
+    const sugarbearToShipped = sugarBearOrder.filter(order => order.status === 1).length;
+    const mongdiesToShipped = mongdiesOrder.filter(order => order.status === 1).length;
+
+
+    setOrderTotalEach( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal})
+    setOrderToPackedEach( { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked})
+    setOrderToShippedEach( { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
+
+    console.log("what is calculated", { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked}, { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
+  }
+
+
+
+  const formattedAmount = (value) => {
+    return  new Intl.NumberFormat("en-MM", {
+      style: "currency",
+      currency: "MMK",
+    }).format(value);
+  }
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -41,11 +106,11 @@ function Dashboard() {
               <ComplexStatisticsCard
                 icon="face"
                 title="Hanskin"
-                count={281}
+                count={formattedAmount(orderTotalEach.hanskin)}
                 percentage={{
                   color: "success",
                   amount: "+55%",
-                  label: "than last week",
+                  label: "than last month",
                 }}
               />
             </MDBox>
@@ -56,11 +121,11 @@ function Dashboard() {
                 color="primary"
                 icon="face_3"
                 title="SugarBear"
-                count="2,300"
+                count={formattedAmount(orderTotalEach.sugarbear)}
                 percentage={{
                   color: "success",
                   amount: "+3%",
-                  label: "than last week",
+                  label: "than last month",
                 }}
               />
             </MDBox>
@@ -71,17 +136,28 @@ function Dashboard() {
                 color="success"
                 icon="child_care"
                 title="Mongdies"
-                count="34k"
+                count={formattedAmount(orderTotalEach.mongdies)}
                 percentage={{
                   color: "success",
                   amount: "+1%",
-                  label: "than last week",
+                  label: "than last month",
                 }}
               />
             </MDBox>
           </Grid>
         </Grid>
-        <MDBox mt={4.5}>
+        <MDBox mt={3}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={112} lg={12}>
+              <OrderInfoCard
+                color="primary"
+                icon="local_shipping"
+                toShip={orderToShippedEach}
+                toPack={orderToPackedEach}/>
+            </Grid>
+          </Grid>
+        </MDBox>
+        <MDBox mt={5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
