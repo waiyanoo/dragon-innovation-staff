@@ -52,6 +52,19 @@ const routes = [
   },
   {
     type: "collapse",
+    name: "Profile",
+    key: "profile",
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/profile",
+    routeToGo: "/profile",
+    component:(
+      <PrivateRoute>
+        <Profile />
+      </PrivateRoute>
+    )
+  },
+  {
+    type: "collapse",
     name: "Order",
     key: "order",
     icon: <Icon fontSize="small">shopping_cart</Icon>,
@@ -77,7 +90,7 @@ const routes = [
     ),
   },
   {
-    type: "collapse",
+    type: "",
     name: "Tables",
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
@@ -86,7 +99,7 @@ const routes = [
     component: <Tables />,
   },
   {
-    type: "collapse",
+    type: "",
     name: "Billing",
     key: "billing",
     icon: <Icon fontSize="small">receipt_long</Icon>,
@@ -95,26 +108,13 @@ const routes = [
     component: <Billing />,
   },
   {
-    type: "collapse",
+    type: "",
     name: "Notifications",
     key: "notifications",
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
     routeToGo: "/notifications",
     component: <Notifications />,
-  },
-  {
-    type: "collapse",
-    name: "Profile",
-    key: "profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/profile",
-    routeToGo: "/profile",
-    component:(
-      <PrivateRoute>
-        <Profile />
-      </PrivateRoute>
-    )
   },
   {
     type: "",

@@ -16,7 +16,6 @@ import ProfileInfoCard from "examples/Cards/InfoCards/ProfileInfoCard";
 
 // Overview page components
 import Header from "layouts/profile/components/Header";
-import PlatformSettings from "layouts/profile/components/PlatformSettings";
 import { useAuth } from "../../context/AuthContext";
 
 // Data
@@ -36,7 +35,6 @@ function Overview() {
               <Divider orientation="vertical" sx={{ ml: -2, mr: 1 }} />
               <ProfileInfoCard
                 title="profile information"
-                description="Hi, Pleaes fill the information."
                 info={{
                   Name: userData.name,
                   mobile: userData.mobile,

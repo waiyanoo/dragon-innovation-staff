@@ -76,6 +76,7 @@ function Order() {
   const save = async () => {
     const data ={
       ...formData,
+      orderType: userData.role === 'sales' ? 'wholesale' : "retail",
       brand: brand,
       createdBy: userData.name,
       createdAt: serverTimestamp(),
@@ -117,7 +118,6 @@ function Order() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // prevent page reload
-    console.log("Form submitted:", formData);
     if(id){
       await update();
     } else {

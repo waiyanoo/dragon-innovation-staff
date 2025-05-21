@@ -12,15 +12,15 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 // Data
-
 // Dashboard components
 import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
 import OrderInfoCard from "../../examples/Cards/OrderInfoCard";
+import { useAuth } from "../../context/AuthContext";
 
 function Dashboard() {
-  const [orders, setOrders] = useState([]);
+  const {userData} = useAuth();
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToPack, setOrderToPack] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
@@ -31,18 +31,29 @@ function Dashboard() {
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
 
   useEffect(() => {
-    getCurrentMonthOrders();
-    getSixMonthOrders();
-  }, []);
+    if(userData){
+      getCurrentMonthOrders();
+      getSixMonthOrders();
+    }
+  }, [userData]);
 
   const getDataByDateRange = async (startDate, endDate) => {
     const start = Timestamp.fromDate(new Date(startDate)); // e.g. "2025-05-01"
     const end = Timestamp.fromDate(new Date(endDate));     // e.g. "2025-05-31"
+    let constraints = [];
+
+    if(userData.role === "sales") constraints.push("wholesale")
+    else if(userData.role === "page_admin") constraints.push("retail")
+    else {
+      constraints.push("retail");
+      constraints.push("wholesale");
+    }
 
     const q = query(
       collection(database, "orders"),
       where("createdAt", ">=", start),
-      where("createdAt", "<=", end)
+      where("createdAt", "<=", end),
+      where("orderType", "in", constraints),
     );
 
     const snapshot = await getDocs(q);
