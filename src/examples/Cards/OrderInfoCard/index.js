@@ -4,12 +4,8 @@ import Card from "@mui/material/Card";
 import MDTypography from "../../../components/MDTypography";
 import Divider from "@mui/material/Divider";
 import PropTypes from "prop-types";
-import {useEffect} from "react";
 
-function OrderInfoCard({toPack, toShip, icon, color}){
-  useEffect(() => {
-    // console.log("what is in ordercard", toPack, toShip)
-  }, []);
+function OrderInfoCard({toPack, count, toShip, icon, color}){
   return (
     <Card>
       <MDBox display="flex" justifyContent="left" pt={1} px={2}>
@@ -32,13 +28,38 @@ function OrderInfoCard({toPack, toShip, icon, color}){
         </MDBox>
         <MDBox textAlign="right" lineHeight={1.25} ml={3}>
           <MDTypography variant="h4">
-            Orders status
+            Orders Status
           </MDTypography>
         </MDBox>
       </MDBox>
       <Divider />
       <MDBox pb={2} px={2}>
-        <MDTypography variant="h6">
+        <MDTypography variant="h5">
+          Number of orders
+        </MDTypography>
+        <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
+          <MDTypography variant="h6" fontWeight="medium">
+            Hanskin&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="h4" color="text">
+              {count.hanskin}
+            </MDTypography>
+          </MDTypography>
+          <MDTypography variant="h6" fontWeight="medium">
+            Sugarbear&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="h4" color="text">
+              {count.sugarbear}
+            </MDTypography>
+          </MDTypography>
+          <MDTypography variant="h6" fontWeight="medium">
+            Mongdies&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="h4" color="text">
+              {count.mongdies}
+            </MDTypography>
+          </MDTypography>
+        </MDBox>
+        <Divider />
+
+        <MDTypography variant="h5">
           Orders to pack
         </MDTypography>
         <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
@@ -62,7 +83,8 @@ function OrderInfoCard({toPack, toShip, icon, color}){
           </MDTypography>
         </MDBox>
         <Divider />
-        <MDTypography variant="h6">
+
+        <MDTypography variant="h5">
           Orders to ship
         </MDTypography>
         <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
@@ -102,6 +124,7 @@ OrderInfoCard.propTypes = {
     "dark",
   ]),
   icon: PropTypes.string.isRequired,
+  count: PropTypes.object.isRequired,
   toPack: PropTypes.object.isRequired,
   toShip: PropTypes.object.isRequired,
 }

@@ -8,13 +8,10 @@ import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 // Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
 // Dashboard components
 import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
@@ -23,15 +20,19 @@ import { useEffect, useState } from "react";
 import OrderInfoCard from "../../examples/Cards/OrderInfoCard";
 
 function Dashboard() {
-  const { sales, tasks } = reportsLineChartData;
-
   const [orders, setOrders] = useState([]);
-  const [orderTotalEach, setOrderTotalEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
-  const [orderToPackedEach, setOrderToPackedEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
-  const [orderToShippedEach, setOrderToShippedEach] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderToPack, setOrderToPack] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [orderToShip, setOrderToShip] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+
+  const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
+  const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
+  const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
 
   useEffect(() => {
     getCurrentMonthOrders();
+    getSixMonthOrders();
   }, []);
 
   const getDataByDateRange = async (startDate, endDate) => {
@@ -53,21 +54,41 @@ function Dashboard() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     getDataByDateRange(firstDay, lastDay).then(orders => {
-      console.log("what is orders", orders);
-      setOrders(orders);
-      calculateDataForDashboard(orders);
+      calculateDataForDashboard(orders)
     });
+  }
+
+  const getSixMonthOrders = () => {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    getDataByDateRange(sixMonthsAgo, now).then(orders => {
+      calculateDataForShipAndPack(orders);
+    })
   }
 
   const calculateDataForDashboard = (orders) => {
     const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
     const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
     const mongdiesOrder = orders.filter(order => order.brand === 'mongdies')
-    console.log("orders", hanskinOrder, sugarBearOrder, mongdiesOrder);
+
     //Calculate Total
     const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
     const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
     const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+
+    setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
+    setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
+  }
+
+  const calculateDataForShipAndPack = (orders) => {
+    const hanskinOrder = orders.filter(order => order.brand === 'hanskin');
+    const sugarBearOrder = orders.filter(order => order.brand === 'sugarbear');
+    const mongdiesOrder = orders.filter(order => order.brand === 'mongdies');
+
+    //Calculate for Chart
+    setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin"));
+    setSugarbearChartData(calculateForChart(sugarBearOrder, "Sugarbear"));
+    setMongdiesChartData(calculateForChart(mongdiesOrder, "mongdies"));
 
     //Calculate To Packed
     const hanskinToPacked = hanskinOrder.filter(order => order.status === 0).length;
@@ -79,14 +100,28 @@ function Dashboard() {
     const sugarbearToShipped = sugarBearOrder.filter(order => order.status === 1).length;
     const mongdiesToShipped = mongdiesOrder.filter(order => order.status === 1).length;
 
-
-    setOrderTotalEach( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal})
-    setOrderToPackedEach( { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked})
-    setOrderToShippedEach( { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
-
-    console.log("what is calculated", { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked}, { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
+    setOrderToPack( { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked})
+    setOrderToShip( { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
   }
 
+  const calculateForChart = (data, label) => {
+    const result = {};
+    const now = new Date();
+    data.forEach(item => {
+      const date = item.createdAt.toDate(); // convert Firestore Timestamp
+      const month = date.toLocaleString("default", { month: "short" }); // e.g., "May 2025"
+
+      if (!result[month]) result[month] = 0;
+      result[month] += +item.amount || 0;
+    });
+
+    const months = [...Array(6)].map((_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i);
+      return d.toLocaleString("default", { month: "short" });
+    });
+
+    return {labels : months, datasets : {label, data: months.map(m => (  result[m] || 0))}}
+  }
 
 
   const formattedAmount = (value) => {
@@ -106,7 +141,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 icon="face"
                 title="Hanskin"
-                count={formattedAmount(orderTotalEach.hanskin)}
+                count={formattedAmount(orderTotal.hanskin)}
                 percentage={{
                   color: "success",
                   amount: "+55%",
@@ -121,7 +156,7 @@ function Dashboard() {
                 color="primary"
                 icon="face_3"
                 title="SugarBear"
-                count={formattedAmount(orderTotalEach.sugarbear)}
+                count={formattedAmount(orderTotal.sugarbear)}
                 percentage={{
                   color: "success",
                   amount: "+3%",
@@ -136,7 +171,7 @@ function Dashboard() {
                 color="success"
                 icon="child_care"
                 title="Mongdies"
-                count={formattedAmount(orderTotalEach.mongdies)}
+                count={formattedAmount(orderTotal.mongdies)}
                 percentage={{
                   color: "success",
                   amount: "+1%",
@@ -152,21 +187,22 @@ function Dashboard() {
               <OrderInfoCard
                 color="primary"
                 icon="local_shipping"
-                toShip={orderToShippedEach}
-                toPack={orderToPackedEach}/>
+                count={orderTotalCount}
+                toShip={orderToShip}
+                toPack={orderToPack}/>
             </Grid>
           </Grid>
         </MDBox>
-        <MDBox mt={5}>
+        <MDBox mt={6.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
-                <ReportsBarChart
+                <ReportsLineChart
                   color="info"
-                  title="Hanskin Sales"
+                  title="Hanskin sales"
                   description="Monthly Performance"
                   date="Just Updated"
-                  chart={reportsBarChartData}
+                  chart={hanskinChartData}
                 />
               </MDBox>
             </Grid>
@@ -177,7 +213,7 @@ function Dashboard() {
                   title="SugarBear sales"
                   description="Monthly Performance"
                   date="updated 4 min ago"
-                  chart={sales}
+                  chart={sugarbearChartData}
                 />
               </MDBox>
             </Grid>
@@ -188,7 +224,7 @@ function Dashboard() {
                   title="Mongdies Sales"
                   description="Monthly Performance"
                   date="Just Updated"
-                  chart={tasks}
+                  chart={mongdiesChartData}
                 />
               </MDBox>
             </Grid>
