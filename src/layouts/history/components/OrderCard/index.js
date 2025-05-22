@@ -40,8 +40,10 @@ function OrderCard({ data, noGutter, handleClick }) {
   }).format(data.amount);
 
   const TimestampDisplay = ( timestamp ) => {
-    const date = timestamp.toDate();
+    // const date = timestamp.toDate();
+    const date = new Date(timestamp);
     return <p>{date.toLocaleString()}</p>;
+    // return "2021-09-23 12:00:00"
   }
 
   // const formattedDate = new Date(data.updatedAt).toLocaleString();

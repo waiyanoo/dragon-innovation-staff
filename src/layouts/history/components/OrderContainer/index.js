@@ -20,6 +20,9 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import MDSnackbar from "../../../../components/MDSnackbar";
 import { useAuth } from "../../../../context/AuthContext";
+import { liteClient as algoliasearch } from 'algoliasearch/lite';
+import { Hits, InstantSearch, SearchBox } from "react-instantsearch";
+import MDInput from "../../../../components/MDInput";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
@@ -30,6 +33,10 @@ function OrderContainer({ brand }) {
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const searchClient = algoliasearch(
+    'LUQUCJ1X7P',
+    'eee17237305148cd06aa66b6fc86d680'
+  );
 
   useEffect(() => {
     filerOrders();
@@ -124,6 +131,16 @@ function OrderContainer({ brand }) {
       bgWhite
     />
   );
+  const queryHook = (query, search) => {
+    console.log("what is query", query, search(query))
+    search(query);
+  };
+
+  const Hit = ({ hit }) => {
+    return (
+      <OrderCard key={hit.id} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
+    )
+  }
 
   return (
     <>
@@ -155,13 +172,19 @@ function OrderContainer({ brand }) {
             </Select>
           </FormControl>
         </MDBox>
+        <MDBox p={2}>
+          <InstantSearch indexName="Dragon" searchClient={searchClient}>
+            <SearchBox  queryHook={queryHook} placeholder="Search for products" />
+            <Hits hitComponent={Hit} />
+          </InstantSearch>
+        </MDBox>
         <MDBox pt={1} pb={2} px={2}>
           <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
-            {
-              orders.map(order => (
-                <OrderCard key={order.id} data={order} noGutter handleClick={(e) => handleOrderCardClick(e, order)} />
-              ))
-            }
+            {/*{*/}
+            {/*  orders.map(order => (*/}
+            {/*    <OrderCard key={order} data={order} noGutter handleClick={(e) => handleOrderCardClick(e, order)} />*/}
+            {/*  ))*/}
+            {/*}*/}
           </MDBox>
           <MDBox>
             {
@@ -193,6 +216,7 @@ function OrderContainer({ brand }) {
 
 OrderContainer.propTypes = {
   brand: PropTypes.string.isRequired,
+  hit: PropTypes.object
 };
 
 export default OrderContainer;
