@@ -1,0 +1,1888 @@
+[debug] [2025-05-23T08:47:32.551Z] ----------------------------------------------------------------------
+[debug] [2025-05-23T08:47:32.552Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\waiya\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions
+[debug] [2025-05-23T08:47:32.553Z] CLI Version:   14.4.0
+[debug] [2025-05-23T08:47:32.553Z] Platform:      win32
+[debug] [2025-05-23T08:47:32.553Z] Node Version:  v20.19.2
+[debug] [2025-05-23T08:47:32.553Z] Time:          Fri May 23 2025 16:47:32 GMT+0800 (Singapore Standard Time)
+[debug] [2025-05-23T08:47:32.553Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-05-23T08:47:32.721Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-05-23T08:47:32.721Z] > authorizing via signed-in user (waiyanoo.mgk@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2025-05-23T08:47:32.729Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-23T08:47:32.729Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-05-23T08:47:32.733Z] [hub] writing locator at C:\Users\waiya\AppData\Local\Temp\hub-dg-auth-e9448.json
+[debug] [2025-05-23T08:47:32.747Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-23T08:47:32.748Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-23T08:47:32.748Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-05-23T08:47:32.748Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2025-05-23T08:47:32.760Z] defaultcredentials: writing to file C:\Users\waiya\AppData\Roaming\firebase\waiyanoo_mgk_gmail.com_application_default_credentials.json
+[debug] [2025-05-23T08:47:32.761Z] Setting GAC to C:\Users\waiya\AppData\Roaming\firebase\waiyanoo_mgk_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\waiya\\AppData\\Roaming\\firebase\\waiyanoo_mgk_gmail.com_application_default_credentials.json"}}
+[debug] [2025-05-23T08:47:32.762Z] Checked if tokens are valid: true, expires at: 1747993046443
+[debug] [2025-05-23T08:47:32.762Z] Checked if tokens are valid: true, expires at: 1747993046443
+[debug] [2025-05-23T08:47:32.763Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448/adminSdkConfig [none]
+[debug] [2025-05-23T08:47:33.446Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448/adminSdkConfig 200
+[debug] [2025-05-23T08:47:33.447Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448/adminSdkConfig {"projectId":"dg-auth-e9448","databaseURL":"https://dg-auth-e9448-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"dg-auth-e9448.firebasestorage.app"}
+[info] i  functions: Watching "D:\Dragon Innovation\dragon-innovation-staff\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"D:\\Dragon Innovation\\dragon-innovation-staff\\functions\" for Cloud Functions..."}}
+[debug] [2025-05-23T08:47:33.473Z] Validating nodejs source
+[debug] [2025-05-23T08:47:34.493Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:47:34.494Z] Building nodejs source
+[debug] [2025-05-23T08:47:34.494Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:47:34.497Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:47:34.502Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8391
+
+[error] TypeError: algoliasearch is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:28:16)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:47:34.936Z] Got response code 400; body Failed to generate manifest from function source: TypeError: algoliasearch is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:47:38.968Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2025-05-23T08:50:22.891Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:50:23.902Z] Validating nodejs source
+[debug] [2025-05-23T08:50:24.619Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:50:24.619Z] Building nodejs source
+[debug] [2025-05-23T08:50:24.620Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:50:24.620Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:50:24.626Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8216
+
+[error] TypeError: algoliasearch is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:28:16)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:50:25.069Z] Got response code 400; body Failed to generate manifest from function source: TypeError: algoliasearch is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:51:10.888Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:51:11.901Z] Validating nodejs source
+[debug] [2025-05-23T08:51:12.669Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:51:12.669Z] Building nodejs source
+[debug] [2025-05-23T08:51:12.669Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:51:12.670Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:51:12.675Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8419
+
+[info] what is algo undefined
+
+[error] TypeError: algoliasearch is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:29:16)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:51:13.130Z] Got response code 400; body Failed to generate manifest from function source: TypeError: algoliasearch is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:51:45.038Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:51:46.043Z] Validating nodejs source
+[debug] [2025-05-23T08:51:46.800Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:51:46.800Z] Building nodejs source
+[debug] [2025-05-23T08:51:46.801Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:51:46.802Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:51:46.812Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8879
+
+[info] what is algo [Function: algoliasearch]
+
+[error] TypeError: client.initIndex is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:51:47.290Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.initIndex is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:52:14.420Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:52:15.435Z] Validating nodejs source
+[debug] [2025-05-23T08:52:16.175Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:52:16.175Z] Building nodejs source
+[debug] [2025-05-23T08:52:16.175Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:52:16.176Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:52:16.181Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8022
+
+[info] what is algo {
+  transporter: {
+    hostsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    requester: { send: [Function: send] },
+    timeouts: { connect: 2000, read: 5000, write: 30000 },
+    logger: {
+      debug: [Function: debug],
+      info: [Function: info],
+      error: [Function: error]
+    },
+    algoliaAgent: {
+      value: 'Algolia for JavaScript (5.25.0); Search (5.25.0); Node.js (20.19.2)',
+      add: [Function: add]
+    },
+    baseHeaders: {
+      'content-type': 'text/plain',
+      'x-algolia-api-key': '26bec2fffc79ba517291e2d15fea6dc4',
+      'x-algolia-application-id': 'LUQUCJ1X7P'
+    },
+    baseQueryParameters: {},
+    hosts: [ [Object], [Object], [Object], [Object], [Object] ],
+    request: [Function: createRequest],
+    requestsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    responsesCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    }
+  },
+  appId: 'LUQUCJ1X7P',
+  apiKey: '26bec2fffc79ba517291e2d15fea6dc4',
+  clearCache: [Function: clearCache],
+  _ua: [Getter],
+  addAlgoliaAgent: [Function: addAlgoliaAgent],
+  setClientApiKey: [Function: setClientApiKey],
+  waitForTask: [Function: waitForTask],
+  waitForAppTask: [Function: waitForAppTask],
+  waitForApiKey: [Function: waitForApiKey],
+  browseObjects: [Function: browseObjects],
+  browseRules: [Function: browseRules],
+  browseSynonyms: [Function: browseSynonyms],
+  chunkedBatch: [AsyncFunction: chunkedBatch],
+  saveObjects: [AsyncFunction: saveObjects],
+  deleteObjects: [AsyncFunction: deleteObjects],
+  partialUpdateObjects: [AsyncFunction: partialUpdateObjects],
+  replaceAllObjects: [AsyncFunction: replaceAllObjects],
+  indexExists: [AsyncFunction: indexExists],
+  searchForHits: [Function: searchForHits],
+  searchForFacets: [Function: searchForFacets],
+  addApiKey: [Function: addApiKey],
+  addOrUpdateObject: [Function: addOrUpdateObject],
+  appendSource: [Function: appendSource],
+  assignUserId: [Function: assignUserId],
+  batch: [Function: batch],
+  batchAssignUserIds: [Function: batchAssignUserIds],
+  batchDictionaryEntries: [Function: batchDictionaryEntries],
+  browse: [Function: browse],
+  clearObjects: [Function: clearObjects],
+  clearRules: [Function: clearRules],
+  clearSynonyms: [Function: clearSynonyms],
+  customDelete: [Function: customDelete],
+  customGet: [Function: customGet],
+  customPost: [Function: customPost],
+  customPut: [Function: customPut],
+  deleteApiKey: [Function: deleteApiKey],
+  deleteBy: [Function: deleteBy],
+  deleteIndex: [Function: deleteIndex],
+  deleteObject: [Function: deleteObject],
+  deleteRule: [Function: deleteRule],
+  deleteSource: [Function: deleteSource],
+  deleteSynonym: [Function: deleteSynonym],
+  getApiKey: [Function: getApiKey],
+  getAppTask: [Function: getAppTask],
+  getDictionaryLanguages: [Function: getDictionaryLanguages],
+  getDictionarySettings: [Function: getDictionarySettings],
+  getLogs: [Function: getLogs],
+  getObject: [Function: getObject],
+  getObjects: [Function: getObjects],
+  getRule: [Function: getRule],
+  getSettings: [Function: getSettings],
+  getSources: [Function: getSources],
+  getSynonym: [Function: getSynonym],
+  getTask: [Function: getTask],
+  getTopUserIds: [Function: getTopUserIds],
+  getUserId: [Function: getUserId],
+  hasPendingMappings: [Function: hasPendingMappings],
+  listApiKeys: [Function: listApiKeys],
+  listClusters: [Function: listClusters],
+  listIndices: [Function: listIndices],
+  listUserIds: [Function: listUserIds],
+  multipleBatch: [Function: multipleBatch],
+  operationIndex: [Function: operationIndex],
+  partialUpdateObject: [Function: partialUpdateObject],
+  removeUserId: [Function: removeUserId],
+  replaceSources: [Function: replaceSources],
+  restoreApiKey: [Function: restoreApiKey],
+  saveObject: [Function: saveObject],
+  saveRule: [Function: saveRule],
+  saveRules: [Function: saveRules],
+  saveSynonym: [Function: saveSynonym],
+  saveSynonyms: [Function: saveSynonyms],
+  search: [Function: search],
+  searchDictionaryEntries: [Function: searchDictionaryEntries],
+  searchForFacetValues: [Function: searchForFacetValues],
+  searchRules: [Function: searchRules],
+  searchSingleIndex: [Function: searchSingleIndex],
+  searchSynonyms: [Function: searchSynonyms],
+  searchUserIds: [Function: searchUserIds],
+  setDictionarySettings: [Function: setDictionarySettings],
+  setSettings: [Function: setSettings],
+  updateApiKey: [Function: updateApiKey],
+  generateSecuredApiKey: [Function: generateSecuredApiKey],
+  accountCopyIndex: [AsyncFunction: accountCopyIndex],
+  getSecuredApiKeyRemainingValidity: [Function: getSecuredApiKeyRemainingValidity],
+  initAbtesting: [Function: initAbtesting],
+  initAnalytics: [Function: initAnalytics],
+  initIngestion: [Function: initIngestion],
+  initInsights: [Function: initInsights],
+  initMonitoring: [Function: initMonitoring],
+  initPersonalization: [Function: initPersonalization],
+  initQuerySuggestions: [Function: initQuerySuggestions],
+  initRecommend: [Function: initRecommend]
+}
+
+[error] TypeError: client.initIndex is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:52:16.615Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.initIndex is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:54:21.299Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:54:22.303Z] Validating nodejs source
+[debug] [2025-05-23T08:54:23.086Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:54:23.086Z] Building nodejs source
+[debug] [2025-05-23T08:54:23.087Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:54:23.087Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:54:23.092Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8342
+
+[info] what is algo {
+  transporter: {
+    hostsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    requester: { send: [Function: send] },
+    timeouts: { connect: 2000, read: 5000, write: 30000 },
+    logger: {
+      debug: [Function: debug],
+      info: [Function: info],
+      error: [Function: error]
+    },
+    algoliaAgent: {
+      value: 'Algolia for JavaScript (5.25.0); Search (5.25.0); Node.js (20.19.2)',
+      add: [Function: add]
+    },
+    baseHeaders: {
+      'content-type': 'text/plain',
+      'x-algolia-api-key': '26bec2fffc79ba517291e2d15fea6dc4',
+      'x-algolia-application-id': 'LUQUCJ1X7P'
+    },
+    baseQueryParameters: {},
+    hosts: [ [Object], [Object], [Object], [Object], [Object] ],
+    request: [Function: createRequest],
+    requestsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    responsesCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    }
+  },
+  appId: 'LUQUCJ1X7P',
+  apiKey: '26bec2fffc79ba517291e2d15fea6dc4',
+  clearCache: [Function: clearCache],
+  _ua: [Getter],
+  addAlgoliaAgent: [Function: addAlgoliaAgent],
+  setClientApiKey: [Function: setClientApiKey],
+  waitForTask: [Function: waitForTask],
+  waitForAppTask: [Function: waitForAppTask],
+  waitForApiKey: [Function: waitForApiKey],
+  browseObjects: [Function: browseObjects],
+  browseRules: [Function: browseRules],
+  browseSynonyms: [Function: browseSynonyms],
+  chunkedBatch: [AsyncFunction: chunkedBatch],
+  saveObjects: [AsyncFunction: saveObjects],
+  deleteObjects: [AsyncFunction: deleteObjects],
+  partialUpdateObjects: [AsyncFunction: partialUpdateObjects],
+  replaceAllObjects: [AsyncFunction: replaceAllObjects],
+  indexExists: [AsyncFunction: indexExists],
+  searchForHits: [Function: searchForHits],
+  searchForFacets: [Function: searchForFacets],
+  addApiKey: [Function: addApiKey],
+  addOrUpdateObject: [Function: addOrUpdateObject],
+  appendSource: [Function: appendSource],
+  assignUserId: [Function: assignUserId],
+  batch: [Function: batch],
+  batchAssignUserIds: [Function: batchAssignUserIds],
+  batchDictionaryEntries: [Function: batchDictionaryEntries],
+  browse: [Function: browse],
+  clearObjects: [Function: clearObjects],
+  clearRules: [Function: clearRules],
+  clearSynonyms: [Function: clearSynonyms],
+  customDelete: [Function: customDelete],
+  customGet: [Function: customGet],
+  customPost: [Function: customPost],
+  customPut: [Function: customPut],
+  deleteApiKey: [Function: deleteApiKey],
+  deleteBy: [Function: deleteBy],
+  deleteIndex: [Function: deleteIndex],
+  deleteObject: [Function: deleteObject],
+  deleteRule: [Function: deleteRule],
+  deleteSource: [Function: deleteSource],
+  deleteSynonym: [Function: deleteSynonym],
+  getApiKey: [Function: getApiKey],
+  getAppTask: [Function: getAppTask],
+  getDictionaryLanguages: [Function: getDictionaryLanguages],
+  getDictionarySettings: [Function: getDictionarySettings],
+  getLogs: [Function: getLogs],
+  getObject: [Function: getObject],
+  getObjects: [Function: getObjects],
+  getRule: [Function: getRule],
+  getSettings: [Function: getSettings],
+  getSources: [Function: getSources],
+  getSynonym: [Function: getSynonym],
+  getTask: [Function: getTask],
+  getTopUserIds: [Function: getTopUserIds],
+  getUserId: [Function: getUserId],
+  hasPendingMappings: [Function: hasPendingMappings],
+  listApiKeys: [Function: listApiKeys],
+  listClusters: [Function: listClusters],
+  listIndices: [Function: listIndices],
+  listUserIds: [Function: listUserIds],
+  multipleBatch: [Function: multipleBatch],
+  operationIndex: [Function: operationIndex],
+  partialUpdateObject: [Function: partialUpdateObject],
+  removeUserId: [Function: removeUserId],
+  replaceSources: [Function: replaceSources],
+  restoreApiKey: [Function: restoreApiKey],
+  saveObject: [Function: saveObject],
+  saveRule: [Function: saveRule],
+  saveRules: [Function: saveRules],
+  saveSynonym: [Function: saveSynonym],
+  saveSynonyms: [Function: saveSynonyms],
+  search: [Function: search],
+  searchDictionaryEntries: [Function: searchDictionaryEntries],
+  searchForFacetValues: [Function: searchForFacetValues],
+  searchRules: [Function: searchRules],
+  searchSingleIndex: [Function: searchSingleIndex],
+  searchSynonyms: [Function: searchSynonyms],
+  searchUserIds: [Function: searchUserIds],
+  setDictionarySettings: [Function: setDictionarySettings],
+  setSettings: [Function: setSettings],
+  updateApiKey: [Function: updateApiKey],
+  generateSecuredApiKey: [Function: generateSecuredApiKey],
+  accountCopyIndex: [AsyncFunction: accountCopyIndex],
+  getSecuredApiKeyRemainingValidity: [Function: getSecuredApiKeyRemainingValidity],
+  initAbtesting: [Function: initAbtesting],
+  initAnalytics: [Function: initAnalytics],
+  initIngestion: [Function: initIngestion],
+  initInsights: [Function: initInsights],
+  initMonitoring: [Function: initMonitoring],
+  initPersonalization: [Function: initPersonalization],
+  initQuerySuggestions: [Function: initQuerySuggestions],
+  initRecommend: [Function: initRecommend]
+}
+
+[error] TypeError: client.index is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:54:23.546Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.index is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:56:10.772Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:56:11.775Z] Validating nodejs source
+[debug] [2025-05-23T08:56:12.575Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:56:12.575Z] Building nodejs source
+[debug] [2025-05-23T08:56:12.575Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:56:12.576Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:56:12.581Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8552
+
+[info] what is algo {
+  transporter: {
+    hostsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    requester: { send: [Function: send] },
+    timeouts: { connect: 2000, read: 5000, write: 30000 },
+    logger: {
+      debug: [Function: debug],
+      info: [Function: info],
+      error: [Function: error]
+    },
+    algoliaAgent: {
+      value: 'Algolia for JavaScript (5.25.0); Search (5.25.0); Node.js (20.19.2)',
+      add: [Function: add]
+    },
+    baseHeaders: {
+      'content-type': 'text/plain',
+      'x-algolia-api-key': '26bec2fffc79ba517291e2d15fea6dc4',
+      'x-algolia-application-id': 'LUQUCJ1X7P'
+    },
+    baseQueryParameters: {},
+    hosts: [ [Object], [Object], [Object], [Object], [Object] ],
+    request: [Function: createRequest],
+    requestsCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    },
+    responsesCache: {
+      get: [Function: get],
+      set: [Function: set],
+      delete: [Function: delete],
+      clear: [Function: clear]
+    }
+  },
+  appId: 'LUQUCJ1X7P',
+  apiKey: '26bec2fffc79ba517291e2d15fea6dc4',
+  clearCache: [Function: clearCache],
+  _ua: [Getter],
+  addAlgoliaAgent: [Function: addAlgoliaAgent],
+  setClientApiKey: [Function: setClientApiKey],
+  waitForTask: [Function: waitForTask],
+  waitForAppTask: [Function: waitForAppTask],
+  waitForApiKey: [Function: waitForApiKey],
+  browseObjects: [Function: browseObjects],
+  browseRules: [Function: browseRules],
+  browseSynonyms: [Function: browseSynonyms],
+  chunkedBatch: [AsyncFunction: chunkedBatch],
+  saveObjects: [AsyncFunction: saveObjects],
+  deleteObjects: [AsyncFunction: deleteObjects],
+  partialUpdateObjects: [AsyncFunction: partialUpdateObjects],
+  replaceAllObjects: [AsyncFunction: replaceAllObjects],
+  indexExists: [AsyncFunction: indexExists],
+  searchForHits: [Function: searchForHits],
+  searchForFacets: [Function: searchForFacets],
+  addApiKey: [Function: addApiKey],
+  addOrUpdateObject: [Function: addOrUpdateObject],
+  appendSource: [Function: appendSource],
+  assignUserId: [Function: assignUserId],
+  batch: [Function: batch],
+  batchAssignUserIds: [Function: batchAssignUserIds],
+  batchDictionaryEntries: [Function: batchDictionaryEntries],
+  browse: [Function: browse],
+  clearObjects: [Function: clearObjects],
+  clearRules: [Function: clearRules],
+  clearSynonyms: [Function: clearSynonyms],
+  customDelete: [Function: customDelete],
+  customGet: [Function: customGet],
+  customPost: [Function: customPost],
+  customPut: [Function: customPut],
+  deleteApiKey: [Function: deleteApiKey],
+  deleteBy: [Function: deleteBy],
+  deleteIndex: [Function: deleteIndex],
+  deleteObject: [Function: deleteObject],
+  deleteRule: [Function: deleteRule],
+  deleteSource: [Function: deleteSource],
+  deleteSynonym: [Function: deleteSynonym],
+  getApiKey: [Function: getApiKey],
+  getAppTask: [Function: getAppTask],
+  getDictionaryLanguages: [Function: getDictionaryLanguages],
+  getDictionarySettings: [Function: getDictionarySettings],
+  getLogs: [Function: getLogs],
+  getObject: [Function: getObject],
+  getObjects: [Function: getObjects],
+  getRule: [Function: getRule],
+  getSettings: [Function: getSettings],
+  getSources: [Function: getSources],
+  getSynonym: [Function: getSynonym],
+  getTask: [Function: getTask],
+  getTopUserIds: [Function: getTopUserIds],
+  getUserId: [Function: getUserId],
+  hasPendingMappings: [Function: hasPendingMappings],
+  listApiKeys: [Function: listApiKeys],
+  listClusters: [Function: listClusters],
+  listIndices: [Function: listIndices],
+  listUserIds: [Function: listUserIds],
+  multipleBatch: [Function: multipleBatch],
+  operationIndex: [Function: operationIndex],
+  partialUpdateObject: [Function: partialUpdateObject],
+  removeUserId: [Function: removeUserId],
+  replaceSources: [Function: replaceSources],
+  restoreApiKey: [Function: restoreApiKey],
+  saveObject: [Function: saveObject],
+  saveRule: [Function: saveRule],
+  saveRules: [Function: saveRules],
+  saveSynonym: [Function: saveSynonym],
+  saveSynonyms: [Function: saveSynonyms],
+  search: [Function: search],
+  searchDictionaryEntries: [Function: searchDictionaryEntries],
+  searchForFacetValues: [Function: searchForFacetValues],
+  searchRules: [Function: searchRules],
+  searchSingleIndex: [Function: searchSingleIndex],
+  searchSynonyms: [Function: searchSynonyms],
+  searchUserIds: [Function: searchUserIds],
+  setDictionarySettings: [Function: setDictionarySettings],
+  setSettings: [Function: setSettings],
+  updateApiKey: [Function: updateApiKey],
+  generateSecuredApiKey: [Function: generateSecuredApiKey],
+  accountCopyIndex: [AsyncFunction: accountCopyIndex],
+  getSecuredApiKeyRemainingValidity: [Function: getSecuredApiKeyRemainingValidity],
+  initAbtesting: [Function: initAbtesting],
+  initAnalytics: [Function: initAnalytics],
+  initIngestion: [Function: initIngestion],
+  initInsights: [Function: initInsights],
+  initMonitoring: [Function: initMonitoring],
+  initPersonalization: [Function: initPersonalization],
+  initQuerySuggestions: [Function: initQuerySuggestions],
+  initRecommend: [Function: initRecommend]
+}
+
+[error] TypeError: client.get is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:56:13.088Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.get is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:56:17.996Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:56:19.001Z] Validating nodejs source
+[debug] [2025-05-23T08:56:19.688Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:56:19.688Z] Building nodejs source
+[debug] [2025-05-23T08:56:19.688Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:56:19.689Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:56:19.693Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8426
+
+[error] TypeError: client.getIndex is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:56:20.136Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.getIndex is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:56:52.928Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:56:53.944Z] Validating nodejs source
+[debug] [2025-05-23T08:56:54.793Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:56:54.793Z] Building nodejs source
+[debug] [2025-05-23T08:56:54.793Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:56:54.794Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:56:54.799Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8340
+
+[error] TypeError: client.sea is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:22)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:56:55.271Z] Got response code 400; body Failed to generate manifest from function source: TypeError: client.sea is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:58:25.826Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:58:26.840Z] Validating nodejs source
+[debug] [2025-05-23T08:58:27.567Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:58:27.568Z] Building nodejs source
+[debug] [2025-05-23T08:58:27.568Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:58:27.568Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:58:27.574Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8049
+
+[error] ReferenceError: require is not defined
+    at file:///D:/Dragon%20Innovation/dragon-innovation-staff/functions/index.js:20:19
+    at ModuleJobSync.run (node:internal/modules/esm/module_job:364:44)
+    at ModuleLoader.import (node:internal/modules/esm/loader:540:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:48:20)
+    at async loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:17)
+    at async D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:27
+
+[debug] [2025-05-23T08:58:27.759Z] Got response code 400; body Failed to generate manifest from function source: ReferenceError: require is not defined
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:58:41.024Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:58:42.029Z] Validating nodejs source
+[debug] [2025-05-23T08:58:42.816Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:58:42.816Z] Building nodejs source
+[debug] [2025-05-23T08:58:42.816Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:58:42.817Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:58:42.823Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8967
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:34:4)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:58:43.277Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T08:58:56.274Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T08:58:57.283Z] Validating nodejs source
+[debug] [2025-05-23T08:58:58.016Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T08:58:58.016Z] Building nodejs source
+[debug] [2025-05-23T08:58:58.016Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T08:58:58.017Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T08:58:58.023Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8305
+
+[info] what is index Promise { <pending> }
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:35:4)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T08:58:58.463Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:06:07.689Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:06:08.691Z] Validating nodejs source
+[debug] [2025-05-23T09:06:09.491Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:06:09.492Z] Building nodejs source
+[debug] [2025-05-23T09:06:09.492Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:06:09.492Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:06:09.498Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8533
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:32:4)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:06:09.981Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:07:18.813Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:07:19.821Z] Validating nodejs source
+[debug] [2025-05-23T09:07:20.557Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:07:20.557Z] Building nodejs source
+[debug] [2025-05-23T09:07:20.558Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:07:20.558Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:07:20.564Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8820
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:32:4)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:07:21.006Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:07:26.100Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package.json changed, reloading triggers"}}
+[debug] [2025-05-23T09:07:26.155Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\package-lock.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package-lock.json changed, reloading triggers"}}
+[debug] [2025-05-23T09:07:27.160Z] Validating nodejs source
+[debug] [2025-05-23T09:07:28.018Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:07:28.019Z] Building nodejs source
+[debug] [2025-05-23T09:07:28.019Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:07:28.019Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:07:28.024Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8350
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:32:4)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:07:28.493Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:08:08.299Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:08:09.308Z] Validating nodejs source
+[debug] [2025-05-23T09:08:10.056Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:08:10.056Z] Building nodejs source
+[debug] [2025-05-23T09:08:10.056Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:08:10.057Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:08:10.062Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8131
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:31:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:08:10.528Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:08:15.530Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:08:16.542Z] Validating nodejs source
+[debug] [2025-05-23T09:08:17.375Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:08:17.375Z] Building nodejs source
+[debug] [2025-05-23T09:08:17.375Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:08:17.376Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:08:17.381Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8227
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:33:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:08:17.831Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:08:29.865Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:08:30.872Z] Validating nodejs source
+[debug] [2025-05-23T09:08:31.746Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:08:31.747Z] Building nodejs source
+[debug] [2025-05-23T09:08:31.747Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:08:31.747Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:08:31.752Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8726
+
+[info] {
+  alerts: {
+    appDistribution: {
+      newTesterIosDeviceAlert: 'appDistribution.newTesterIosDevice',
+      inAppFeedbackAlert: 'appDistribution.inAppFeedback',
+      onNewTesterIosDevicePublished: [Function: onNewTesterIosDevicePublished],
+      onInAppFeedbackPublished: [Function: onInAppFeedbackPublished],
+      getOptsAndApp: [Function: getOptsAndApp]
+    },
+    billing: {
+      planUpdateAlert: 'billing.planUpdate',
+      planAutomatedUpdateAlert: 'billing.planAutomatedUpdate',
+      onPlanUpdatePublished: [Function: onPlanUpdatePublished],
+      onPlanAutomatedUpdatePublished: [Function: onPlanAutomatedUpdatePublished],
+      onOperation: [Function: onOperation]
+    },
+    crashlytics: {
+      newFatalIssueAlert: 'crashlytics.newFatalIssue',
+      newNonfatalIssueAlert: 'crashlytics.newNonfatalIssue',
+      regressionAlert: 'crashlytics.regression',
+      stabilityDigestAlert: 'crashlytics.stabilityDigest',
+      velocityAlert: 'crashlytics.velocity',
+      newAnrIssueAlert: 'crashlytics.newAnrIssue',
+      onNewFatalIssuePublished: [Function: onNewFatalIssuePublished],
+      onNewNonfatalIssuePublished: [Function: onNewNonfatalIssuePublished],
+      onRegressionAlertPublished: [Function: onRegressionAlertPublished],
+      onStabilityDigestPublished: [Function: onStabilityDigestPublished],
+      onVelocityAlertPublished: [Function: onVelocityAlertPublished],
+      onNewAnrIssuePublished: [Function: onNewAnrIssuePublished],
+      onOperation: [Function: onOperation],
+      getOptsAndApp: [Function: getOptsAndApp]
+    },
+    performance: {
+      thresholdAlert: 'performance.threshold',
+      onThresholdAlertPublished: [Function: onThresholdAlertPublished],
+      getOptsAndApp: [Function: getOptsAndApp],
+      convertPayload: [Function: convertPayload]
+    },
+    eventType: [Getter],
+    onAlertPublished: [Getter],
+    getEndpointAnnotation: [Getter],
+    getOptsAndAlertTypeAndApp: [Getter],
+    convertAlertAndApp: [Getter]
+  },
+  database: {
+    DataSnapshot: [Getter],
+    writtenEventType: 'google.firebase.database.ref.v1.written',
+    createdEventType: 'google.firebase.database.ref.v1.created',
+    updatedEventType: 'google.firebase.database.ref.v1.updated',
+    deletedEventType: 'google.firebase.database.ref.v1.deleted',
+    onValueWritten: [Function: onValueWritten],
+    onValueCreated: [Function: onValueCreated],
+    onValueUpdated: [Function: onValueUpdated],
+    onValueDeleted: [Function: onValueDeleted],
+    getOpts: [Function: getOpts],
+    makeParams: [Function: makeParams],
+    makeEndpoint: [Function: makeEndpoint],
+    onChangedOperation: [Function: onChangedOperation],
+    onOperation: [Function: onOperation]
+  },
+  storage: {
+    archivedEvent: 'google.cloud.storage.object.v1.archived',
+    finalizedEvent: 'google.cloud.storage.object.v1.finalized',
+    deletedEvent: 'google.cloud.storage.object.v1.deleted',
+    metadataUpdatedEvent: 'google.cloud.storage.object.v1.metadataUpdated',
+    onObjectArchived: [Function: onObjectArchived],
+    onObjectFinalized: [Function: onObjectFinalized],
+    onObjectDeleted: [Function: onObjectDeleted],
+    onObjectMetadataUpdated: [Function: onObjectMetadataUpdated],
+    onOperation: [Function: onOperation],
+    getOptsAndBucket: [Function: getOptsAndBucket]
+  },
+  https: {
+    HttpsError: [Getter],
+    isSignedIn: [Function: isSignedIn],
+    hasClaim: [Function: hasClaim],
+    onRequest: [Function: onRequest],
+    onCall: [Function: onCall],
+    onCallGenkit: [Function: onCallGenkit]
+  },
+  identity: {
+    HttpsError: [Getter],
+    beforeUserCreated: [Function: beforeUserCreated],
+    beforeUserSignedIn: [Function: beforeUserSignedIn],
+    beforeEmailSent: [Function: beforeEmailSent],
+    beforeSmsSent: [Function: beforeSmsSent],
+    beforeOperation: [Function: beforeOperation],
+    getOpts: [Function: getOpts]
+  },
+  pubsub: {
+    Message: [class Message],
+    onMessagePublished: [Function: onMessagePublished]
+  },
+  logger: {
+    write: [Function: write],
+    debug: [Function: debug],
+    log: [Function: log],
+    info: [Function: info],
+    warn: [Function: warn],
+    error: [Function: error]
+  },
+  tasks: { onTaskDispatched: [Function: onTaskDispatched] },
+  eventarc: { onCustomEventPublished: [Function: onCustomEventPublished] },
+  scheduler: { getOpts: [Function: getOpts], onSchedule: [Function: onSchedule] },
+  remoteConfig: {
+    eventType: 'google.firebase.remoteconfig.remoteConfig.v1.updated',
+    onConfigUpdated: [Function: onConfigUpdated]
+  },
+  testLab: {
+    eventType: 'google.firebase.testlab.testMatrix.v1.completed',
+    onTestMatrixCompleted: [Function: onTestMatrixCompleted]
+  },
+  firestore: {
+    Change: [Getter],
+    writtenEventType: 'google.cloud.firestore.document.v1.written',
+    createdEventType: 'google.cloud.firestore.document.v1.created',
+    updatedEventType: 'google.cloud.firestore.document.v1.updated',
+    deletedEventType: 'google.cloud.firestore.document.v1.deleted',
+    writtenEventWithAuthContextType: 'google.cloud.firestore.document.v1.written.withAuthContext',
+    createdEventWithAuthContextType: 'google.cloud.firestore.document.v1.created.withAuthContext',
+    updatedEventWithAuthContextType: 'google.cloud.firestore.document.v1.updated.withAuthContext',
+    deletedEventWithAuthContextType: 'google.cloud.firestore.document.v1.deleted.withAuthContext',
+    onDocumentWritten: [Function: onDocumentWritten],
+    onDocumentWrittenWithAuthContext: [Function: onDocumentWrittenWithAuthContext],
+    onDocumentCreated: [Function: onDocumentCreated],
+    onDocumentCreatedWithAuthContext: [Function: onDocumentCreatedWithAuthContext],
+    onDocumentUpdated: [Function: onDocumentUpdated],
+    onDocumentUpdatedWithAuthContext: [Function: onDocumentUpdatedWithAuthContext],
+    onDocumentDeleted: [Function: onDocumentDeleted],
+    onDocumentDeletedWithAuthContext: [Function: onDocumentDeletedWithAuthContext],
+    getOpts: [Function: getOpts],
+    createSnapshot: [Function: createSnapshot],
+    createBeforeSnapshot: [Function: createBeforeSnapshot],
+    makeParams: [Function: makeParams],
+    makeFirestoreEvent: [Function: makeFirestoreEvent],
+    makeChangedFirestoreEvent: [Function: makeChangedFirestoreEvent],
+    makeEndpoint: [Function: makeEndpoint],
+    onOperation: [Function: onOperation],
+    onChangedOperation: [Function: onChangedOperation]
+  },
+  setGlobalOptions: [Getter],
+  onInit: [Getter],
+  Change: [Getter],
+  params: {
+    BUCKET_PICKER: [Getter],
+    select: [Getter],
+    multiSelect: [Getter],
+    Expression: [Getter],
+    declaredParams: [],
+    clearParams: [Function: clearParams],
+    databaseURL: InternalExpression {
+      name: 'DATABASE_URL',
+      options: {},
+      getter: [Function (anonymous)]
+    },
+    projectID: InternalExpression {
+      name: 'PROJECT_ID',
+      options: {},
+      getter: [Function (anonymous)]
+    },
+    gcloudProject: InternalExpression {
+      name: 'GCLOUD_PROJECT',
+      options: {},
+      getter: [Function (anonymous)]
+    },
+    storageBucket: InternalExpression {
+      name: 'STORAGE_BUCKET',
+      options: {},
+      getter: [Function (anonymous)]
+    },
+    defineSecret: [Function: defineSecret],
+    defineString: [Function: defineString],
+    defineBoolean: [Function: defineBoolean],
+    defineInt: [Function: defineInt],
+    defineFloat: [Function: defineFloat],
+    defineList: [Function: defineList]
+  },
+  config: [Getter],
+  app: { setEmulatedAdminApp: [Function: setApp] }
+}
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:33:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:08:32.210Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:08:40.563Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:08:41.577Z] Validating nodejs source
+[debug] [2025-05-23T09:08:42.365Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:08:42.366Z] Building nodejs source
+[debug] [2025-05-23T09:08:42.366Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:08:42.367Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:08:42.371Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8242
+
+[info] {
+  Change: [Getter],
+  writtenEventType: 'google.cloud.firestore.document.v1.written',
+  createdEventType: 'google.cloud.firestore.document.v1.created',
+  updatedEventType: 'google.cloud.firestore.document.v1.updated',
+  deletedEventType: 'google.cloud.firestore.document.v1.deleted',
+  writtenEventWithAuthContextType: 'google.cloud.firestore.document.v1.written.withAuthContext',
+  createdEventWithAuthContextType: 'google.cloud.firestore.document.v1.created.withAuthContext',
+  updatedEventWithAuthContextType: 'google.cloud.firestore.document.v1.updated.withAuthContext',
+  deletedEventWithAuthContextType: 'google.cloud.firestore.document.v1.deleted.withAuthContext',
+  onDocumentWritten: [Function: onDocumentWritten],
+  onDocumentWrittenWithAuthContext: [Function: onDocumentWrittenWithAuthContext],
+  onDocumentCreated: [Function: onDocumentCreated],
+  onDocumentCreatedWithAuthContext: [Function: onDocumentCreatedWithAuthContext],
+  onDocumentUpdated: [Function: onDocumentUpdated],
+  onDocumentUpdatedWithAuthContext: [Function: onDocumentUpdatedWithAuthContext],
+  onDocumentDeleted: [Function: onDocumentDeleted],
+  onDocumentDeletedWithAuthContext: [Function: onDocumentDeletedWithAuthContext],
+  getOpts: [Function: getOpts],
+  createSnapshot: [Function: createSnapshot],
+  createBeforeSnapshot: [Function: createBeforeSnapshot],
+  makeParams: [Function: makeParams],
+  makeFirestoreEvent: [Function: makeFirestoreEvent],
+  makeChangedFirestoreEvent: [Function: makeChangedFirestoreEvent],
+  makeEndpoint: [Function: makeEndpoint],
+  onOperation: [Function: onOperation],
+  onChangedOperation: [Function: onChangedOperation]
+}
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:33:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:08:42.828Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:10:07.660Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package.json changed, reloading triggers"}}
+[debug] [2025-05-23T09:10:08.675Z] Validating nodejs source
+[debug] [2025-05-23T09:10:09.415Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2",
+    "type": "module"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:10:09.415Z] Building nodejs source
+[debug] [2025-05-23T09:10:09.415Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:10:09.416Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:10:09.422Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8379
+
+[info] {
+  Change: [Getter],
+  writtenEventType: 'google.cloud.firestore.document.v1.written',
+  createdEventType: 'google.cloud.firestore.document.v1.created',
+  updatedEventType: 'google.cloud.firestore.document.v1.updated',
+  deletedEventType: 'google.cloud.firestore.document.v1.deleted',
+  writtenEventWithAuthContextType: 'google.cloud.firestore.document.v1.written.withAuthContext',
+  createdEventWithAuthContextType: 'google.cloud.firestore.document.v1.created.withAuthContext',
+  updatedEventWithAuthContextType: 'google.cloud.firestore.document.v1.updated.withAuthContext',
+  deletedEventWithAuthContextType: 'google.cloud.firestore.document.v1.deleted.withAuthContext',
+  onDocumentWritten: [Function: onDocumentWritten],
+  onDocumentWrittenWithAuthContext: [Function: onDocumentWrittenWithAuthContext],
+  onDocumentCreated: [Function: onDocumentCreated],
+  onDocumentCreatedWithAuthContext: [Function: onDocumentCreatedWithAuthContext],
+  onDocumentUpdated: [Function: onDocumentUpdated],
+  onDocumentUpdatedWithAuthContext: [Function: onDocumentUpdatedWithAuthContext],
+  onDocumentDeleted: [Function: onDocumentDeleted],
+  onDocumentDeletedWithAuthContext: [Function: onDocumentDeletedWithAuthContext],
+  getOpts: [Function: getOpts],
+  createSnapshot: [Function: createSnapshot],
+  createBeforeSnapshot: [Function: createBeforeSnapshot],
+  makeParams: [Function: makeParams],
+  makeFirestoreEvent: [Function: makeFirestoreEvent],
+  makeChangedFirestoreEvent: [Function: makeChangedFirestoreEvent],
+  makeEndpoint: [Function: makeEndpoint],
+  onOperation: [Function: onOperation],
+  onChangedOperation: [Function: onChangedOperation]
+}
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:33:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:10:09.864Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:11:08.345Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package.json changed, reloading triggers"}}
+[debug] [2025-05-23T09:11:09.348Z] Validating nodejs source
+[error] !!  functions: Failed to load function definition from source: FirebaseError: There was an error reading functions\package.json:
+
+ Trailing comma in object at 21:3
+  },
+  ^
+File: "D:\Dragon Innovation\dragon-innovation-staff\functions\package.json" {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: There was an error reading functions\\package.json:\n\n Trailing comma in object at 21:3\n  },\n  ^\nFile: \"D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package.json\""}}
+[debug] [2025-05-23T09:14:29.917Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\package.json changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\package.json changed, reloading triggers"}}
+[debug] [2025-05-23T09:14:30.927Z] Validating nodejs source
+[debug] [2025-05-23T09:14:31.705Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:14:31.705Z] Building nodejs source
+[debug] [2025-05-23T09:14:31.705Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:14:31.706Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:14:31.711Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8602
+
+[info] {
+  Change: [Getter],
+  writtenEventType: 'google.cloud.firestore.document.v1.written',
+  createdEventType: 'google.cloud.firestore.document.v1.created',
+  updatedEventType: 'google.cloud.firestore.document.v1.updated',
+  deletedEventType: 'google.cloud.firestore.document.v1.deleted',
+  writtenEventWithAuthContextType: 'google.cloud.firestore.document.v1.written.withAuthContext',
+  createdEventWithAuthContextType: 'google.cloud.firestore.document.v1.created.withAuthContext',
+  updatedEventWithAuthContextType: 'google.cloud.firestore.document.v1.updated.withAuthContext',
+  deletedEventWithAuthContextType: 'google.cloud.firestore.document.v1.deleted.withAuthContext',
+  onDocumentWritten: [Function: onDocumentWritten],
+  onDocumentWrittenWithAuthContext: [Function: onDocumentWrittenWithAuthContext],
+  onDocumentCreated: [Function: onDocumentCreated],
+  onDocumentCreatedWithAuthContext: [Function: onDocumentCreatedWithAuthContext],
+  onDocumentUpdated: [Function: onDocumentUpdated],
+  onDocumentUpdatedWithAuthContext: [Function: onDocumentUpdatedWithAuthContext],
+  onDocumentDeleted: [Function: onDocumentDeleted],
+  onDocumentDeletedWithAuthContext: [Function: onDocumentDeletedWithAuthContext],
+  getOpts: [Function: getOpts],
+  createSnapshot: [Function: createSnapshot],
+  createBeforeSnapshot: [Function: createBeforeSnapshot],
+  makeParams: [Function: makeParams],
+  makeFirestoreEvent: [Function: makeFirestoreEvent],
+  makeChangedFirestoreEvent: [Function: makeChangedFirestoreEvent],
+  makeEndpoint: [Function: makeEndpoint],
+  onOperation: [Function: onOperation],
+  onChangedOperation: [Function: onChangedOperation]
+}
+
+[error] TypeError: functions.firestore.document is not a function
+    at Object.<anonymous> (D:\Dragon Innovation\dragon-innovation-staff\functions\index.js:33:52)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at loadModule (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+    at loadStack (D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\runtime\loader.js:157:23)
+    at D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\firebase-functions\lib\bin\firebase-functions.js:56:56
+
+[debug] [2025-05-23T09:14:32.166Z] Got response code 400; body Failed to generate manifest from function source: TypeError: functions.firestore.document is not a function
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-05-23T09:15:37.859Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:15:38.865Z] Validating nodejs source
+[debug] [2025-05-23T09:15:39.601Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:15:39.602Z] Building nodejs source
+[debug] [2025-05-23T09:15:39.602Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:15:39.602Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:15:39.608Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8211
+
+[info] {
+  provider: 'google.firestore',
+  service: 'firestore.googleapis.com',
+  defaultDatabase: '(default)',
+  document: [Function: document],
+  namespace: [Function: namespace],
+  database: [Function: database],
+  _databaseWithOptions: [Function: _databaseWithOptions],
+  _namespaceWithOptions: [Function: _namespaceWithOptions],
+  _documentWithOptions: [Function: _documentWithOptions],
+  DatabaseBuilder: [class DatabaseBuilder],
+  NamespaceBuilder: [class NamespaceBuilder],
+  snapshotConstructor: [Function: snapshotConstructor],
+  beforeSnapshotConstructor: [Function: beforeSnapshotConstructor],
+  DocumentBuilder: [class DocumentBuilder]
+}
+
+[debug] [2025-05-23T09:15:40.063Z] Got response from /__/functions.yaml {"endpoints":{"onValueChangeTrigger":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/dg-auth-e9448/databases/(default)/documents/orders/{docId}"},"retry":false},"labels":{},"entryPoint":"onValueChangeTrigger"},"dragon":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"dragon"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: onValueChangeTrigger, dragon. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: onValueChangeTrigger, dragon."}}
+[info] i  functions[us-central1-onValueChangeTrigger]: function ignored because the firestore emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the firestore emulator does not exist or is not running."}}
+[info] +  functions[us-central1-dragon]: http function initialized (http://127.0.0.1:5001/dg-auth-e9448/us-central1/dragon). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/dg-auth-e9448/us-central1/dragon)."}}
+[debug] [2025-05-23T09:15:55.907Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:15:56.920Z] Validating nodejs source
+[debug] [2025-05-23T09:15:57.680Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:15:57.680Z] Building nodejs source
+[debug] [2025-05-23T09:15:57.680Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:15:57.681Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:15:57.686Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8306
+
+[debug] [2025-05-23T09:15:58.121Z] Got response from /__/functions.yaml {"endpoints":{"onValueChangeTrigger":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/dg-auth-e9448/databases/(default)/documents/orders/{docId}"},"retry":false},"labels":{},"entryPoint":"onValueChangeTrigger"},"dragon":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"dragon"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: onValueChangeTrigger, dragon. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: onValueChangeTrigger, dragon."}}
+[debug] [2025-05-23T09:18:14.550Z] File D:\Dragon Innovation\dragon-innovation-staff\functions\index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File D:\\Dragon Innovation\\dragon-innovation-staff\\functions\\index.js changed, reloading triggers"}}
+[debug] [2025-05-23T09:18:15.566Z] Validating nodejs source
+[debug] [2025-05-23T09:18:16.293Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "algoliasearch": "^5.25.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "private": true
+}
+[debug] [2025-05-23T09:18:16.294Z] Building nodejs source
+[debug] [2025-05-23T09:18:16.294Z] Failed to find version of module node: reached end of search path D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules
+[info] +  functions: Using node@20 from host. 
+[debug] [2025-05-23T09:18:16.295Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-05-23T09:18:16.301Z] Found firebase-functions binary at 'D:\Dragon Innovation\dragon-innovation-staff\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8731
+
+[debug] [2025-05-23T09:18:16.729Z] Got response from /__/functions.yaml {"endpoints":{"onValueChangeTrigger":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/dg-auth-e9448/databases/(default)/documents/orders/{docId}"},"retry":false},"labels":{},"entryPoint":"onValueChangeTrigger"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: onValueChangeTrigger. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: onValueChangeTrigger."}}
