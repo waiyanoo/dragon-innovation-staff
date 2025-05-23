@@ -7,22 +7,28 @@ import MDTypography from "components/MDTypography";
 
 // Billing page components
 import OrderCard from "../OrderCard";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { collection, doc, getDoc, getDocs, limit, query, updateDoc } from "firebase/firestore";
-import { auth, database } from "../../../../firebase";
+import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
-import MDButton from "../../../../components/MDButton";
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  Select,
+} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
-import MDAlert from "../../../../components/MDAlert";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import MDSnackbar from "../../../../components/MDSnackbar";
 import { useAuth } from "../../../../context/AuthContext";
-import { liteClient as algoliasearch } from 'algoliasearch/lite';
-import { Hits, InstantSearch, SearchBox } from "react-instantsearch";
-import MDInput from "../../../../components/MDInput";
+import { liteClient as algoliasearch } from "algoliasearch/lite";
+import { InstantSearch, useHits } from "react-instantsearch";
+import SearchOrder from "../Search";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
@@ -37,15 +43,6 @@ function OrderContainer({ brand }) {
     'LUQUCJ1X7P',
     'eee17237305148cd06aa66b6fc86d680'
   );
-
-  useEffect(() => {
-    filerOrders();
-  }, [brand]);
-
-  const loadMore = () => {
-    setLimitCount(limitCount + 10);
-    filerOrders();
-  };
 
   const handleBrandChange = (e) => {
     navigate(`/history/${e.target.value}`);
@@ -107,6 +104,7 @@ function OrderContainer({ brand }) {
         id: doc.id,
         ...doc.data(),
       }));
+      console.log("what is orderData", orderData)
       setOrders(orderData);
     } catch (e) {
       console.error("Error getting documents: ", e);
@@ -131,15 +129,17 @@ function OrderContainer({ brand }) {
       bgWhite
     />
   );
-  const queryHook = (query, search) => {
-    console.log("what is query", query, search(query))
-    search(query);
-  };
 
-  const Hit = ({ hit }) => {
+   const CustomHits = () =>{
+    const { hits } = useHits();
+
     return (
-      <OrderCard key={hit.id} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
-    )
+      <div>
+        {hits.map((hit, index) => (
+          <OrderCard key={index} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -174,28 +174,17 @@ function OrderContainer({ brand }) {
         </MDBox>
         <MDBox p={2}>
           <InstantSearch indexName="Dragon" searchClient={searchClient}>
-            <SearchBox  queryHook={queryHook} placeholder="Search for products" />
-            <Hits hitComponent={Hit} />
+            <SearchOrder/>
+            <CustomHits/>
           </InstantSearch>
         </MDBox>
         <MDBox pt={1} pb={2} px={2}>
-          <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
-            {/*{*/}
-            {/*  orders.map(order => (*/}
-            {/*    <OrderCard key={order} data={order} noGutter handleClick={(e) => handleOrderCardClick(e, order)} />*/}
-            {/*  ))*/}
-            {/*}*/}
-          </MDBox>
           <MDBox>
-            {
-              orders.length < limitCount ? null :
-                <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>Load More</MDButton>
-            }
-            {
-              orders.length === 0 ? <MDAlert color="light">
-                This is no orders yet.
-              </MDAlert> : null
-            }
+            {/*{*/}
+            {/*  orders.length === 0 ? <MDAlert color="light">*/}
+            {/*    This is no orders yet.*/}
+            {/*  </MDAlert> : null*/}
+            {/*}*/}
           </MDBox>
         </MDBox>
       </Card>
