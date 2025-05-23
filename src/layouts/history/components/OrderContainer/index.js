@@ -29,10 +29,12 @@ import { useAuth } from "../../../../context/AuthContext";
 import { liteClient as algoliasearch } from "algoliasearch/lite";
 import { InstantSearch, useHits } from "react-instantsearch";
 import SearchOrder from "../Search";
+import MDAlert from "../../../../components/MDAlert";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [showNotFound, setShowNotFound] = useState(false);
   const [limitCount, setLimitCount] = useState(10);
   const [open, setOpen] = useState(false);
   const { userData } = useAuth();
@@ -55,7 +57,6 @@ function OrderContainer({ brand }) {
     const docSnap = await getDoc(docRef);
     const data = docSnap.data();
     let updateHistory = data.updateHistory;
-    console.log("what is user", userData)
     updateDoc(docRef, {
       status,
       updateHistory: [...updateHistory, {
@@ -104,7 +105,6 @@ function OrderContainer({ brand }) {
         id: doc.id,
         ...doc.data(),
       }));
-      console.log("what is orderData", orderData)
       setOrders(orderData);
     } catch (e) {
       console.error("Error getting documents: ", e);
@@ -132,7 +132,15 @@ function OrderContainer({ brand }) {
 
    const CustomHits = () =>{
     const { hits } = useHits();
-
+    if(hits.length === 0){
+      return (
+        <MDBox>
+          <MDAlert color="light">
+              No order found.
+            </MDAlert>
+        </MDBox>
+      )
+    }
     return (
       <div>
         {hits.map((hit, index) => (
@@ -179,13 +187,7 @@ function OrderContainer({ brand }) {
           </InstantSearch>
         </MDBox>
         <MDBox pt={1} pb={2} px={2}>
-          <MDBox>
-            {/*{*/}
-            {/*  orders.length === 0 ? <MDAlert color="light">*/}
-            {/*    This is no orders yet.*/}
-            {/*  </MDAlert> : null*/}
-            {/*}*/}
-          </MDBox>
+
         </MDBox>
       </Card>
       <Dialog open={open} onClose={handleClose}>
