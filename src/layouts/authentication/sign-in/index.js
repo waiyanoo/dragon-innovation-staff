@@ -22,22 +22,28 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import { login } from "../../../services/authService";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../firebase";
+import { CircularProgress } from "@mui/material";
 
 function Basic() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
 
 
   const signInClick = async () => {
+    setIsLoading(true);
     login(email, password)
       .then((user) => {
         console.log("what is user", user);
         navigate("/dashboard");
       })
       .catch((error) => {
+        setErrors(true);
+        setIsLoading(false);
         console.log("what is error", error);
       });
   };
@@ -99,8 +105,11 @@ function Basic() {
             {/*    &nbsp;&nbsp;Remember me*/}
             {/*  </MDTypography>*/}
             {/*</MDBox>*/}
+            {errors && <MDTypography variant="button" color="error">Invalid email or password</MDTypography>}
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth onClick={signInClick}>
+              <MDButton variant="gradient" color="info" fullWidth onClick={signInClick}
+                        disabled={isLoading}
+                        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}>
                 sign in
               </MDButton>
             </MDBox>

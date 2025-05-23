@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
-import { FormControl, InputLabel, Select } from "@mui/material";
+import { CircularProgress, FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useEffect, useState } from "react";
 import MDButton from "../../components/MDButton";
@@ -26,6 +26,7 @@ function Order() {
   const [brand, setBrand] = useState('hanskin');
   const [orderRef, setOrderRef] = useState(null);
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     primaryPhone: "",
@@ -90,11 +91,12 @@ function Order() {
     }
 
     try {
-      const docRef = await addDoc(collection(database, 'orders'), data);
+      await addDoc(collection(database, 'orders'), data);
       setSnack({ open: true, message: 'Order create success.', color: 'success', icon: 'check' })
       navigate(`/history/${brand}`);
     } catch (e) {
       setSnack({ open: true, message: 'Order create failed.', color: 'error', icon: 'warning' })
+      setLoading(false);
     }
   }
 
@@ -113,11 +115,13 @@ function Order() {
       navigate(`/history/${brand}`);
     } catch (e) {
       setSnack({ open: true, message: 'Order update failed.', color: 'error', icon: 'warning' })
+      setLoading(false);
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // prevent page reload
+    setIsLoading(true);
     if(id){
       await update();
     } else {
@@ -181,6 +185,7 @@ function Order() {
                         name="brand"
                         value={brand}
                         label="Brand"
+                        variant="outlined"
                         onChange={handleBrandChange}
                         sx={{ lineHeight: "3rem" }}
                       >
@@ -233,6 +238,7 @@ function Order() {
                         name="state"
                         onChange={handleChange}
                         sx={{ lineHeight: "3rem" }}
+                       variant="outlined"
                       >
                         {State_List.map((item) => (
                             <MenuItem key={item} value={item}>{item}</MenuItem>
@@ -298,6 +304,7 @@ function Order() {
                         value={formData.paymentStatus}
                         label="Payment Status"
                         name="paymentStatus"
+                        variant="outlined"
                         onChange={handleChange}
                         sx={{ lineHeight: "3rem" }}
                       >
@@ -316,6 +323,7 @@ function Order() {
                         value={formData.paymentMode}
                         label="Payment Mode"
                         name="paymentMode"
+                        variant="outlined"
                         onChange={handleChange}
                         sx={{ lineHeight: "3rem" }}
                       >
@@ -335,6 +343,7 @@ function Order() {
                         value={formData.deliveryType}
                         label="PaymentStatus"
                         name="paymentStatus"
+                        variant="outlined"
                         onChange={handleChange}
                         sx={{ lineHeight: "3rem" }}
                       >
@@ -358,7 +367,9 @@ function Order() {
                     />
                   </MDBox>
                   <MDBox mt={4} mb={1}>
-                    <MDButton type="submit" variant="gradient" color="info" fullWidth>
+                    <MDButton type="submit" variant="gradient" color="info" fullWidth
+                              disabled={isLoading}
+                              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}>
                       {id ? 'Update' : 'Create'}
                     </MDButton>
                   </MDBox>

@@ -7,41 +7,33 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-// const {onRequest} = require("firebase-functions/v2/https");
-// const logger = require("firebase-functions/logger");
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { initializeApp } from 'firebase-admin/app';
+import  algoliasearch  from 'algoliasearch';
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+initializeApp();
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-const functions = require("firebase-functions/v1");
-const admin = require('firebase-admin');
-const { algoliasearch } = require('algoliasearch');
+const appId = "LUQUCJ1X7P";
+const adminKey = "26bec2fffc79ba517291e2d15fea6dc4";
+const indexName = 'Dragon';
 
-admin.initializeApp();
+const client = algoliasearch(appId, adminKey);
+const index = client.initIndex(indexName);
 
+export const syncToAlgolia = onDocumentUpdated('orders/{docId}', async (event) => {
+  const after = event.data?.after?.data();
+  if (!after) return;
 
-exports.onValueChangeTrigger = functions.firestore.document('orders/{docId}') // replace with your collection path
-  .onUpdate((change, context) => {
-    const before = change.before.data();
-    const after = change.after.data();
+  after.objectID = event.params.docId;
+  await index.saveObject(after);
+  console.log('Document updated in Algolia:', event.params.docId);
+});
 
-    // Check if the specific field changed
-    if (before !== after) {
-      return executeFullIndexOperation(after);
-    } else {
-      return null;
-    }
-  });
+export const onFirestoreCreate = onDocumentCreated('orders/{docId}', async (event) => {
+  const data = event.data?.data();
+  if (!data) return;
 
-function executeFullIndexOperation(data) {
-  // Your logic here
-  console.log('Executing full index operation for:', data);
-
-  // Example: update another collection, reindex, etc.
-  return Promise.resolve();
-}
-
+  data.objectID = event.params.docId;
+  await index.saveObject(data);
+  console.log('Document added to Algolia:', event.params.docId);
+});

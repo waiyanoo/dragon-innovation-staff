@@ -35,24 +35,24 @@ function OrderInfoCard({toPack, count, toShip, icon, color}){
       <Divider />
       <MDBox pb={2} px={2}>
         <MDTypography variant="h5">
-          Number of orders
+          Number of orders ({ count.sugarbear + count.hanskin + count.mongdies })
         </MDTypography>
         <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
           <MDTypography variant="h6" fontWeight="medium">
             Hanskin&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {count.hanskin}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Sugarbear&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {count.sugarbear}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Mongdies&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {count.mongdies}
             </MDTypography>
           </MDTypography>
@@ -65,19 +65,19 @@ function OrderInfoCard({toPack, count, toShip, icon, color}){
         <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
           <MDTypography variant="h6" fontWeight="medium">
             Hanskin&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toPack.hanskin}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Sugarbear&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toPack.sugarbear}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Mongdies&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toPack.mongdies}
             </MDTypography>
           </MDTypography>
@@ -90,19 +90,19 @@ function OrderInfoCard({toPack, count, toShip, icon, color}){
         <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
           <MDTypography variant="h6" fontWeight="medium">
             Hanskin&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toShip.hanskin}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Sugarbear&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toShip.sugarbear}
             </MDTypography>
           </MDTypography>
           <MDTypography variant="h6" fontWeight="medium">
             Hanskin&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="h4" color="text">
+            <MDTypography variant="h4" component="span" color="text">
               {toShip.mongdies}
             </MDTypography>
           </MDTypography>

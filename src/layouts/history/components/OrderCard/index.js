@@ -6,12 +6,10 @@ import MDBadge from "../../../../components/MDBadge";
 import { useEffect, useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
-import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
 import { useAuth } from "../../../../context/AuthContext";
 import { Order_Card_Actions } from "../../../../data/common";
-import order from "../../../order";
 
 function OrderCard({ data, noGutter, handleClick }) {
   const [controller] = useMaterialUIController();
@@ -30,9 +28,6 @@ function OrderCard({ data, noGutter, handleClick }) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  useEffect(() => {
-    console.log(data, userData)
-  }, []);
 
   const formattedAmount = new Intl.NumberFormat("en-MM", {
     style: "currency",
@@ -40,8 +35,8 @@ function OrderCard({ data, noGutter, handleClick }) {
   }).format(data.amount);
 
   const TimestampDisplay = ( timestamp ) => {
-    // const date = timestamp.toDate();
-    const date = new Date(timestamp);
+    const date = timestamp.toDate();
+    // const date = new Date(timestamp);
     return <p>{date.toLocaleString()}</p>;
     // return "2021-09-23 12:00:00"
   }
@@ -72,6 +67,7 @@ function OrderCard({ data, noGutter, handleClick }) {
             <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
               {data.name}
             </MDTypography>
+            <MDBadge badgeContent={data.brand} color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'} variant="gradient" size="md" ml={1} />
             <MDBadge
               badgeContent={
               data.status === 2  ? "shipped"
