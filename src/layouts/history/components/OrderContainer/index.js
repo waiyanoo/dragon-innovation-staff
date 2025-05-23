@@ -8,7 +8,7 @@ import MDTypography from "components/MDTypography";
 // Billing page components
 import OrderCard from "../OrderCard";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, getDocs, limit, query, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, deleteDoc, limit, query, updateDoc } from "firebase/firestore";
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
 import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select } from "@mui/material";
@@ -59,7 +59,7 @@ function OrderContainer({ brand }) {
       setSearchedOrders(result);
       navigate(`/history/${selectedBrand}`);
     }
-  }, [selectedBrand]);
+  }, [selectedBrand, orders]);
 
 
   const loadMore = () => {
@@ -97,6 +97,16 @@ function OrderContainer({ brand }) {
     console.log("Document successfully updated!");
   };
 
+  const deleteOrder = async (id) => {
+      deleteDoc(doc(database, 'orders', id)).then(() => {
+        const orders = searchedOrders.filter(item => item.id !== id);
+        setSearchedOrders(orders);
+        setSnack({ open: true, message: 'Order delete success.', color: 'success', icon: 'check' });
+      }).catch(() => {
+        setSnack({ open: true, message: 'Order delete failed.', color: 'error', icon: 'warning' })
+      });
+  }
+
   const handleOrderCardClick = async (e, order) => {
     switch (e) {
       case "edit":
@@ -104,6 +114,9 @@ function OrderContainer({ brand }) {
           navigate(`/order?id=${order.id}`);
         }
         break;
+      case "delete":
+        await deleteOrder(order.id);
+        break
       case "packed":
         await updateOrder(1, order.id);
         break;
@@ -131,7 +144,6 @@ function OrderContainer({ brand }) {
         ...doc.data(),
       }));
       setOrders(orderData);
-      setSearchedOrders(orderData);
     } catch (e) {
       console.error("Error getting documents: ", e);
     }
@@ -142,12 +154,11 @@ function OrderContainer({ brand }) {
       setSearchedOrders(orders);
     } else {
       const result = fuse.search(value);
-      const unfilerResult = result.map(r => r.item);
+      const unfilterResult = result.map(r => r.item);
       if(selectedBrand === "all"){
-        setSearchedOrders(unfilerResult);
-        return;
+        setSearchedOrders(unfilterResult);
       } else {
-        const filteredResult = unfilerResult.filter(order => order.brand === selectedBrand);
+        const filteredResult = unfilterResult.filter(order => order.brand === selectedBrand);
         setSearchedOrders(filteredResult);
       }
     }

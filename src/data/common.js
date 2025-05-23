@@ -29,4 +29,5 @@ export const Order_Card_Actions = [
   {label: "Packed", type: "packed", statuses: [0], roles: ["warehouse", "admin", "super_admin"]},
   {label: "Shipped", type: "shipped", statuses: [1], roles: ["warehouse", "admin", "super_admin"]},
   {label: "Set Invoice No.", type: "invoice", statuses: [2], roles: ["admin", "super_admin"]},
+  {label: "Delete", type: "delete", statuses: [0], roles: ["page_admin", "sales", "admin", "super_admin"]},
 ]
