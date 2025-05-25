@@ -35,6 +35,7 @@ import Icon from "@mui/material/Icon";
 import Order from "./layouts/order";
 import OrderHistory from "./layouts/history";
 import PrivateRoute from "./context/PrivateRoute";
+import OrderView from "./layouts/order/view";
 
 const routes = [
   {
@@ -73,6 +74,19 @@ const routes = [
     component: (
       <PrivateRoute>
         <Order />
+      </PrivateRoute>
+    ),
+  },
+  {
+    type: "",
+    name: "Order",
+    key: "order",
+    icon: <Icon fontSize="small">shopping_cart</Icon>,
+    route: "/details/:id?",
+    routeToGo: "/details",
+    component: (
+      <PrivateRoute>
+        <OrderView />
       </PrivateRoute>
     ),
   },

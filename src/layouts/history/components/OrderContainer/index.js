@@ -23,6 +23,7 @@ import MDButton from "../../../../components/MDButton";
 import MDInput from "../../../../components/MDInput";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
+import Switch from "@mui/material/Switch";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ function OrderContainer({ brand }) {
   const [open, setOpen] = useState(false);
   const { userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
+  const [checkedItems, setCheckedItems] = useState(false);
+
   const handleClose = () => setOpen(false);
   // const searchClient = algoliasearch(
   //   'LUQUCJ1X7P',
@@ -67,7 +70,12 @@ function OrderContainer({ brand }) {
     filerOrders();
   };
 
-
+  const handleCheckBoxChange = (event) => {
+    setCheckedItems({
+      ...checkedItems,
+      [event.target.name]: event.target.checked,
+    });
+  };
 
   const handleBrandChange = (e) => {
     const { value } = e.target;
@@ -109,6 +117,9 @@ function OrderContainer({ brand }) {
 
   const handleOrderCardClick = async (e, order) => {
     switch (e) {
+      case "view":
+        navigate(`/details?id=${order.id}`);
+        break;
       case "edit":
         if (order.status === 0) {
           navigate(`/order?id=${order.id}`);
@@ -254,6 +265,39 @@ function OrderContainer({ brand }) {
           {/*</InstantSearch>*/}
           <MDInput type="text" label="Search" variant="outlined" fullWidth value={searchKeywords} onChange={handleChange} />
         </MDBox>
+
+        {/*<MDBox display="flex" alignItems="center" justifyContent="left" p={2}>*/}
+        {/*  <MDBox display="flex" alignItems="center">*/}
+        {/*    <MDBox>*/}
+        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
+        {/*    </MDBox>*/}
+        {/*    <MDBox width="80%" >*/}
+        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
+        {/*        Pending*/}
+        {/*      </MDTypography>*/}
+        {/*    </MDBox>*/}
+        {/*  </MDBox>*/}
+        {/*  <MDBox display="flex" alignItems="center">*/}
+        {/*    <MDBox>*/}
+        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
+        {/*    </MDBox>*/}
+        {/*    <MDBox width="80%">*/}
+        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
+        {/*        Packed*/}
+        {/*      </MDTypography>*/}
+        {/*    </MDBox>*/}
+        {/*  </MDBox>*/}
+        {/*  <MDBox display="flex" alignItems="center">*/}
+        {/*    <MDBox>*/}
+        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
+        {/*    </MDBox>*/}
+        {/*    <MDBox width="80%">*/}
+        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
+        {/*        Shipped*/}
+        {/*      </MDTypography>*/}
+        {/*    </MDBox>*/}
+        {/*  </MDBox>*/}
+        {/*</MDBox>*/}
         <MDBox pt={1} pb={2} px={2}>
           <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
             {

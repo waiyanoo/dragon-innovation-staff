@@ -1,0 +1,114 @@
+[debug] [2025-05-25T13:50:42.424Z] ----------------------------------------------------------------------
+[debug] [2025-05-25T13:50:42.427Z] Command:       C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting
+[debug] [2025-05-25T13:50:42.427Z] CLI Version:   14.4.0
+[debug] [2025-05-25T13:50:42.427Z] Platform:      win32
+[debug] [2025-05-25T13:50:42.427Z] Node Version:  v20.19.2
+[debug] [2025-05-25T13:50:42.427Z] Time:          Sun May 25 2025 21:50:42 GMT+0800 (Singapore Standard Time)
+[debug] [2025-05-25T13:50:42.427Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-05-25T13:50:42.589Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-05-25T13:50:42.590Z] > authorizing via signed-in user (waiyanoo.mgk@gmail.com)
+[debug] [2025-05-25T13:50:42.590Z] [iam] checking project dg-auth-e9448 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-05-25T13:50:42.591Z] Checked if tokens are valid: false, expires at: 1748180672490
+[debug] [2025-05-25T13:50:42.591Z] Checked if tokens are valid: false, expires at: 1748180672490
+[debug] [2025-05-25T13:50:42.591Z] > refreshing access token with scopes: []
+[debug] [2025-05-25T13:50:42.592Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-05-25T13:50:42.592Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-05-25T13:50:42.693Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-05-25T13:50:42.694Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-05-25T13:50:42.700Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dg-auth-e9448:testIamPermissions [none]
+[debug] [2025-05-25T13:50:42.700Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dg-auth-e9448:testIamPermissions x-goog-quota-user=projects/dg-auth-e9448
+[debug] [2025-05-25T13:50:42.700Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dg-auth-e9448:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-05-25T13:50:43.738Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dg-auth-e9448:testIamPermissions 200
+[debug] [2025-05-25T13:50:43.738Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dg-auth-e9448:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-05-25T13:50:43.739Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:43.739Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:43.739Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448 [none]
+[debug] [2025-05-25T13:50:44.320Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448 200
+[debug] [2025-05-25T13:50:44.320Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/dg-auth-e9448 {"projectId":"dg-auth-e9448","projectNumber":"942649638403","displayName":"dg-auth","name":"projects/dg-auth-e9448","resources":{"hostingSite":"dg-auth-e9448","realtimeDatabaseInstance":"dg-auth-e9448-default-rtdb"},"state":"ACTIVE","etag":"1_0363aef9-b4c4-4572-a028-c4e0d9e104e1"}
+[info] 
+[info] === Deploying to 'dg-auth-e9448'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2025-05-25T13:50:44.325Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:44.325Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:44.325Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions [none]
+[debug] [2025-05-25T13:50:44.325Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-05-25T13:50:45.185Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions 200
+[debug] [2025-05-25T13:50:45.185Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions {"name":"projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[dg-auth-e9448]: beginning deploy... 
+[info] i  hosting[dg-auth-e9448]: found 23 files in build 
+[debug] [2025-05-25T13:50:45.199Z] [hosting] uploading with 200 concurrency
+[debug] [2025-05-25T13:50:45.615Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:45.615Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:45.616Z] [hosting] hash cache [YnVpbGQ] stored for 23 files
+[debug] [2025-05-25T13:50:45.616Z] [hosting][hash queue][FINAL] {"max":408,"min":3,"avg":27.26086956521739,"active":0,"complete":23,"success":23,"errored":0,"retried":0,"total":23,"elapsed":414}
+[debug] [2025-05-25T13:50:45.616Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6:populateFiles [none]
+[debug] [2025-05-25T13:50:45.616Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6:populateFiles {"files":{"/robots.txt":"b2090cf9761ef60aa06e4fab97679bd43dfa5e5df073701ead5879d7c68f1ec5","/manifest.json":"ddd4acc645a28ff94c1bab201c4d763913fb0daed2ca1c19a6ff3da0331dcfac","/favicon.png":"6ef4abaa26e564899cb22170d51ac50b90acaea91bd9f4e74afb84bf7af027bc","/apple-icon.png":"d9e3168e236499246328d42a4cef0a54548bed63478698ff47e32bfaaefad7fb","/index.html":"df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38","/asset-manifest.json":"4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b","/static/media/team-4.85c82b6e60178804017f.jpg":"af29f8e30e5cf3789eb45ab3fcfbc8531019c840cf4e59fa5e8ab11175d6308d","/static/media/logo-spotify.3f055cde07c024fb2b73063b46416f1b.svg":"0b955025374aa7db3e4467c8d1d1321bf2f365abc7045443dd0573a55f75a9eb","/static/media/logo-slack.d8feb9c5b2a92c377e8c5b7a10faabc9.svg":"5919c655e0e02366fbac23fcc3b1d890a391b9135c8669b2f69eaa6d3f6aa143","/static/media/logo-invision.f3413d25dc0761bcc615835e48482191.svg":"12c9f9b6940bf27a009ccec731fc7693f1e8588412aad33240f0c48739a02b7a","/static/media/logo-atlassian.d92c4f81bb3efbf288b3ef71ce2fbfb0.svg":"836e4f97d5919a4ed82c354c835f956bd5dbb2e107053ba8c471f0d79cd10125","/static/media/logo-asana.5c9ced4f9006cfb2d4c10f905cf6d310.svg":"e32a94e84941533aea516c970365b9fb01844f3cf29c374f682182c8757f0399","/static/media/github.62a94bc83ef91aadf17b3d66c96048dd.svg":"4a793b81dfd07efad769e09cb03cab2c7b52d28348cd82e739108fecfb02d689","/static/js/main.50f75448.js.LICENSE.txt":"0b6f6249b1044628c33310d30f656ad997e4d16d377964566679c8fbd783c43e","/static/media/team-2.13ae2ce3e12f4cfed420.jpg":"75af06514a88b43653da777911bf8ad2dd0509afc105b4a63858761e4206f04f","/static/media/team-3.0ef0be95e6850814c79e.jpg":"c6e79b536e6718efd2657823572133c853805e26236f68ee00f2a4554f056616","/static/media/visa.71c0d5e9e2aaee42e4c3.png":"7fadb33b7069d6d97f23a99baa01c1dceab1b9fe07250bf93bf3eb0b5146f735","/static/media/mastercard.27fca3e7637a9458fb64.png":"17d2ebf08390a45a64c9b5699dfe7bd7c677b4685a221527f069600b93addc7e","/static/media/profile.fa5f2457ec8c94fbc921.png":"e20b700cd76e4def09c769bceb1f079196fd5c98ceaf15be5a738b47cea0926b","/static/media/bg-profile.af1219a742e09fc7b612.jpeg":"f7ed4a75df332500f3a50652e929a93407907afea26aa4f1a7184e875c62dd43","/static/media/bg-sign-in-basic.f327db1d0e4b00ba3c81.jpeg":"6b288f1d8d404a771ece86bd0f1f31f77f7d3f6fda670b2378053632e4a9d1a9","/static/js/main.50f75448.js":"742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1","/static/js/main.50f75448.js.map":"7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda"}}
+[debug] [2025-05-25T13:50:46.151Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6:populateFiles 200
+[debug] [2025-05-25T13:50:46.151Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6:populateFiles {"uploadRequiredHashes":["742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1","df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38","4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b","7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files"}
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.152Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.153Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:46.153Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1 [none]
+[debug] [2025-05-25T13:50:46.153Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1 [stream]
+[debug] [2025-05-25T13:50:46.154Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38 [none]
+[debug] [2025-05-25T13:50:46.154Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38 [stream]
+[debug] [2025-05-25T13:50:46.155Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b [none]
+[debug] [2025-05-25T13:50:46.155Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b [stream]
+[debug] [2025-05-25T13:50:46.155Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda [none]
+[debug] [2025-05-25T13:50:46.155Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda [stream]
+[debug] [2025-05-25T13:50:46.156Z] [hosting][populate queue][FINAL] {"max":538,"min":538,"avg":538,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":541}
+[debug] [2025-05-25T13:50:46.156Z] [hosting] uploads queued: 4
+[debug] [2025-05-25T13:50:47.429Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b 200
+[debug] [2025-05-25T13:50:47.429Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/4675be458e286c0b8b91fb5de0f8ddb5552061ac87867772c431352434cc434b [stream]
+[debug] [2025-05-25T13:50:47.571Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38 200
+[debug] [2025-05-25T13:50:47.572Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/df475efbfa8db6f856e78e0c35bbc6597dcf344ad5322c111d851292aafe4c38 [stream]
+[debug] [2025-05-25T13:50:48.203Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda 200
+[debug] [2025-05-25T13:50:48.203Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/7a37d16a9032f6282cedcab6685eacb1670aa03b4fe84ee1d2a69bca0d130eda [stream]
+[debug] [2025-05-25T13:50:48.962Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1 200
+[debug] [2025-05-25T13:50:48.963Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6/files/742d5e7c3f8ad0ffd9f70f460504ea40e99a881c16531fbb3c3e17e63a80e4c1 [stream]
+[debug] [2025-05-25T13:50:48.963Z] [hosting][upload queue][FINAL] {"max":2811,"min":1278,"avg":1890,"active":0,"complete":4,"success":4,"errored":0,"retried":0,"total":4,"elapsed":2811}
+[info] +  hosting[dg-auth-e9448]: file upload complete 
+[debug] [2025-05-25T13:50:48.963Z] [hosting] deploy completed after 3776ms
+[debug] [2025-05-25T13:50:48.964Z] [
+  {
+    "config": {
+      "public": "build",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/service-worker.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ],
+      "site": "dg-auth-e9448"
+    },
+    "version": "projects/942649638403/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6"
+  }
+]
+[info] i  hosting[dg-auth-e9448]: finalizing version... 
+[debug] [2025-05-25T13:50:48.965Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:48.965Z] Checked if tokens are valid: true, expires at: 1748184641694
+[debug] [2025-05-25T13:50:48.965Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6 updateMask=status%2Cconfig
+[debug] [2025-05-25T13:50:48.966Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/dg-auth-e9448/versions/316bd4c40dd9b6a6 {"status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}],"headers":[{"glob":"/service-worker.js","headers":{"Cache-Control":"no-cache"}}]}}

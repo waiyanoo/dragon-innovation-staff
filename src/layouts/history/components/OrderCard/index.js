@@ -44,17 +44,33 @@ function OrderCard({ data, noGutter, handleClick }) {
   // const formattedDate = new Date(data.updatedAt).toLocaleString();
   return (
     <MDBox
-      component="li"
-      display="flex"
-      justifyContent="space-between"
-      alignItems="flex-start"
+      // display="flex"
+      // justifyContent="space-between"
+      // alignItems="flex-start"
       bgColor={darkMode ? "transparent" : "grey-100"}
       borderRadius="lg"
-      p={3}
-      mb={noGutter ? 0 : 1}
+      pl={3} pb={3} pr={3}
+      mb={3}
       mt={2}
       // onClick={handleClick}
     >
+      <MDBox
+        variant="gradient"
+        bgColor={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
+        color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
+        coloredShadow={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
+        borderRadius="lg"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        width="5rem"
+        height="1.5rem"
+        mt={-1.5}
+      >
+        <MDTypography variant="caption" color="light" fontWeight="medium" textTransform="capitalize">
+          {data.brand}
+        </MDTypography>
+      </MDBox>
       <MDBox width="100%" display="flex" flexDirection="column">
         <MDBox
           display="flex"
@@ -63,11 +79,11 @@ function OrderCard({ data, noGutter, handleClick }) {
           flexDirection={{ xs: "row", sm: "row" }}
           mb={2}
         >
-          <MDBox display="flex" alignItems="center" mt={{ xs: 0, sm: 0 }} ml={{ xs: -1.5, sm: 0 }}>
+          <MDBox display="flex" alignItems="center" mt={{ xs: 0.5, sm: 0 }} >
             <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
               {data.name}
             </MDTypography>
-            <MDBadge badgeContent={data.brand} color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'} variant="gradient" size="md" ml={1} />
+            {/*<MDBadge badgeContent={data.brand} color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'} variant="gradient" size="md" ml={1} />*/}
             <MDBadge
               badgeContent={
               data.status === 2  ? "shipped"
@@ -169,6 +185,14 @@ function OrderCard({ data, noGutter, handleClick }) {
             <MDTypography variant="caption" color="text" fontWeight="medium">
               {formattedAmount} - {data.paymentMode}{" "}
               {data.paymentMode !== "Paid" ? "" : ` - ${data.paymentType}`}
+            </MDTypography>
+          </MDTypography>
+        </MDBox>
+        <MDBox mb={1} lineHeight={0}>
+          <MDTypography variant="caption" fontWeight="medium">
+            Remark:&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="caption" color="text">
+              {data.remark}
             </MDTypography>
           </MDTypography>
         </MDBox>

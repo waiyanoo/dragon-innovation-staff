@@ -341,8 +341,8 @@ function Order() {
                         labelId="delivery-select-label"
                         id="delivery-select"
                         value={formData.deliveryType}
-                        label="PaymentStatus"
-                        name="paymentStatus"
+                        label="deliveryType"
+                        name="deliveryType"
                         variant="outlined"
                         onChange={handleChange}
                         sx={{ lineHeight: "3rem" }}

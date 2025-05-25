@@ -25,6 +25,7 @@ export const ROLES = {
 }
 
 export const Order_Card_Actions = [
+  {label: "View", type: "view", statuses: [0,1,2], roles: ["page_admin", "sales", "admin", "super_admin"]},
   {label: "Edit", type: "edit", statuses: [0], roles: ["page_admin", "sales", "admin", "super_admin"]},
   {label: "Packed", type: "packed", statuses: [0], roles: ["warehouse", "admin", "super_admin"]},
   {label: "Shipped", type: "shipped", statuses: [1], roles: ["warehouse", "admin", "super_admin"]},
