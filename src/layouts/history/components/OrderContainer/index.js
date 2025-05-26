@@ -8,10 +8,27 @@ import MDTypography from "components/MDTypography";
 // Billing page components
 import OrderCard from "../OrderCard";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, getDocs, deleteDoc, limit, query, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  updateDoc,
+} from "firebase/firestore";
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  Select,
+} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
 import Typography from "@mui/material/Typography";
@@ -23,30 +40,36 @@ import MDButton from "../../../../components/MDButton";
 import MDInput from "../../../../components/MDInput";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
-import Switch from "@mui/material/Switch";
+import FilterOrders from "../Filters";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [searchedOrders, setSearchedOrders] = useState([]);
   const [searchKeywords, setSearchKeywords] = useState("");
+  const [checkedItems, setCheckedItems] = useState({
+    pending: false,
+    packed: false,
+    shipped: false,
+    cod: false,
+    fullPaid: false,
+    other: false,
+    cash: false,
+    kpay: false,
+    bank: false,
+  });
   const [selectedBrand, setSelectedBrand] = useState(brand);
-  const [showNotFound, setShowNotFound] = useState(false);
   const [limitCount, setLimitCount] = useState(50);
   const [open, setOpen] = useState(false);
   const { userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
-  const [checkedItems, setCheckedItems] = useState(false);
 
   const handleClose = () => setOpen(false);
-  // const searchClient = algoliasearch(
-  //   'LUQUCJ1X7P',
-  //   'eee17237305148cd06aa66b6fc86d680'
-  // );
+
 
   const fuse = new Fuse(orders, {
     keys: ['name', 'primaryPhone', 'secondaryPhone'],
-    threshold: 0.3, // 0 = exact, 1 = very fuzzy
+    threshold: 0.3,
   });
 
   useEffect(() => {
@@ -55,11 +78,8 @@ function OrderContainer({ brand }) {
 
   useEffect(() => {
     if(selectedBrand === "all"){
-      setSearchedOrders(orders);
       navigate(`/history/all`);
     } else {
-      const result = orders.filter(order => order.brand === selectedBrand);
-      setSearchedOrders(result);
       navigate(`/history/${selectedBrand}`);
     }
   }, [selectedBrand, orders]);
@@ -68,13 +88,6 @@ function OrderContainer({ brand }) {
   const loadMore = () => {
     setLimitCount(limitCount + 10);
     filerOrders();
-  };
-
-  const handleCheckBoxChange = (event) => {
-    setCheckedItems({
-      ...checkedItems,
-      [event.target.name]: event.target.checked,
-    });
   };
 
   const handleBrandChange = (e) => {
@@ -161,19 +174,47 @@ function OrderContainer({ brand }) {
   };
 
   const onSearch = (value) => {
-    if (value.length === 0) {
-      setSearchedOrders(orders);
+    const filerWithChecked = (searchOrders) => {
+      let tempOrders = selectedBrand === "all" ? searchOrders : searchOrders.filter(order => order.brand === selectedBrand);
+      let statusFilter = [];
+      let paymentFilter = [];
+      let paymentTypeFilter = [];
+
+      checkedItems.pending ? statusFilter.push(0) : null;
+      checkedItems.packed ? statusFilter.push(1) : null;
+      checkedItems.shipped ? statusFilter.push(2) : null;
+
+      checkedItems.cod ? paymentFilter.push('COD') : null;
+      checkedItems.fullPaid ? paymentFilter.push('Paid') : null;
+      checkedItems.other ? paymentFilter.push('Other') : null;
+
+      checkedItems.cash ? paymentTypeFilter.push('Cash') : null;
+      checkedItems.kpay ? paymentTypeFilter.push('KPay') : null;
+      checkedItems.bank ? paymentTypeFilter.push('Bank') : null;
+
+      if(statusFilter.length > 0){
+        tempOrders = tempOrders.filter(order => statusFilter.includes(order.status));
+      }
+      if (paymentFilter.length > 0) {
+        tempOrders = tempOrders.filter(order => paymentFilter.includes(order.paymentStatus));
+      }
+      if (paymentTypeFilter.length > 0) {
+        tempOrders = tempOrders.filter(order => paymentTypeFilter.includes(order.paymentMode));
+      }
+      return tempOrders;
+    }
+    if (value.trim() === '') {
+      setSearchedOrders(filerWithChecked(orders));
     } else {
       const result = fuse.search(value);
       const unfilterResult = result.map(r => r.item);
-      if(selectedBrand === "all"){
-        setSearchedOrders(unfilterResult);
-      } else {
-        const filteredResult = unfilterResult.filter(order => order.brand === selectedBrand);
-        setSearchedOrders(filteredResult);
-      }
+      setSearchedOrders(filerWithChecked(unfilterResult));
     }
   }
+
+  useEffect(() => {
+      debouncedSearch(searchKeywords)
+  }, [searchKeywords, checkedItems, brand, orders]);
 
   const debouncedSearch = useMemo(() =>
     debounce((value) => {
@@ -184,7 +225,6 @@ function OrderContainer({ brand }) {
   const handleChange = (e) => {
     const value = e.target.value;
     setSearchKeywords(value);
-    debouncedSearch(value);
   }
 
   const closeSnack = () => {
@@ -206,25 +246,7 @@ function OrderContainer({ brand }) {
     />
   );
 
-  //  const CustomHits = () =>{
-  //   const { hits } = useHits();
-  //   if(hits.length === 0){
-  //     return (
-  //       <MDBox>
-  //         <MDAlert color="light">
-  //             No order found.
-  //           </MDAlert>
-  //       </MDBox>
-  //     )
-  //   }
-  //   return (
-  //     <div>
-  //       {hits.map((hit, index) => (
-  //         <OrderCard key={index} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
-  //       ))}
-  //     </div>
-  //   );
-  // }
+
 
   return (
     <>
@@ -259,45 +281,14 @@ function OrderContainer({ brand }) {
           </FormControl>
         </MDBox>
         <MDBox p={2} display="flex" justifyContent="space-between" gap={2} alignItems="center" flexDirection="row">
-          {/*<InstantSearch indexName="Dragon" searchClient={searchClient}>*/}
-          {/*  <SearchOrder/>*/}
-          {/*  <CustomHits/>*/}
-          {/*</InstantSearch>*/}
+
           <MDInput type="text" label="Search" variant="outlined" fullWidth value={searchKeywords} onChange={handleChange} />
         </MDBox>
+        <MDBox px={2} pb={2}>
+          <FilterOrders filerChange={(e) => setCheckedItems(e)}/>
+        </MDBox>
 
-        {/*<MDBox display="flex" alignItems="center" justifyContent="left" p={2}>*/}
-        {/*  <MDBox display="flex" alignItems="center">*/}
-        {/*    <MDBox>*/}
-        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
-        {/*    </MDBox>*/}
-        {/*    <MDBox width="80%" >*/}
-        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
-        {/*        Pending*/}
-        {/*      </MDTypography>*/}
-        {/*    </MDBox>*/}
-        {/*  </MDBox>*/}
-        {/*  <MDBox display="flex" alignItems="center">*/}
-        {/*    <MDBox>*/}
-        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
-        {/*    </MDBox>*/}
-        {/*    <MDBox width="80%">*/}
-        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
-        {/*        Packed*/}
-        {/*      </MDTypography>*/}
-        {/*    </MDBox>*/}
-        {/*  </MDBox>*/}
-        {/*  <MDBox display="flex" alignItems="center">*/}
-        {/*    <MDBox>*/}
-        {/*      <Switch checked={checkedItems} onChange={() => setCheckedItems(!checkedItems)} />*/}
-        {/*    </MDBox>*/}
-        {/*    <MDBox width="80%">*/}
-        {/*      <MDTypography variant="button" fontWeight="regular" color="text">*/}
-        {/*        Shipped*/}
-        {/*      </MDTypography>*/}
-        {/*    </MDBox>*/}
-        {/*  </MDBox>*/}
-        {/*</MDBox>*/}
+
         <MDBox pt={1} pb={2} px={2}>
           <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
             {
@@ -340,3 +331,33 @@ OrderContainer.propTypes = {
 };
 
 export default OrderContainer;
+
+// const searchClient = algoliasearch(
+//   'LUQUCJ1X7P',
+//   'eee17237305148cd06aa66b6fc86d680'
+// );
+
+//  const CustomHits = () =>{
+//   const { hits } = useHits();
+//   if(hits.length === 0){
+//     return (
+//       <MDBox>
+//         <MDAlert color="light">
+//             No order found.
+//           </MDAlert>
+//       </MDBox>
+//     )
+//   }
+//   return (
+//     <div>
+//       {hits.map((hit, index) => (
+//         <OrderCard key={index} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
+//       ))}
+//     </div>
+//   );
+// }
+
+{/*<InstantSearch indexName="Dragon" searchClient={searchClient}>*/}
+{/*  <SearchOrder/>*/}
+{/*  <CustomHits/>*/}
+{/*</InstantSearch>*/}
