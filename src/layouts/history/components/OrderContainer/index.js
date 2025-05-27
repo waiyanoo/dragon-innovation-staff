@@ -15,7 +15,7 @@ import {
   getDoc,
   getDocs,
   limit,
-  query,
+  query, Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import { database } from "../../../../firebase";
@@ -41,6 +41,7 @@ import MDInput from "../../../../components/MDInput";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
 import FilterOrders from "../Filters";
+import dayjs from "dayjs";
 
 function OrderContainer({ brand }) {
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ function OrderContainer({ brand }) {
     cash: false,
     kpay: false,
     bank: false,
+    orderDate: "",
   });
   const [selectedBrand, setSelectedBrand] = useState(brand);
   const [limitCount, setLimitCount] = useState(50);
@@ -200,6 +202,12 @@ function OrderContainer({ brand }) {
       }
       if (paymentTypeFilter.length > 0) {
         tempOrders = tempOrders.filter(order => paymentTypeFilter.includes(order.paymentMode));
+      }
+      if(checkedItems.orderDate !== ""){
+        const filteredDate = dayjs(checkedItems.orderDate);
+        tempOrders = tempOrders.filter(order =>
+          dayjs(order.createdAt.toDate()).isSame(filteredDate, 'day')
+        )
       }
       return tempOrders;
     }
