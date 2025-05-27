@@ -12,6 +12,11 @@ import { useEffect, useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import PropTypes from "prop-types";
 
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
 function FilterOrders({ filerChange }) {
   const [checkedItems, setCheckedItems] = useState({
     pending: false,
@@ -106,6 +111,16 @@ function FilterOrders({ filerChange }) {
               label="Bank"
             />
           </FormGroup>
+        </MDBox>
+        <MDTypography variant="button" fontWeight="medium" pl={1}>
+          Order Date
+        </MDTypography>
+        <MDBox display="flex" alignItems="center" justifyContent="left" px={1}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={['DatePicker']}>
+              <DatePicker label="Basic date picker" />
+            </DemoContainer>
+          </LocalizationProvider>
         </MDBox>
       </AccordionDetails>
     </Accordion>

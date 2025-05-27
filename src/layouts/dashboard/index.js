@@ -188,9 +188,9 @@ function Dashboard() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox py={3}>
+      <MDBox p={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="face"
@@ -204,7 +204,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
@@ -219,7 +219,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
@@ -237,7 +237,7 @@ function Dashboard() {
         </Grid>
         <MDBox mt={3}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={112} lg={12}>
+            <Grid size={12}>
               <OrderInfoCard
                 color="primary"
                 icon="local_shipping"
@@ -249,7 +249,7 @@ function Dashboard() {
         </MDBox>
         <MDBox mt={6.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{xs : 12, md : 6, lg : 4}}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="info"
@@ -260,7 +260,7 @@ function Dashboard() {
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{xs : 12, md : 6, lg : 4}}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="primary"
@@ -271,7 +271,7 @@ function Dashboard() {
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid size={{xs : 12, md : 6, lg : 4}}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
@@ -284,16 +284,6 @@ function Dashboard() {
             </Grid>
           </Grid>
         </MDBox>
-        {/*<MDBox>*/}
-        {/*  <Grid container spacing={3}>*/}
-        {/*    <Grid item xs={12} md={6} lg={8}>*/}
-        {/*      <Projects />*/}
-        {/*    </Grid>*/}
-        {/*    <Grid item xs={12} md={6} lg={4}>*/}
-        {/*      <OrdersOverview />*/}
-        {/*    </Grid>*/}
-        {/*  </Grid>*/}
-        {/*</MDBox>*/}
       </MDBox>
       <Footer />
     </DashboardLayout>

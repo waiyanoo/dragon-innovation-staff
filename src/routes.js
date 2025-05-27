@@ -26,7 +26,6 @@
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
-import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 
@@ -120,15 +119,6 @@ const routes = [
     route: "/billing",
     routeToGo: "/billing",
     component: <Billing />,
-  },
-  {
-    type: "",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    routeToGo: "/notifications",
-    component: <Notifications />,
   },
   {
     type: "",

@@ -13,7 +13,7 @@ function OrderHistory() {
       <DashboardNavbar />
       <MDBox mt={8}>
         <Grid container spacing={3} justifyContent="center">
-          <Grid item xs={12} md={8} lg={6}>
+          <Grid size={{xs : 12, md : 12, lg : 10, xl : 8}}>
             <OrderContainer brand={brand} />
           </Grid>
         </Grid>

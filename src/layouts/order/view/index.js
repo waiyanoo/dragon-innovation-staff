@@ -105,7 +105,7 @@ function OrderView() {
         order !== null &&
         <MDBox mt={8}>
           <Grid container spacing={3} justifyContent="center">
-            <Grid item xs={12} md={8} lg={6}>
+            <Grid size={{xs : 12, md : 8, lg : 6}}>
               <Card id="order-form">
                 <MDBox
                   variant="gradient"
