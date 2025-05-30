@@ -35,7 +35,8 @@ function Order() {
     state:"",
     city: "",
     items: "",
-    amount: "",
+    amount: 0,
+    deliveryFees: 0,
     paymentStatus: "COD",
     deliveryType: "1",
     paymentMode: "NoPay",
@@ -286,11 +287,24 @@ function Order() {
                   </MDBox>
                   <MDBox mb={2}>
                     <MDInput
-                      type="text"
+                      type="number"
+                      inputMode="numeric"
                       name="amount"
-                      label="Amount"
+                      label="Total Amount (Including Delivery Fees)"
                       variant="outlined"
                       value={formData.amount}
+                      onChange={handleChange}
+                      fullWidth
+                    />
+                  </MDBox>
+                  <MDBox mb={2}>
+                    <MDInput
+                      type="number"
+                      inputMode="numeric"
+                      name="deliveryFees"
+                      label="Delivery Fees Paid"
+                      variant="outlined"
+                      value={formData.deliveryFees}
                       onChange={handleChange}
                       fullWidth
                     />

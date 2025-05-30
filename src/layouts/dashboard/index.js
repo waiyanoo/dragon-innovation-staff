@@ -86,9 +86,9 @@ function Dashboard() {
   }
 
   const getOrderAmountByType = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
-    const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
-    const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
-    const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + (+item.amount || 0), 0) : 0;
+    const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
+    const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
+    const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
 
     return { hanskinTotal, sugarBearTotal, mongdiesTotal };
   }
@@ -188,7 +188,7 @@ function Dashboard() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox p={3}>
+      <MDBox p={{xs : 1, md: 3, lg : 3}} >
         <Grid container spacing={3}>
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
@@ -291,3 +291,7 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+
+//1000.FNKI298NRNC9N50DGAOC7E29LKISST
+//9e07b11f5df93243b1d89b96e347fae49ad9d6ca71
