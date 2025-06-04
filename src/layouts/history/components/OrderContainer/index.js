@@ -63,20 +63,27 @@ function OrderContainer({ brand }) {
   const [selectedBrand, setSelectedBrand] = useState(brand);
   const [limitCount, setLimitCount] = useState(50);
   const [open, setOpen] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [orderId, setOrderId] = useState("");
   const { userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
 
-  const handleClose = () => setOpen(false);
+  useEffect(() => {
+    filerOrders();
+  }, []);
 
+  const handleClose = () => setOpen(false);
 
   const fuse = new Fuse(orders, {
     keys: ['name', 'primaryPhone', 'secondaryPhone'],
     threshold: 0.3,
   });
 
-  useEffect(() => {
-    filerOrders();
-  }, []);
+  const handleConfirm = async () => {
+      console.log("what is invoice number", invoiceNumber);
+      await updateOrder(3, orderId, true);
+      setOpen(false);
+  }
 
   useEffect(() => {
     if(selectedBrand === "all"){
@@ -97,23 +104,38 @@ function OrderContainer({ brand }) {
     setSelectedBrand(value);
   };
 
-  const updateOrder = async (status, id) => {
+  const updateOrder = async (status = 0, id, setInvoice = false) => {
     const docRef = doc(database, "orders", id);
     const docSnap = await getDoc(docRef);
     const data = docSnap.data();
     let updateHistory = data.updateHistory;
-    updateDoc(docRef, {
-      status,
-      updateHistory: [...updateHistory, {
-        updatedAt: new Date(),
-        updatedBy: userData.name,
-      }],
-    }).then(() => {
+    let dataToUpdate = {};
+    if(setInvoice){
+      dataToUpdate = {
+        invoiceNumber: invoiceNumber,
+        status,
+        updateHistory: [...updateHistory, {
+          updatedAt: new Date(),
+          updatedBy: userData.name,
+        }],
+      }
+    } else {
+      dataToUpdate = {
+        status,
+        updateHistory: [...updateHistory, {
+          updatedAt: new Date(),
+          updatedBy: userData.name,
+        }],
+      }
+    }
+    updateDoc(docRef, dataToUpdate).then(() => {
       const orders = searchedOrders.map(item =>
         item.id === id ? { ...item, status } : item
       );
       setSearchedOrders(orders);
       setSnack({ open: true, message: 'Order update success.', color: 'success', icon: 'check' });
+      setOrderId("");
+      setInvoiceNumber("");
     }).catch(() => {
       setSnack({ open: true, message: 'Order update failed.', color: 'error', icon: 'warning' })
     });
@@ -148,6 +170,10 @@ function OrderContainer({ brand }) {
         break;
       case "shipped":
         await updateOrder(2, order.id);
+        break;
+      case "invoice":
+        setOpen(true);
+        setOrderId(order.id);
         break;
       default:
         break;
@@ -318,14 +344,28 @@ function OrderContainer({ brand }) {
           </MDBox>
         </MDBox>
       </Card>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Dialog Title</DialogTitle>
-        <DialogContent>
-          <Typography>This is the dialog content.</Typography>
+      <Dialog open={open} onClose={handleClose} >
+        <DialogTitle>
+          <MDTypography variant="h5" component="span" fontWeight="medium" textTransform="capitalize">
+            Set Invoice No.
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent sx={{width: '450px'}}>
+          <MDBox py={2}>
+            <MDInput
+              type="text"
+              name="Invoice Number"
+              label="Invoice Number"
+              variant="outlined"
+              value={invoiceNumber}
+              onChange={(e) =>setInvoiceNumber(e.target.value)}
+              fullWidth
+            />
+          </MDBox>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose} variant="contained">Confirm</Button>
+          <MDButton variant="gradient" color="light" onClick={handleClose}>Cancel</MDButton>
+          <MDButton variant="gradient" color="info" onClick={handleConfirm} disabled={invoiceNumber === ''}>Confirm</MDButton>
         </DialogActions>
       </Dialog>
       {renderSnackBar}
