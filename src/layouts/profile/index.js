@@ -50,7 +50,6 @@ function Overview() {
                 action={{ route: "", tooltip: "Edit Profile" }}
                 shadow={false}
               />
-              {/*<Divider orientation="vertical" sx={{ mx: 0 }} />*/}
             </Grid>
           </Grid>
         </MDBox>

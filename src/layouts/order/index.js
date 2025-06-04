@@ -27,6 +27,7 @@ function Order() {
   const [orderRef, setOrderRef] = useState(null);
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
   const [isLoading, setIsLoading] = useState(false);
+  const [collectionName, setCollectionName] = useState('orders');
   const [formData, setFormData] = useState({
     name: "",
     primaryPhone: "",
@@ -46,8 +47,10 @@ function Order() {
   })
 
   useEffect(() => {
+    console.log("userData", userData.role);
+    setCollectionName(userData.role === 'sales' ? 'ws_orders' : 'orders')
     async function fetchOrder() {
-      const docRef = doc(database, 'orders', id);
+      const docRef = doc(database, collectionName, id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setOrderRef(docRef);
@@ -92,12 +95,12 @@ function Order() {
     }
 
     try {
-      await addDoc(collection(database, 'orders'), data);
+      await addDoc(collection(database, collectionName), data);
       setSnack({ open: true, message: 'Order create success.', color: 'success', icon: 'check' })
       navigate(`/history/${brand}`);
     } catch (e) {
       setSnack({ open: true, message: 'Order create failed.', color: 'error', icon: 'warning' })
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 
