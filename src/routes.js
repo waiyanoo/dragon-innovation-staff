@@ -35,6 +35,7 @@ import Order from "./layouts/order";
 import OrderHistory from "./layouts/history";
 import PrivateRoute from "./context/PrivateRoute";
 import OrderView from "./layouts/order/view";
+import Unauthorized from "./layouts/authentication/unauthorized";
 
 const routes = [
   {
@@ -46,7 +47,9 @@ const routes = [
     routeToGo: "/dashboard",
     roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}
+      >
         <Dashboard />
       </PrivateRoute>
     ),
@@ -60,7 +63,9 @@ const routes = [
     routeToGo: "/profile",
     roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component:(
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}
+      >
         <Profile />
       </PrivateRoute>
     )
@@ -74,7 +79,9 @@ const routes = [
     routeToGo: "/order",
     roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}
+      >
         <Order />
       </PrivateRoute>
     ),
@@ -88,7 +95,9 @@ const routes = [
     routeToGo: "/details",
     roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}
+      >
         <OrderView />
       </PrivateRoute>
     ),
@@ -109,7 +118,9 @@ const routes = [
     routeToGo: "/history/hanskin",
     roles: ["page_admin", "warehouse", "admin", "super_admin"],
     component: (
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["page_admin", "warehouse", "admin", "super_admin"]}
+      >
         <OrderHistory />
       </PrivateRoute>
     ),
@@ -122,10 +133,21 @@ const routes = [
     routeToGo: "/wholesale-history/hanskin",
     roles: ["warehouse", "sales", "admin", "super_admin"],
     component: (
-      <PrivateRoute>
+      <PrivateRoute
+        roles={["warehouse", "sales", "admin", "super_admin"]}
+      >
         <OrderHistory />
       </PrivateRoute>
     ),
+  },
+  {
+    type: "",
+    name: "Unauthorized",
+    key: "unauthorized",
+    icon: "",
+    route: "/unauthorized",
+    routeToGo: "/unauthorized",
+    component: <Unauthorized />,
   },
   {
     type: "",

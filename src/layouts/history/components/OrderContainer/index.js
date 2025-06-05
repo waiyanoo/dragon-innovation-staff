@@ -350,7 +350,7 @@ function OrderContainer({ brand, isRetail }) {
             Set Invoice No.
           </MDTypography>
         </DialogTitle>
-        <DialogContent sx={{width: '450px'}}>
+        <DialogContent sx={{width: { xs: '350px', md: '450px'}}}>
           <MDBox py={2}>
             <MDInput
               type="text"

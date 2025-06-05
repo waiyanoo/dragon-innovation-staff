@@ -55,7 +55,7 @@ ChartJS.register(
   Filler
 );
 
-function ReportsLineChart({ color, title, description, date, chart }) {
+function ReportsLineChart({ color, title, description, chart }) {
   const { data, options } = configs(chart.labels || [], chart.datasets || {});
 
   return (
@@ -90,9 +90,6 @@ function ReportsLineChart({ color, title, description, date, chart }) {
             <MDTypography variant="button" color="text" lineHeight={1} sx={{ mt: 0.15, mr: 0.5 }}>
               <Icon>schedule</Icon>
             </MDTypography>
-            <MDTypography variant="button" color="text" fontWeight="light">
-              {date}
-            </MDTypography>
           </MDBox>
         </MDBox>
       </MDBox>
@@ -111,7 +108,6 @@ ReportsLineChart.propTypes = {
   color: PropTypes.oneOf(["primary", "secondary", "info", "success", "warning", "error", "dark"]),
   title: PropTypes.string.isRequired,
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
-  date: PropTypes.string.isRequired,
   chart: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.array, PropTypes.object])).isRequired,
 };
 

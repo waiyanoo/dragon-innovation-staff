@@ -5,8 +5,8 @@ import PropTypes from "prop-types";
 import myGif from "../assets/images/loading.gif";
 import MDBox from "../components/MDBox";
 
-export default function PrivateRoute({ children }) {
-  const { authUser, loading } = useAuth();
+export default function PrivateRoute({ children, roles }) {
+  const { authUser, loading, userData } = useAuth();
 
   if (loading) return (
     <MDBox display="flex" justifyContent="center" alignItems="center" style={{ height: "100vh" }}>
@@ -14,9 +14,12 @@ export default function PrivateRoute({ children }) {
     </MDBox>
   );
 
+  if(!roles.includes(userData.role)) return <Navigate to="/unauthorized" replace />
+
   return authUser ? children : <Navigate to="/authentication/sign-in" replace />;
 }
 
 PrivateRoute.propTypes = {
   children: PropTypes.node,
+  roles: PropTypes.array,
 };

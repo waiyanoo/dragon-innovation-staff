@@ -21,7 +21,6 @@ import { useAuth } from "../../context/AuthContext";
 
 function Dashboard() {
   const {userData} = useAuth();
-  const [lastUpdated, setLastUpdated] = useState(null);
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToPack, setOrderToPack] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
@@ -48,24 +47,35 @@ function Dashboard() {
   const getDataByDateRange = async (startDate, endDate) => {
     const start = Timestamp.fromDate(new Date(startDate));
     const end = Timestamp.fromDate(new Date(endDate));
-    let constraints = [];
 
-    if(userData.role === "sales") constraints.push("wholesale")
-    else if(userData.role === "page_admin") constraints.push("retail")
-    else {
-      constraints.push("retail");
-      constraints.push("wholesale");
-    }
-
-    const q = query(
+    const retailQ = query(
       collection(database, "orders"),
       where("createdAt", ">=", start),
       where("createdAt", "<", end),
-      where("orderType", "in", constraints),
+    );
+    const wholesaleQ = query(
+      collection(database, "ws_orders"),
+      where("createdAt", ">=", start),
+      where("createdAt", "<", end),
     );
 
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let data = [];
+
+    if (userData.role === "sales") {
+      const snapshot = await getDocs(wholesaleQ);
+      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    } else if (userData.role === "page_admin") {
+      const snapshot = await getDocs(retailQ);
+      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    } else {
+      const snapshotWS = await getDocs(wholesaleQ);
+      const snapshotR = await getDocs(retailQ);
+      const wData = snapshotWS.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      const rData = snapshotR.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      data = [...wData, ...rData];
+    }
+
+    return data;
   }
 
   const getCurrentMonthOrders = () => {
@@ -86,6 +96,7 @@ function Dashboard() {
   }
 
   const getOrderAmountByType = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
+    console.log("order", hanskinOrder, sugarBearOrder, mongdiesOrder);
     const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
     const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
     const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
@@ -112,8 +123,9 @@ function Dashboard() {
       const mongdiesChange = mongdiesTotal > 0
         ? ((MTotal - mongdiesTotal) / mongdiesTotal) * 100
         : 0;
-
-      setPercentageChange( { hanskin : hanskinChange, sugarbear : sugarbearChange, mongdies : mongdiesChange});
+      console.log("what is total", HTotal, STotal, MTotal);
+      console.log("what is percentatge", { hanskin : hanskinChange, sugarbear : sugarbearChange, mongdies : mongdiesChange})
+      setPercentageChange( { hanskin : Math.round(hanskinChange), sugarbear : Math.round(sugarbearChange), mongdies : Math.round(mongdiesChange)});
     });
   }
 
@@ -121,7 +133,6 @@ function Dashboard() {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     getDataByDateRange(sixMonthsAgo, now).then(orders => {
-      setLastUpdated(new Date());
       calculateDataForShipAndPack(orders);
     })
   }
@@ -134,7 +145,7 @@ function Dashboard() {
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
 
-    getPreviousMonthOrders(orders, hanskinTotal, sugarBearTotal, mongdiesTotal);
+    getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
   }
 
   const calculateDataForShipAndPack = (orders) => {
@@ -197,7 +208,7 @@ function Dashboard() {
                 title="Hanskin"
                 count={formattedAmount(orderTotal.hanskin)}
                 percentage={{
-                  color: "success",
+                  color: percentageChange.hanskin < 0 ? "error" : "success" ,
                   amount: percentageChange.hanskin,
                   label: "than last month",
                 }}
@@ -212,7 +223,7 @@ function Dashboard() {
                 title="SugarBear"
                 count={formattedAmount(orderTotal.sugarbear)}
                 percentage={{
-                  color: "success",
+                  color: percentageChange.sugarbear < 0 ? "error" : "success",
                   amount: percentageChange.sugarbear,
                   label: "than last month",
                 }}
@@ -227,7 +238,7 @@ function Dashboard() {
                 title="Mongdies"
                 count={formattedAmount(orderTotal.mongdies)}
                 percentage={{
-                  color: "success",
+                  color: percentageChange.mongdies < 0 ? "error" : "success",
                   amount: percentageChange.mongdies,
                   label: "than last month",
                 }}
@@ -255,7 +266,6 @@ function Dashboard() {
                   color="info"
                   title="Hanskin sales"
                   description="Monthly Performance"
-                  date={`Last updated: `}
                   chart={hanskinChartData}
                 />
               </MDBox>
@@ -266,7 +276,6 @@ function Dashboard() {
                   color="primary"
                   title="SugarBear sales"
                   description="Monthly Performance"
-                  date={`Last updated: `}
                   chart={sugarbearChartData}
                 />
               </MDBox>
@@ -277,7 +286,6 @@ function Dashboard() {
                   color="success"
                   title="Mongdies Sales"
                   description="Monthly Performance"
-                  date={`Last updated:`}
                   chart={mongdiesChartData}
                 />
               </MDBox>

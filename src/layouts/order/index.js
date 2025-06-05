@@ -46,6 +46,7 @@ function Order() {
     invoiceNumber: "",
   })
 
+
   useEffect(() => {
     console.log("userData", userData.role);
     setCollectionName(userData.role === 'sales' ? 'ws_orders' : 'orders')
@@ -97,7 +98,7 @@ function Order() {
     try {
       await addDoc(collection(database, collectionName), data);
       setSnack({ open: true, message: 'Order create success.', color: 'success', icon: 'check' })
-      navigate(`/history/${brand}`);
+      routeToHistory();
     } catch (e) {
       setSnack({ open: true, message: 'Order create failed.', color: 'error', icon: 'warning' })
       setIsLoading(false);
@@ -116,10 +117,10 @@ function Order() {
     try {
       await updateDoc(orderRef, data);
       setSnack({ open: true, message: 'Order update success.', color: 'success', icon: 'check' })
-      navigate(`/history/${brand}`);
+      routeToHistory();
     } catch (e) {
       setSnack({ open: true, message: 'Order update failed.', color: 'error', icon: 'warning' })
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -133,6 +134,13 @@ function Order() {
     }
 
   };
+
+  const routeToHistory = () => {
+    if(userData.role === 'sales'){
+      navigate(`/wholesale-history/${brand}`);
+    }else
+      navigate(`/history/${brand}`);
+  }
 
   const closeSnack = () => {
     snack.open = false;
@@ -199,6 +207,18 @@ function Order() {
                       </Select>
                     </FormControl>
                   </MDBox>
+                  {
+                    userData.role === 'sales' && <MDBox mb={2}>
+                      <MDInput
+                        type="text"
+                        name="invoiceNumber"
+                        label="Invoice Number"
+                        variant="outlined"
+                        value={formData.invoiceNumber}
+                        onChange={handleChange}
+                        fullWidth />
+                    </MDBox>
+                  }
                   <MDBox mb={2}>
                     <MDInput
                       type="text"

@@ -39,10 +39,17 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
       userProfile(user);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if(userData === null || !userData) {
+      setLoading(true);
+    }else{
+      setLoading(false);
+    }
+  }, [userData])
 
   return <AuthContext.Provider value={{ authUser, userData, loading }}>{children}</AuthContext.Provider>;
 }

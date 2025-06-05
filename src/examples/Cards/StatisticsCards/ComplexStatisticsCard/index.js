@@ -49,7 +49,7 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
             fontWeight="bold"
             color={percentage.color}
           >
-            {percentage.amount}
+            {percentage.amount}%
           </MDTypography>
           &nbsp;{percentage.label}
         </MDTypography>
