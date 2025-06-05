@@ -139,17 +139,45 @@ function FilterOrders({ filerChange }) {
             <DemoContainer components={["DatePicker"]}>
               <DatePicker
                 name="orderDate"
-                label="Choose Order Date"
+                label="Start Date"
                 value={orderDate}
                 onChange={dateChange}
                 slotProps={{
                   textField: {
                     placeholder: "dd/mm/yyyy",
+                    sx: {
+                      '&.MuiFormControl-root': {
+                        minWidth: 0,
+                      },
+                    },
                   },
                 }}
               />
             </DemoContainer>
           </LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["DatePicker"]}>
+              <DatePicker
+                name="orderDate"
+                label="End Date"
+                value={orderDate}
+                onChange={dateChange}
+                slotProps={{
+                  textField: {
+                    placeholder: "dd/mm/yyyy",
+                    sx: {
+                      '&.MuiFormControl-root': {
+                        minWidth: 0,
+                      },
+                    },
+                  },
+                }}
+              />
+            </DemoContainer>
+          </LocalizationProvider>
+
+        </MDBox>
+        <MDBox px={1} mb={1}>
           <FormGroup row sx={{ gap: 1 }}>
             <FormControlLabel
               control={

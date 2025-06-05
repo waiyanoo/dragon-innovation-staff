@@ -15,7 +15,7 @@ import {
   getDoc,
   getDocs,
   limit,
-  query, Timestamp,
+  query,
   updateDoc,
 } from "firebase/firestore";
 import { database } from "../../../../firebase";
@@ -31,8 +31,6 @@ import {
 } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useLocation, useNavigate } from "react-router-dom";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import MDSnackbar from "../../../../components/MDSnackbar";
 import { useAuth } from "../../../../context/AuthContext";
 import MDAlert from "../../../../components/MDAlert";
@@ -110,7 +108,7 @@ function OrderContainer({ brand }) {
     const docSnap = await getDoc(docRef);
     const data = docSnap.data();
     let updateHistory = data.updateHistory;
-    let dataToUpdate = {};
+    let dataToUpdate;
     if(setInvoice){
       dataToUpdate = {
         invoiceNumber: invoiceNumber,
