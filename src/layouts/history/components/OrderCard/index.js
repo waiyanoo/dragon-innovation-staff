@@ -29,10 +29,12 @@ function OrderCard({ data, noGutter, handleClick }) {
     setAnchorEl(null);
   };
 
-  const formattedAmount = new Intl.NumberFormat("en-MM", {
-    style: "currency",
-    currency: "MMK",
-  }).format(data.amount);
+  const formattedAmount = (value) => {
+    return new Intl.NumberFormat("en-MM", {
+      style: "currency",
+      currency: "MMK",
+    }).format(value);
+  };
 
   const TimestampDisplay = ( timestamp ) => {
     const date = timestamp.toDate();
@@ -183,8 +185,16 @@ function OrderCard({ data, noGutter, handleClick }) {
           <MDTypography variant="caption" fontWeight="medium">
             Amount:&nbsp;&nbsp;&nbsp;
             <MDTypography variant="caption" color="text" fontWeight="medium">
-              {formattedAmount} - {data.paymentMode}{" "}
+              {formattedAmount(data.amount)} - {data.paymentMode}{" "}
               {data.paymentMode !== "Paid" ? "" : ` - ${data.paymentType}`}
+            </MDTypography>
+          </MDTypography>
+        </MDBox>
+        <MDBox mb={1} lineHeight={0}>
+          <MDTypography variant="caption" fontWeight="medium">
+            Paid Delivery Fees:&nbsp;&nbsp;&nbsp;
+            <MDTypography variant="caption" color="text" fontWeight="medium">
+              {formattedAmount(data.deliveryFees)}
             </MDTypography>
           </MDTypography>
         </MDBox>

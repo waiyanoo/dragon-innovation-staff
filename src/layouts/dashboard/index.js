@@ -59,7 +59,7 @@ function Dashboard() {
       where("createdAt", "<", end),
     );
 
-    let data = [];
+    let data;
 
     if (userData.role === "sales") {
       const snapshot = await getDocs(wholesaleQ);
@@ -123,8 +123,6 @@ function Dashboard() {
       const mongdiesChange = mongdiesTotal > 0
         ? ((MTotal - mongdiesTotal) / mongdiesTotal) * 100
         : 0;
-      console.log("what is total", HTotal, STotal, MTotal);
-      console.log("what is percentatge", { hanskin : hanskinChange, sugarbear : sugarbearChange, mongdies : mongdiesChange})
       setPercentageChange( { hanskin : Math.round(hanskinChange), sugarbear : Math.round(sugarbearChange), mongdies : Math.round(mongdiesChange)});
     });
   }

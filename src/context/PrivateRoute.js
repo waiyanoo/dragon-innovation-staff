@@ -13,7 +13,6 @@ export default function PrivateRoute({ children, roles }) {
       <img src={myGif} alt="loading" width="100"/>
     </MDBox>
   );
-
   if(!roles.includes(userData.role)) return <Navigate to="/unauthorized" replace />
 
   return authUser ? children : <Navigate to="/authentication/sign-in" replace />;

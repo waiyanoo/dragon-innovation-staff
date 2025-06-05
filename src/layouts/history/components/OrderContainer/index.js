@@ -30,7 +30,7 @@ import {
   Select,
 } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import MDSnackbar from "../../../../components/MDSnackbar";
@@ -43,8 +43,9 @@ import { debounce } from "lodash";
 import FilterOrders from "../Filters";
 import dayjs from "dayjs";
 
-function OrderContainer({ brand, isRetail }) {
+function OrderContainer({ brand }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [searchedOrders, setSearchedOrders] = useState([]);
   const [searchKeywords, setSearchKeywords] = useState("");
@@ -70,7 +71,7 @@ function OrderContainer({ brand, isRetail }) {
 
   useEffect(() => {
     filerOrders();
-  }, [isRetail]);
+  }, [location]);
 
   const handleClose = () => setOpen(false);
 
@@ -80,18 +81,18 @@ function OrderContainer({ brand, isRetail }) {
   });
 
   const handleConfirm = async () => {
-      console.log("what is invoice number", invoiceNumber);
       await updateOrder(3, orderId, true);
       setOpen(false);
   }
 
   useEffect(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
     if(selectedBrand === "all"){
-      navigate(isRetail ? `/history/all`: `/wholesale-history/all`);
+      navigate(`/${segments[0]}/all`);
     } else {
-      navigate(isRetail ? `/history/${selectedBrand}` : `/wholesale-history/${selectedBrand}`);
+      navigate(`/${segments[0]}/${selectedBrand}`);
     }
-  }, [selectedBrand, orders, isRetail]);
+  }, [selectedBrand, orders]);
 
 
   const loadMore = () => {
@@ -183,7 +184,8 @@ function OrderContainer({ brand, isRetail }) {
 
   const filerOrders = async () => {
     try {
-      const brandRef = collection(database, isRetail ? "orders" : 'ws_orders');
+      const segments = location.pathname.split('/').filter(Boolean);
+      const brandRef = collection(database, segments[0] === 'history' ? "orders" : 'ws_orders');
       const q = query(
         brandRef,
         limit(limitCount),
@@ -375,7 +377,6 @@ function OrderContainer({ brand, isRetail }) {
 
 OrderContainer.propTypes = {
   brand: PropTypes.string.isRequired,
-  isRetail:  PropTypes.bool.isRequired,
   hit: PropTypes.object
 };
 
