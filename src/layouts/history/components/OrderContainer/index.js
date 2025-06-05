@@ -43,7 +43,7 @@ import { debounce } from "lodash";
 import FilterOrders from "../Filters";
 import dayjs from "dayjs";
 
-function OrderContainer({ brand }) {
+function OrderContainer({ brand, isRetail }) {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [searchedOrders, setSearchedOrders] = useState([]);
@@ -70,7 +70,7 @@ function OrderContainer({ brand }) {
 
   useEffect(() => {
     filerOrders();
-  }, []);
+  }, [isRetail]);
 
   const handleClose = () => setOpen(false);
 
@@ -87,11 +87,11 @@ function OrderContainer({ brand }) {
 
   useEffect(() => {
     if(selectedBrand === "all"){
-      navigate(`/history/all`);
+      navigate(isRetail ? `/history/all`: `/wholesale-history/all`);
     } else {
-      navigate(`/history/${selectedBrand}`);
+      navigate(isRetail ? `/history/${selectedBrand}` : `/wholesale-history/${selectedBrand}`);
     }
-  }, [selectedBrand, orders]);
+  }, [selectedBrand, orders, isRetail]);
 
 
   const loadMore = () => {
@@ -143,7 +143,7 @@ function OrderContainer({ brand }) {
   };
 
   const deleteOrder = async (id) => {
-      deleteDoc(doc(database, 'orders', id)).then(() => {
+      deleteDoc(doc(database, isRetail ? "orders" : 'ws_orders', id)).then(() => {
         const orders = searchedOrders.filter(item => item.id !== id);
         setSearchedOrders(orders);
         setSnack({ open: true, message: 'Order delete success.', color: 'success', icon: 'check' });
@@ -183,7 +183,7 @@ function OrderContainer({ brand }) {
 
   const filerOrders = async () => {
     try {
-      const brandRef = collection(database, "orders");
+      const brandRef = collection(database, isRetail ? "orders" : 'ws_orders');
       const q = query(
         brandRef,
         limit(limitCount),
@@ -375,6 +375,7 @@ function OrderContainer({ brand }) {
 
 OrderContainer.propTypes = {
   brand: PropTypes.string.isRequired,
+  isRetail:  PropTypes.bool.isRequired,
   hit: PropTypes.object
 };
 

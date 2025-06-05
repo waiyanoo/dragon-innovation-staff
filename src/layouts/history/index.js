@@ -4,9 +4,15 @@ import Grid from "@mui/material/Grid";
 import MDBox from "../../components/MDBox";
 import OrderContainer from "./components/OrderContainer";
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function OrderHistory() {
   const { brand } = useParams();
+  const [isRetail, setIsRetail] = useState(true);
+
+  useEffect(() => {
+    setIsRetail(location.pathname.startsWith("/history"));
+  }, [location.pathname]);
 
   return (
     <DashboardLayout>
@@ -14,7 +20,7 @@ function OrderHistory() {
       <MDBox mt={8}>
         <Grid container spacing={3} justifyContent="center">
           <Grid size={{xs : 12, md : 12, lg : 10, xl : 8}}>
-            <OrderContainer brand={brand} />
+            <OrderContainer brand={brand} isRetail={isRetail}/>
           </Grid>
         </Grid>
       </MDBox>

@@ -44,6 +44,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     routeToGo: "/dashboard",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
       <PrivateRoute>
         <Dashboard />
@@ -57,6 +58,7 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     routeToGo: "/profile",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component:(
       <PrivateRoute>
         <Profile />
@@ -70,6 +72,7 @@ const routes = [
     icon: <Icon fontSize="small">shopping_cart</Icon>,
     route: "/order/:id?",
     routeToGo: "/order",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
       <PrivateRoute>
         <Order />
@@ -83,6 +86,7 @@ const routes = [
     icon: <Icon fontSize="small">shopping_cart</Icon>,
     route: "/details/:id?",
     routeToGo: "/details",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
     component: (
       <PrivateRoute>
         <OrderView />
@@ -90,35 +94,38 @@ const routes = [
     ),
   },
   {
+    type: 'title',
+    name: "History",
+    title: "History",
+    key: "order-history",
+    color: "white"
+  },
+  {
     type: "collapse",
-    name: "Order History",
-    key: "history",
+    name: "Retail",
+    key: "retail-history",
     icon: <Icon fontSize="small">receipt</Icon>,
     route: "/history/:brand",
     routeToGo: "/history/hanskin",
+    roles: ["page_admin", "warehouse", "admin", "super_admin"],
     component: (
       <PrivateRoute>
         <OrderHistory />
       </PrivateRoute>
     ),
-  },
-  {
-    type: "",
-    name: "Tables",
-    key: "tables",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    routeToGo: "/tables",
-    component: <Tables />,
-  },
-  {
-    type: "",
-    name: "Billing",
-    key: "billing",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/billing",
-    routeToGo: "/billing",
-    component: <Billing />,
+  },{
+    type: "collapse",
+    name: "Wholesale",
+    key: "wholesale-history",
+    icon: <Icon fontSize="small">receipt</Icon>,
+    route: "/wholesale-history/:brand",
+    routeToGo: "/wholesale-history/hanskin",
+    roles: ["warehouse", "sales", "admin", "super_admin"],
+    component: (
+      <PrivateRoute>
+        <OrderHistory />
+      </PrivateRoute>
+    ),
   },
   {
     type: "",
