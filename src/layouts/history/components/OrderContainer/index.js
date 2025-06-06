@@ -69,7 +69,7 @@ function OrderContainer({ brand }) {
 
   useEffect(() => {
     filerOrders();
-  }, [location]);
+  }, []);
 
   const handleClose = () => setOpen(false);
 
@@ -229,10 +229,11 @@ function OrderContainer({ brand }) {
       if (paymentTypeFilter.length > 0) {
         tempOrders = tempOrders.filter(order => paymentTypeFilter.includes(order.paymentMode));
       }
-      if(checkedItems.orderDate !== ""){
-        const filteredDate = dayjs(checkedItems.orderDate);
+      if(checkedItems.startDate !== "" && checkedItems.endDate !== ""){
+        const startDate = dayjs(checkedItems.startDate);
+        const endDate = dayjs(checkedItems.endDate);
         tempOrders = tempOrders.filter(order =>
-          dayjs(order.createdAt.toDate()).isSame(filteredDate, 'day')
+          dayjs(order.createdAt.toDate()).isBetween(startDate, 'day')
         )
       }
       return tempOrders;

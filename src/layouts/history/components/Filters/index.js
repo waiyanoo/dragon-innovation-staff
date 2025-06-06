@@ -29,9 +29,11 @@ function FilterOrders({ filerChange }) {
     cash: false,
     kpay: false,
     bank: false,
-    orderDate: "",
+    startDate: "",
+    endDate: "",
   });
-  const [orderDate, setOrderDate] = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const handleChange = (event) => {
     console.log(event);
@@ -41,18 +43,27 @@ function FilterOrders({ filerChange }) {
     });
   };
 
-  const dateChange = (date) => {
+  const startDateChange = (date) => {
     setCheckedItems({
       ...checkedItems,
-      orderDate: date.toISOString(),
+      startDate: date.toISOString(),
+    });
+  };
+
+  const endDateChange = (date) => {
+    setCheckedItems({
+      ...checkedItems,
+      endDate: date.toISOString(),
     });
   };
 
   const setNoDate = () => {
-    setOrderDate(null);
+    setStartDate(null);
+    setEndDate(null);
     setCheckedItems({
       ...checkedItems,
-      orderDate: "",
+      startDate: "",
+      endDate: "",
     });
   };
 
@@ -78,15 +89,21 @@ function FilterOrders({ filerChange }) {
         <MDBox display="flex" alignItems="center" justifyContent="left" px={1}>
           <FormGroup row sx={{ gap: 1 }}>
             <FormControlLabel
-              control={<Checkbox name="pending" onChange={handleChange} checked={checkedItems.pending}/>}
+              control={
+                <Checkbox name="pending" onChange={handleChange} checked={checkedItems.pending} />
+              }
               label="Pending"
             />
             <FormControlLabel
-              control={<Checkbox name="packed" onChange={handleChange} checked={checkedItems.packed}/>}
+              control={
+                <Checkbox name="packed" onChange={handleChange} checked={checkedItems.packed} />
+              }
               label="Packed"
             />
             <FormControlLabel
-              control={<Checkbox name="shipped" onChange={handleChange} checked={checkedItems.shipped}/>}
+              control={
+                <Checkbox name="shipped" onChange={handleChange} checked={checkedItems.shipped} />
+              }
               label="Shipped"
             />
           </FormGroup>
@@ -102,11 +119,15 @@ function FilterOrders({ filerChange }) {
               label="COD"
             />
             <FormControlLabel
-              control={<Checkbox name="fullPaid" onChange={handleChange} checked={checkedItems.fullPaid}/>}
+              control={
+                <Checkbox name="fullPaid" onChange={handleChange} checked={checkedItems.fullPaid} />
+              }
               label="Full Paid"
             />
             <FormControlLabel
-              control={<Checkbox name="other" onChange={handleChange} checked={checkedItems.other}/>}
+              control={
+                <Checkbox name="other" onChange={handleChange} checked={checkedItems.other} />
+              }
               label="Other"
             />
           </FormGroup>
@@ -118,15 +139,15 @@ function FilterOrders({ filerChange }) {
         <MDBox display="flex" alignItems="center" justifyContent="left" px={1}>
           <FormGroup row sx={{ gap: 1 }}>
             <FormControlLabel
-              control={<Checkbox name="cash" onChange={handleChange} checked={checkedItems.cash}/>}
+              control={<Checkbox name="cash" onChange={handleChange} checked={checkedItems.cash} />}
               label="Cash"
             />
             <FormControlLabel
-              control={<Checkbox name="kpay" onChange={handleChange} checked={checkedItems.kpay}/>}
+              control={<Checkbox name="kpay" onChange={handleChange} checked={checkedItems.kpay} />}
               label="KPay"
             />
             <FormControlLabel
-              control={<Checkbox name="bank" onChange={handleChange} checked={checkedItems.bank}/>}
+              control={<Checkbox name="bank" onChange={handleChange} checked={checkedItems.bank} />}
               label="Bank"
             />
           </FormGroup>
@@ -138,15 +159,15 @@ function FilterOrders({ filerChange }) {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer components={["DatePicker"]}>
               <DatePicker
-                name="orderDate"
+                name="startDate"
                 label="Start Date"
-                value={orderDate}
-                onChange={dateChange}
+                value={startDate}
+                format="DD/MMM/YYYY"
+                onChange={startDateChange}
                 slotProps={{
                   textField: {
-                    placeholder: "dd/mm/yyyy",
                     sx: {
-                      '&.MuiFormControl-root': {
+                      "&.MuiFormControl-root": {
                         minWidth: 0,
                       },
                     },
@@ -158,15 +179,15 @@ function FilterOrders({ filerChange }) {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer components={["DatePicker"]}>
               <DatePicker
-                name="orderDate"
+                name="endDate"
                 label="End Date"
-                value={orderDate}
-                onChange={dateChange}
+                value={endDate}
+                format="DD/MMM/YYYY"
+                onChange={endDateChange}
                 slotProps={{
                   textField: {
-                    placeholder: "dd/mm/yyyy",
                     sx: {
-                      '&.MuiFormControl-root': {
+                      "&.MuiFormControl-root": {
                         minWidth: 0,
                       },
                     },
@@ -175,7 +196,6 @@ function FilterOrders({ filerChange }) {
               />
             </DemoContainer>
           </LocalizationProvider>
-
         </MDBox>
         <MDBox px={1} mb={1}>
           <FormGroup row sx={{ gap: 1 }}>
@@ -192,19 +212,28 @@ function FilterOrders({ filerChange }) {
           </FormGroup>
         </MDBox>
         <MDBox display="flex" alignItems="center" gap={2} justifyContent="center" px={1} my={2}>
-          <MDButton type="button" variant="gradient" color="info" size="small"
-                    onClick={() => setCheckedItems({
-                      pending: false,
-                      packed: false,
-                      shipped: false,
-                      cod: false,
-                      fullPaid: false,
-                      other: false,
-                      cash: false,
-                      kpay: false,
-                      bank: false,
-                      orderDate: "",})}>
-            Reset</MDButton>
+          <MDButton
+            type="button"
+            variant="gradient"
+            color="info"
+            size="small"
+            onClick={() =>
+              setCheckedItems({
+                pending: false,
+                packed: false,
+                shipped: false,
+                cod: false,
+                fullPaid: false,
+                other: false,
+                cash: false,
+                kpay: false,
+                bank: false,
+                orderDate: "",
+              })
+            }
+          >
+            Reset
+          </MDButton>
         </MDBox>
       </AccordionDetails>
     </Accordion>
