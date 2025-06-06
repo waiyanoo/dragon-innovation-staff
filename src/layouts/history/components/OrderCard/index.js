@@ -44,7 +44,6 @@ function OrderCard({ data, noGutter, handleClick }) {
       month: 'short',
       year: 'numeric',
     })}</p>;
-    // return "2021-09-23 12:00:00"
   }
 
   // const formattedDate = new Date(data.updatedAt).toLocaleString();

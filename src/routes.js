@@ -113,7 +113,7 @@ const routes = [
     type: "collapse",
     name: "Retail",
     key: "retail-history",
-    icon: <Icon fontSize="small">receipt</Icon>,
+    icon: <Icon fontSize="small">local_shipping</Icon>,
     route: "/history/:brand",
     routeToGo: "/history/hanskin",
     roles: ["page_admin", "warehouse", "admin", "super_admin"],
@@ -128,7 +128,7 @@ const routes = [
     type: "collapse",
     name: "Wholesale",
     key: "wholesale-history",
-    icon: <Icon fontSize="small">receipt</Icon>,
+    icon: <Icon fontSize="small">local_shipping</Icon>,
     route: "/wholesale-history/:brand",
     routeToGo: "/wholesale-history/hanskin",
     roles: ["warehouse", "sales", "admin", "super_admin"],
@@ -137,6 +137,27 @@ const routes = [
         roles={["warehouse", "sales", "admin", "super_admin"]}
       >
         <OrderHistory />
+      </PrivateRoute>
+    ),
+  },
+  {
+    type: 'title',
+    name: "Admin",
+    title: "For Admin",
+    color: "white"
+  },{
+    type: "collapse",
+    name: "Summary",
+    key: "summary",
+    icon: <Icon fontSize="small">important_devices</Icon>,
+    route: "/summary/:brand",
+    routeToGo: "/summary/hanskin",
+    roles: [ "admin", "super_admin"],
+    component: (
+      <PrivateRoute
+        roles={["admin", "super_admin"]}
+      >
+        <Tables />
       </PrivateRoute>
     ),
   },
