@@ -83,6 +83,7 @@ function Dashboard() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     getDataByDateRange(firstDay, lastDay).then(orders => {
+      console.log("orders", orders);
       calculateDataForDashboard(orders)
     });
   }
@@ -96,7 +97,6 @@ function Dashboard() {
   }
 
   const getOrderAmountByType = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
-    console.log("order", hanskinOrder, sugarBearOrder, mongdiesOrder);
     const hanskinTotal = (hanskinOrder && hanskinOrder.length > 0) ? hanskinOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
     const sugarBearTotal = (sugarBearOrder && sugarBearOrder.length > 0) ? sugarBearOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
     const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;

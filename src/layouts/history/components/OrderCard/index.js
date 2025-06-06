@@ -39,7 +39,11 @@ function OrderCard({ data, noGutter, handleClick }) {
   const TimestampDisplay = ( timestamp ) => {
     const date = timestamp.toDate();
     // const date = new Date(timestamp);
-    return <p>{date.toLocaleString()}</p>;
+    return <p>{date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })}</p>;
     // return "2021-09-23 12:00:00"
   }
 

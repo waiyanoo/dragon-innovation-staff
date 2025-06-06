@@ -34,6 +34,7 @@ function FilterOrders({ filerChange }) {
   });
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleChange = (event) => {
     console.log(event);
@@ -65,6 +66,7 @@ function FilterOrders({ filerChange }) {
       startDate: "",
       endDate: "",
     });
+    setResetKey(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -160,6 +162,7 @@ function FilterOrders({ filerChange }) {
             <DemoContainer components={["DatePicker"]}>
               <DatePicker
                 name="startDate"
+                key={resetKey}
                 label="Start Date"
                 value={startDate}
                 format="DD/MMM/YYYY"
@@ -180,6 +183,7 @@ function FilterOrders({ filerChange }) {
             <DemoContainer components={["DatePicker"]}>
               <DatePicker
                 name="endDate"
+                key={resetKey+1}
                 label="End Date"
                 value={endDate}
                 format="DD/MMM/YYYY"
@@ -204,7 +208,7 @@ function FilterOrders({ filerChange }) {
                 <Checkbox
                   name="orderDate"
                   onChange={setNoDate}
-                  checked={checkedItems.orderDate === ""}
+                  checked={checkedItems.startDate === "" && checkedItems.endDate === ""}
                 />
               }
               label="No Date"
@@ -228,7 +232,8 @@ function FilterOrders({ filerChange }) {
                 cash: false,
                 kpay: false,
                 bank: false,
-                orderDate: "",
+                startDate: "",
+                endDate: "",
               })
             }
           >

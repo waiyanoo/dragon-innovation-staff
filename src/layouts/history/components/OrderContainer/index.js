@@ -15,6 +15,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   updateDoc,
 } from "firebase/firestore";
@@ -57,7 +58,8 @@ function OrderContainer({ brand }) {
     cash: false,
     kpay: false,
     bank: false,
-    orderDate: "",
+    startDate: "",
+    endDate: "",
   });
   const [selectedBrand, setSelectedBrand] = useState(brand);
   const [limitCount, setLimitCount] = useState(50);
@@ -65,33 +67,32 @@ function OrderContainer({ brand }) {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");
   const { userData } = useAuth();
-  const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
+  const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
+  const segments = location.pathname.split("/").filter(Boolean);
 
   useEffect(() => {
     filerOrders();
-  }, []);
+  }, [segments[0]]);
 
   const handleClose = () => setOpen(false);
 
   const fuse = new Fuse(orders, {
-    keys: ['name', 'primaryPhone', 'secondaryPhone'],
+    keys: ["name", "primaryPhone", "secondaryPhone"],
     threshold: 0.3,
   });
 
   const handleConfirm = async () => {
-      await updateOrder(3, orderId, true);
-      setOpen(false);
-  }
+    await updateOrder(3, orderId, true);
+    setOpen(false);
+  };
 
   useEffect(() => {
-    const segments = location.pathname.split('/').filter(Boolean);
-    if(selectedBrand === "all"){
+    if (selectedBrand === "all") {
       navigate(`/${segments[0]}/all`);
     } else {
       navigate(`/${segments[0]}/${selectedBrand}`);
     }
   }, [selectedBrand, orders]);
-
 
   const loadMore = () => {
     setLimitCount(limitCount + 10);
@@ -104,52 +105,60 @@ function OrderContainer({ brand }) {
   };
 
   const updateOrder = async (status = 0, id, setInvoice = false) => {
-    const docRef = doc(database, "orders", id);
+    const docRef = doc(database, segments[0] === "history" ? "orders" : "ws_orders", id);
     const docSnap = await getDoc(docRef);
     const data = docSnap.data();
     let updateHistory = data.updateHistory;
     let dataToUpdate;
-    if(setInvoice){
+    if (setInvoice) {
       dataToUpdate = {
         invoiceNumber: invoiceNumber,
         status,
-        updateHistory: [...updateHistory, {
-          updatedAt: new Date(),
-          updatedBy: userData.name,
-        }],
-      }
+        updateHistory: [
+          ...updateHistory,
+          {
+            updatedAt: new Date(),
+            updatedBy: userData.name,
+          },
+        ],
+      };
     } else {
       dataToUpdate = {
         status,
-        updateHistory: [...updateHistory, {
-          updatedAt: new Date(),
-          updatedBy: userData.name,
-        }],
-      }
+        updateHistory: [
+          ...updateHistory,
+          {
+            updatedAt: new Date(),
+            updatedBy: userData.name,
+          },
+        ],
+      };
     }
-    updateDoc(docRef, dataToUpdate).then(() => {
-      const orders = searchedOrders.map(item =>
-        item.id === id ? { ...item, status } : item
-      );
-      setSearchedOrders(orders);
-      setSnack({ open: true, message: 'Order update success.', color: 'success', icon: 'check' });
-      setOrderId("");
-      setInvoiceNumber("");
-    }).catch(() => {
-      setSnack({ open: true, message: 'Order update failed.', color: 'error', icon: 'warning' })
-    });
+    updateDoc(docRef, dataToUpdate)
+      .then(() => {
+        const orders = searchedOrders.map((item) => (item.id === id ? { ...item, status } : item));
+        setSearchedOrders(orders);
+        setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
+        setOrderId("");
+        setInvoiceNumber("");
+      })
+      .catch(() => {
+        setSnack({ open: true, message: "Order update failed.", color: "error", icon: "warning" });
+      });
     console.log("Document successfully updated!");
   };
 
   const deleteOrder = async (id) => {
-      deleteDoc(doc(database, isRetail ? "orders" : 'ws_orders', id)).then(() => {
-        const orders = searchedOrders.filter(item => item.id !== id);
+    deleteDoc(doc(database, segments[0] === "history" ? "orders" : "ws_orders", id))
+      .then(() => {
+        const orders = searchedOrders.filter((item) => item.id !== id);
         setSearchedOrders(orders);
-        setSnack({ open: true, message: 'Order delete success.', color: 'success', icon: 'check' });
-      }).catch(() => {
-        setSnack({ open: true, message: 'Order delete failed.', color: 'error', icon: 'warning' })
+        setSnack({ open: true, message: "Order delete success.", color: "success", icon: "check" });
+      })
+      .catch(() => {
+        setSnack({ open: true, message: "Order delete failed.", color: "error", icon: "warning" });
       });
-  }
+  };
 
   const handleOrderCardClick = async (e, order) => {
     switch (e) {
@@ -163,7 +172,7 @@ function OrderContainer({ brand }) {
         break;
       case "delete":
         await deleteOrder(order.id);
-        break
+        break;
       case "packed":
         await updateOrder(1, order.id);
         break;
@@ -177,25 +186,24 @@ function OrderContainer({ brand }) {
       default:
         break;
     }
-
   };
 
   const filerOrders = async () => {
     try {
-      const segments = location.pathname.split('/').filter(Boolean);
-      const brandRef = collection(database, segments[0] === 'history' ? "orders" : 'ws_orders');
-      const q = query(
-        brandRef,
-        limit(limitCount),
-      );
+      const segments = location.pathname.split("/").filter(Boolean);
+      const brandRef = collection(database, segments[0] === "history" ? "orders" : "ws_orders");
+      const q = query(brandRef, orderBy('createdAt', 'desc'), limit(limitCount),);
 
       const querySnapshot = await getDocs(q);
 
-      const orderData = querySnapshot.docs.map(doc => ({
+      const orderData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setOrders(orderData);
+
+      setOrders(
+        orderData.sort((a, b) => dayjs(b.createdAt.seconds).diff(dayjs(a.createdAt.seconds)))
+      );
     } catch (e) {
       console.error("Error getting documents: ", e);
     }
@@ -203,7 +211,10 @@ function OrderContainer({ brand }) {
 
   const onSearch = (value) => {
     const filerWithChecked = (searchOrders) => {
-      let tempOrders = selectedBrand === "all" ? searchOrders : searchOrders.filter(order => order.brand === selectedBrand);
+      let tempOrders =
+        selectedBrand === "all"
+          ? searchOrders
+          : searchOrders.filter((order) => order.brand === selectedBrand);
       let statusFilter = [];
       let paymentFilter = [];
       let paymentTypeFilter = [];
@@ -212,60 +223,63 @@ function OrderContainer({ brand }) {
       checkedItems.packed ? statusFilter.push(1) : null;
       checkedItems.shipped ? statusFilter.push(2) : null;
 
-      checkedItems.cod ? paymentFilter.push('COD') : null;
-      checkedItems.fullPaid ? paymentFilter.push('Paid') : null;
-      checkedItems.other ? paymentFilter.push('Other') : null;
+      checkedItems.cod ? paymentFilter.push("COD") : null;
+      checkedItems.fullPaid ? paymentFilter.push("Paid") : null;
+      checkedItems.other ? paymentFilter.push("Other") : null;
 
-      checkedItems.cash ? paymentTypeFilter.push('Cash') : null;
-      checkedItems.kpay ? paymentTypeFilter.push('KPay') : null;
-      checkedItems.bank ? paymentTypeFilter.push('Bank') : null;
+      checkedItems.cash ? paymentTypeFilter.push("Cash") : null;
+      checkedItems.kpay ? paymentTypeFilter.push("KPay") : null;
+      checkedItems.bank ? paymentTypeFilter.push("Bank") : null;
 
-      if(statusFilter.length > 0){
-        tempOrders = tempOrders.filter(order => statusFilter.includes(order.status));
+      if (statusFilter.length > 0) {
+        tempOrders = tempOrders.filter((order) => statusFilter.includes(order.status));
       }
       if (paymentFilter.length > 0) {
-        tempOrders = tempOrders.filter(order => paymentFilter.includes(order.paymentStatus));
+        tempOrders = tempOrders.filter((order) => paymentFilter.includes(order.paymentStatus));
       }
       if (paymentTypeFilter.length > 0) {
-        tempOrders = tempOrders.filter(order => paymentTypeFilter.includes(order.paymentMode));
+        tempOrders = tempOrders.filter((order) => paymentTypeFilter.includes(order.paymentMode));
       }
-      if(checkedItems.startDate !== "" && checkedItems.endDate !== ""){
+      if (checkedItems.startDate !== "" && checkedItems.endDate !== "") {
         const startDate = dayjs(checkedItems.startDate);
         const endDate = dayjs(checkedItems.endDate);
-        tempOrders = tempOrders.filter(order =>
-          dayjs(order.createdAt.toDate()).isBetween(startDate, 'day')
-        )
+        tempOrders = tempOrders.filter((order) => {
+          const createdAt = dayjs.unix(order.createdAt.seconds); // convert Firestore timestamp
+          return createdAt.isBetween(startDate, endDate, "day", "[]");
+        });
       }
-      return tempOrders;
-    }
-    if (value.trim() === '') {
+      return tempOrders.sort((a, b) => dayjs(b.createdAt.seconds).diff(dayjs(a.createdAt.seconds)));
+    };
+    if (value.trim() === "") {
       setSearchedOrders(filerWithChecked(orders));
     } else {
       const result = fuse.search(value);
-      const unfilterResult = result.map(r => r.item);
+      const unfilterResult = result.map((r) => r.item);
       setSearchedOrders(filerWithChecked(unfilterResult));
     }
-  }
+  };
 
   useEffect(() => {
-      debouncedSearch(searchKeywords)
+    debouncedSearch(searchKeywords);
   }, [searchKeywords, checkedItems, brand, orders]);
 
-  const debouncedSearch = useMemo(() =>
-    debounce((value) => {
-      onSearch(value);
-    }, 500), [onSearch]
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value) => {
+        onSearch(value);
+      }, 500),
+    [onSearch]
   );
 
   const handleChange = (e) => {
     const value = e.target.value;
     setSearchKeywords(value);
-  }
+  };
 
   const closeSnack = () => {
     snack.open = false;
-    setSnack({ ...snack })
-  }
+    setSnack({ ...snack });
+  };
 
   const renderSnackBar = (
     <MDSnackbar
@@ -281,17 +295,17 @@ function OrderContainer({ brand }) {
     />
   );
 
-
-
   return (
     <>
       <Card id="order-history">
-        <MDBox pt={3} px={2}
-               display="flex"
-               justifyContent="space-between"
-               alignItems={{ xs: "center", sm: "center" }}
-               flexDirection="row">
-
+        <MDBox
+          pt={3}
+          px={2}
+          display="flex"
+          justifyContent="space-between"
+          alignItems={{ xs: "center", sm: "center" }}
+          flexDirection="row"
+        >
           <MDTypography variant="h6" fontWeight="medium">
             Order History
           </MDTypography>
@@ -315,43 +329,62 @@ function OrderContainer({ brand }) {
             </Select>
           </FormControl>
         </MDBox>
-        <MDBox p={2} display="flex" justifyContent="space-between" gap={2} alignItems="center" flexDirection="row">
-
-          <MDInput type="text" label="Search" variant="outlined" fullWidth value={searchKeywords} onChange={handleChange} />
+        <MDBox
+          p={2}
+          display="flex"
+          justifyContent="space-between"
+          gap={2}
+          alignItems="center"
+          flexDirection="row"
+        >
+          <MDInput
+            type="text"
+            label="Search"
+            variant="outlined"
+            fullWidth
+            value={searchKeywords}
+            onChange={handleChange}
+          />
         </MDBox>
         <MDBox px={2} pb={2}>
-          <FilterOrders filerChange={(e) => setCheckedItems(e)}/>
+          <FilterOrders filerChange={(e) => setCheckedItems(e)} />
         </MDBox>
-
 
         <MDBox pt={1} pb={2} px={2}>
           <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
-            {
-              searchedOrders.map(order => (
-                <OrderCard key={order.id} data={order} noGutter handleClick={(e) => handleOrderCardClick(e, order)} />
-              ))
-            }
+            {searchedOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                data={order}
+                noGutter
+                handleClick={(e) => handleOrderCardClick(e, order)}
+              />
+            ))}
           </MDBox>
           <MDBox>
-            {
-              searchedOrders.length < limitCount ? null :
-                <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>Load More</MDButton>
-            }
-            {
-              searchedOrders.length === 0 ? <MDAlert color="light">
-                This is no orders yet.
-              </MDAlert> : null
-            }
+            {searchedOrders.length < limitCount ? null : (
+              <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>
+                Load More
+              </MDButton>
+            )}
+            {searchedOrders.length === 0 ? (
+              <MDAlert color="light">This is no orders yet.</MDAlert>
+            ) : null}
           </MDBox>
         </MDBox>
       </Card>
-      <Dialog open={open} onClose={handleClose} >
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
-          <MDTypography variant="h5" component="span" fontWeight="medium" textTransform="capitalize">
+          <MDTypography
+            variant="h5"
+            component="span"
+            fontWeight="medium"
+            textTransform="capitalize"
+          >
             Set Invoice No.
           </MDTypography>
         </DialogTitle>
-        <DialogContent sx={{width: { xs: '350px', md: '450px'}}}>
+        <DialogContent sx={{ width: { xs: "350px", md: "450px" } }}>
           <MDBox py={2}>
             <MDInput
               type="text"
@@ -359,14 +392,23 @@ function OrderContainer({ brand }) {
               label="Invoice Number"
               variant="outlined"
               value={invoiceNumber}
-              onChange={(e) =>setInvoiceNumber(e.target.value)}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
               fullWidth
             />
           </MDBox>
         </DialogContent>
         <DialogActions>
-          <MDButton variant="gradient" color="light" onClick={handleClose}>Cancel</MDButton>
-          <MDButton variant="gradient" color="info" onClick={handleConfirm} disabled={invoiceNumber === ''}>Confirm</MDButton>
+          <MDButton variant="gradient" color="light" onClick={handleClose}>
+            Cancel
+          </MDButton>
+          <MDButton
+            variant="gradient"
+            color="info"
+            onClick={handleConfirm}
+            disabled={invoiceNumber === ""}
+          >
+            Confirm
+          </MDButton>
         </DialogActions>
       </Dialog>
       {renderSnackBar}
@@ -376,7 +418,7 @@ function OrderContainer({ brand }) {
 
 OrderContainer.propTypes = {
   brand: PropTypes.string.isRequired,
-  hit: PropTypes.object
+  hit: PropTypes.object,
 };
 
 export default OrderContainer;
@@ -406,7 +448,15 @@ export default OrderContainer;
 //   );
 // }
 
-{/*<InstantSearch indexName="Dragon" searchClient={searchClient}>*/}
-{/*  <SearchOrder/>*/}
-{/*  <CustomHits/>*/}
-{/*</InstantSearch>*/}
+{
+  /*<InstantSearch indexName="Dragon" searchClient={searchClient}>*/
+}
+{
+  /*  <SearchOrder/>*/
+}
+{
+  /*  <CustomHits/>*/
+}
+{
+  /*</InstantSearch>*/
+}
