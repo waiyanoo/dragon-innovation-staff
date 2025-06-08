@@ -24,7 +24,7 @@
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
-import Tables from "layouts/tables";
+import Tables from "./layouts/summary";
 import Billing from "layouts/billing";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
@@ -150,8 +150,8 @@ const routes = [
     name: "Summary",
     key: "summary",
     icon: <Icon fontSize="small">important_devices</Icon>,
-    route: "/summary/:brand",
-    routeToGo: "/summary/hanskin",
+    route: "/summary",
+    routeToGo: "/summary",
     roles: [ "admin", "super_admin"],
     component: (
       <PrivateRoute

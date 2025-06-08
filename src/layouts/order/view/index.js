@@ -23,6 +23,11 @@ function OrderView() {
     currency: "MMK",
   }).format(order?.amount ? order.amount : 0);
 
+  const formattedDelvieryFees = new Intl.NumberFormat("en-MM", {
+    style: "currency",
+    currency: "MMK",
+  }).format(order?.deliveryFees ? order.deliveryFees : 0);
+
   const deliveryTypeDisplay = order?.deliveryType ? order.deliveryType === 1 ? 'Doorstep' : order.deliveryType === 2 ? 'Car Gate' : 'Pickup' : 'N/A';
 
   const view = [
@@ -54,6 +59,10 @@ function OrderView() {
       name: "amount",
       display: "Amount",
       functional: formattedAmount,
+    },{
+      name: "deliveryFees",
+      display: "Delivery Fees",
+      functional: formattedDelvieryFees,
     },{
       name: "paymentStatus",
       display: "Payment Status",

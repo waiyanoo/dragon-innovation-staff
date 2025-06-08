@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
 import { useAuth } from "../../../../context/AuthContext";
 import { Order_Card_Actions } from "../../../../data/common";
+import { formattedAmount, TimestampDisplay } from "../../../../functions/common-functions";
 
 function OrderCard({ data, noGutter, handleClick }) {
   const [controller] = useMaterialUIController();
@@ -24,29 +25,11 @@ function OrderCard({ data, noGutter, handleClick }) {
   const handleMenuItemClick = (action) => {
     setAnchorEl(null);
     handleClick(action);
-  }
+  };
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const formattedAmount = (value) => {
-    return new Intl.NumberFormat("en-MM", {
-      style: "currency",
-      currency: "MMK",
-    }).format(value);
-  };
-
-  const TimestampDisplay = ( timestamp ) => {
-    const date = timestamp.toDate();
-    // const date = new Date(timestamp);
-    return <p>{date.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })}</p>;
-  }
-
-  // const formattedDate = new Date(data.updatedAt).toLocaleString();
   return (
     <MDBox
       // display="flex"
@@ -61,9 +44,9 @@ function OrderCard({ data, noGutter, handleClick }) {
     >
       <MDBox
         variant="gradient"
-        bgColor={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
-        color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
-        coloredShadow={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'}
+        bgColor={data.brand === "sugarbear" ? "primary" : data.brand === "mongdies" ? "success" : "info"}
+        color={data.brand === "sugarbear" ? "primary" : data.brand === "mongdies" ? "success" : "info"}
+        coloredShadow={data.brand === "sugarbear" ? "primary" : data.brand === "mongdies" ? "success" : "info"}
         borderRadius="lg"
         display="flex"
         justifyContent="center"
@@ -84,17 +67,20 @@ function OrderCard({ data, noGutter, handleClick }) {
           flexDirection={{ xs: "row", sm: "row" }}
           mb={2}
         >
-          <MDBox display="flex" alignItems="center" mt={{ xs: 0.5, sm: 0 }} >
+          <MDBox display="flex" alignItems="center" mt={{ xs: 0.5, sm: 0 }}>
             <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
               {data.name}
             </MDTypography>
             {/*<MDBadge badgeContent={data.brand} color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'} variant="gradient" size="md" ml={1} />*/}
             <MDBadge
               badgeContent={
-              data.status === 2  ? "shipped"
-                : data.status === 1 ? "Packed"
-                  : data.status === 3 ? data.invoiceNumber :"Pending"}
-              color={!data.invoiceNumber ? "warning" : "success"}
+                data.status === 2 ? "shipped"
+                  : data.status === 1 ? "Packed"
+                    : data.status === 3 ? data.invoiceNumber : "Pending"}
+              color={
+                data.status === 1 ? "info"
+                  : data.status === 2 ? "warning"
+                    : data.status === 3 ? "success" : "light"}
               variant="gradient"
               size="md"
             />
@@ -102,9 +88,9 @@ function OrderCard({ data, noGutter, handleClick }) {
           <MDBox>
             <IconButton
               id="dropdown-button"
-              aria-controls={open ? 'dropdown-menu' : undefined}
+              aria-controls={open ? "dropdown-menu" : undefined}
               aria-haspopup="true"
-              aria-expanded={open ? 'true' : undefined}
+              aria-expanded={open ? "true" : undefined}
               onClick={handleMenuClick}
               variant="contained"
             >
@@ -117,7 +103,7 @@ function OrderCard({ data, noGutter, handleClick }) {
               open={open}
               onClose={handleClose}
               MenuListProps={{
-                'aria-labelledby': 'dropdown-button',
+                "aria-labelledby": "dropdown-button",
               }}
             >
               {
@@ -128,10 +114,12 @@ function OrderCard({ data, noGutter, handleClick }) {
                   if (!hasAccess) return null;
 
                   return (
-                    <MenuItem key={item.label} onClick={() => { handleMenuItemClick(item.type); }} disabled={isDisabled}>
+                    <MenuItem key={item.label} onClick={() => {
+                      handleMenuItemClick(item.type);
+                    }} disabled={isDisabled}>
                       {item.label}
                     </MenuItem>
-                  )
+                  );
                 })
               }
               {/*<MenuItem onClick={() => { handleMenuItemClick('edit'); console.log('Edit clicked'); }} disabled={data.status !== 0}>*/}
