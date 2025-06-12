@@ -62,7 +62,7 @@ function OrderContainer({ brand }) {
     endDate: "",
   });
   const [selectedBrand, setSelectedBrand] = useState(brand);
-  const [limitCount, setLimitCount] = useState(50);
+  const [limitCount, setLimitCount] = useState(500);
   const [open, setOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");

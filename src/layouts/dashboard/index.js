@@ -1,5 +1,9 @@
 // @mui material components
 import Grid from "@mui/material/Grid";
+import Tab from "@mui/material/Tab";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -13,7 +17,7 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Data
 // Dashboard components
-import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
 import OrderInfoCard from "../../examples/Cards/OrderInfoCard";
@@ -21,28 +25,23 @@ import { useAuth } from "../../context/AuthContext";
 
 function Dashboard() {
   const {userData} = useAuth();
+  const [value, setValue] = useState("retail");
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
+  const [previousOrderTotal, setPreviousOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToPack, setOrderToPack] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderToShip, setOrderToShip] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [percentageChange, setPercentageChange] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
-
   const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
 
   useEffect(() => {
-    const now = new Date();
-    const currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-    console.log("date", currentStart.toLocaleString(), nextMonthStart.toLocaleString(), previousStart.toLocaleString());
     if(userData){
       getCurrentMonthOrders();
       getSixMonthOrders();
     }
-  }, [userData]);
+  }, [userData, value]);
 
   const getDataByDateRange = async (startDate, endDate) => {
     const start = Timestamp.fromDate(new Date(startDate));
@@ -52,27 +51,22 @@ function Dashboard() {
       collection(database, "orders"),
       where("createdAt", ">=", start),
       where("createdAt", "<", end),
+      orderBy('createdAt', 'desc')
     );
     const wholesaleQ = query(
       collection(database, "ws_orders"),
       where("createdAt", ">=", start),
       where("createdAt", "<", end),
+      orderBy('createdAt', 'desc')
     );
 
     let data;
-
-    if (userData.role === "sales") {
+    if (value === "wholesale") {
       const snapshot = await getDocs(wholesaleQ);
       data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    } else if (userData.role === "page_admin") {
+    } else if (value === "retail") {
       const snapshot = await getDocs(retailQ);
       data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    } else {
-      const snapshotWS = await getDocs(wholesaleQ);
-      const snapshotR = await getDocs(retailQ);
-      const wData = snapshotWS.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      const rData = snapshotR.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      data = [...wData, ...rData];
     }
 
     return data;
@@ -83,7 +77,6 @@ function Dashboard() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     getDataByDateRange(firstDay, lastDay).then(orders => {
-      console.log("orders", orders);
       calculateDataForDashboard(orders)
     });
   }
@@ -111,6 +104,7 @@ function Dashboard() {
     getDataByDateRange(firstDay, lastDay).then(orders => {
       const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
       const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
+      setPreviousOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
 
       const hanskinChange = hanskinTotal > 0
           ? ((HTotal - hanskinTotal) / hanskinTotal) * 100
@@ -194,10 +188,13 @@ function Dashboard() {
     }).format(value);
   }
 
-  return (
-    <DashboardLayout>
-      <DashboardNavbar />
-      <MDBox p={{xs : 1, md: 3, lg : 3}} >
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const renderLayout = () => {
+    return (
+      <MDBox>
         <Grid container spacing={3}>
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
@@ -208,7 +205,7 @@ function Dashboard() {
                 percentage={{
                   color: percentageChange.hanskin < 0 ? "error" : "success" ,
                   amount: percentageChange.hanskin,
-                  label: "than last month",
+                  label: `than last month ${formattedAmount(previousOrderTotal.hanskin)}`,
                 }}
               />
             </MDBox>
@@ -223,7 +220,7 @@ function Dashboard() {
                 percentage={{
                   color: percentageChange.sugarbear < 0 ? "error" : "success",
                   amount: percentageChange.sugarbear,
-                  label: "than last month",
+                  label: `than last month ${formattedAmount(previousOrderTotal.sugarbear)}`,
                 }}
               />
             </MDBox>
@@ -238,7 +235,7 @@ function Dashboard() {
                 percentage={{
                   color: percentageChange.mongdies < 0 ? "error" : "success",
                   amount: percentageChange.mongdies,
-                  label: "than last month",
+                  label: `than last month ${formattedAmount(previousOrderTotal.mongdies)}`,
                 }}
               />
             </MDBox>
@@ -291,13 +288,30 @@ function Dashboard() {
           </Grid>
         </MDBox>
       </MDBox>
+    )
+  }
+
+  return (
+    <DashboardLayout>
+      <DashboardNavbar />
+      <TabContext value={value}>
+        <MDBox p={{xs : 1, md: 3, lg : 3}}>
+          <TabList onChange={handleChange} aria-label="lab API tabs example">
+            <Tab label="Retail" value="retail" disabled={userData.role=== 'sales'}/>
+            <Tab label="Wholesale" value="wholesale" disabled={userData.role=== 'page_admin'}/>
+          </TabList>
+        </MDBox>
+        <TabPanel value="retail">
+          {renderLayout()}
+        </TabPanel>
+        <TabPanel value="wholesale">
+          {renderLayout()}
+        </TabPanel>
+      </TabContext>
+
       <Footer />
     </DashboardLayout>
   );
 }
 
 export default Dashboard;
-
-
-//1000.FNKI298NRNC9N50DGAOC7E29LKISST
-//9e07b11f5df93243b1d89b96e347fae49ad9d6ca71

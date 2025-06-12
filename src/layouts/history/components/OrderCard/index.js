@@ -122,21 +122,6 @@ function OrderCard({ data, noGutter, handleClick }) {
                   );
                 })
               }
-              {/*<MenuItem onClick={() => { handleMenuItemClick('edit'); console.log('Edit clicked'); }} disabled={data.status !== 0}>*/}
-              {/*  Edit*/}
-              {/*</MenuItem>*/}
-              {/*<MenuItem onClick={() => { handleMenuItemClick('packed'); console.log('Packed clicked'); }} disabled={data.status >= 1}>*/}
-              {/*  Packed*/}
-              {/*</MenuItem>*/}
-              {/*<MenuItem onClick={() => { handleMenuItemClick('shipped'); console.log('Shipped clicked'); }} disabled={data.status >= 2}>*/}
-              {/*  Shipped*/}
-              {/*</MenuItem>*/}
-              {/*{*/}
-              {/*  userData.role === "admin" ? (<MenuItem onClick={() => { handleMenuItemClick('invoice'); console.log('Shipped clicked'); }}>*/}
-              {/*    Set Invoice No.*/}
-              {/*  </MenuItem>) : null*/}
-              {/*}*/}
-
             </Menu>
           </MDBox>
         </MDBox>
