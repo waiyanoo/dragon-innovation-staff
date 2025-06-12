@@ -20,8 +20,10 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
-import OrderInfoCard from "../../examples/Cards/OrderInfoCard";
+import OrderInfoCard from "./components/OrderInfoCard";
 import { useAuth } from "../../context/AuthContext";
+import staffData from "./data/staffData";
+import IndividualSalesInfoCard from "./components/IndividualSalesInfoCard";
 
 function Dashboard() {
   const {userData} = useAuth();
@@ -35,13 +37,19 @@ function Dashboard() {
   const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
+  const [adminData, setAdminData] = useState(staffData);
+
+
+  useEffect(() => {
+    setValue(userData.role === 'sales' ? 'wholesale' : 'retail');
+  }, []);
 
   useEffect(() => {
     if(userData){
       getCurrentMonthOrders();
       getSixMonthOrders();
     }
-  }, [userData, value]);
+  }, [value]);
 
   const getDataByDateRange = async (startDate, endDate) => {
     const start = Timestamp.fromDate(new Date(startDate));
@@ -77,7 +85,7 @@ function Dashboard() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     getDataByDateRange(firstDay, lastDay).then(orders => {
-      calculateDataForDashboard(orders)
+      calculateDataForDashboard(orders);
     });
   }
 
@@ -95,6 +103,15 @@ function Dashboard() {
     const mongdiesTotal = (mongdiesOrder && mongdiesOrder.length > 0) ? mongdiesOrder.reduce((sum, item) => sum + ((+item.amount || 0)-(+item.deliveryFees || 0)), 0) : 0;
 
     return { hanskinTotal, sugarBearTotal, mongdiesTotal };
+  }
+
+  const getOrderCountForEachStaff = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
+    Object.keys(adminData).forEach((key) => {
+      adminData[key].hanskin = hanskinOrder.filter(hanskin => hanskin.createdBy === key).length;
+      adminData[key].mongdies = mongdiesOrder.filter(hanskin => hanskin.createdBy === key).length;
+      adminData[key].sugarbear = sugarBearOrder.filter(hanskin => hanskin.createdBy === key).length;
+      setAdminData(adminData);
+    })
   }
 
   const getPreviousMonthOrders = (HTotal, STotal, MTotal) => {
@@ -133,6 +150,8 @@ function Dashboard() {
     const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
     //Calculate Total
     const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
+
+    getOrderCountForEachStaff(hanskinOrder, sugarBearOrder, mongdiesOrder);
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
@@ -253,6 +272,20 @@ function Dashboard() {
             </Grid>
           </Grid>
         </MDBox>
+        {
+          value === "retail" &&
+          <MDBox mt={4.5}>
+            <Grid container spacing={3}>
+              <Grid size={12}>
+                <IndividualSalesInfoCard
+                  color="info"
+                  icon="person_outline"
+                  count={adminData}
+                />
+              </Grid>
+            </Grid>
+          </MDBox>
+        }
         <MDBox mt={6.5}>
           <Grid container spacing={3}>
             <Grid size={{xs : 12, md : 6, lg : 4}}>
@@ -301,10 +334,10 @@ function Dashboard() {
             <Tab label="Wholesale" value="wholesale" disabled={userData.role=== 'page_admin'}/>
           </TabList>
         </MDBox>
-        <TabPanel value="retail">
+        <TabPanel value="retail" sx={{px: { xs: 0, sm: 1 }}}>
           {renderLayout()}
         </TabPanel>
-        <TabPanel value="wholesale">
+        <TabPanel value="wholesale" sx={{px: { xs: 0, sm: 1 }}}>
           {renderLayout()}
         </TabPanel>
       </TabContext>

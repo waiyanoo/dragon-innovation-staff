@@ -143,6 +143,7 @@ const routes = [
   {
     type: 'title',
     name: "Admin",
+    key: "admin",
     title: "For Admin",
     color: "white"
   },{

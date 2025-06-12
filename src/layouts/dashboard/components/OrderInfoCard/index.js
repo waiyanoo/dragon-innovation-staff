@@ -1,7 +1,7 @@
-import MDBox from "../../../components/MDBox";
+import MDBox from "../../../../components/MDBox";
 import Icon from "@mui/material/Icon";
 import Card from "@mui/material/Card";
-import MDTypography from "../../../components/MDTypography";
+import MDTypography from "../../../../components/MDTypography";
 import Divider from "@mui/material/Divider";
 import PropTypes from "prop-types";
 
