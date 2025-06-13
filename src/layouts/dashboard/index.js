@@ -17,7 +17,18 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Data
 // Dashboard components
-import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  setDoc,
+  Timestamp,
+  where,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
 import OrderInfoCard from "./components/OrderInfoCard";
@@ -71,10 +82,10 @@ function Dashboard() {
     let data;
     if (value === "wholesale") {
       const snapshot = await getDocs(wholesaleQ);
-      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } else if (value === "retail") {
       const snapshot = await getDocs(retailQ);
-      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
     return data;

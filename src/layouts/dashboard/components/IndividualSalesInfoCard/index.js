@@ -27,7 +27,7 @@ function OrderInfoCard({count, icon, color}){
           </Icon>
         </MDBox>
         <MDBox textAlign="right" lineHeight={1.25} ml={3}>
-          <MDTypography variant="h4">
+          <MDTypography variant="h5">
             Individual Sales
           </MDTypography>
         </MDBox>
@@ -40,21 +40,21 @@ function OrderInfoCard({count, icon, color}){
               { key } (Total Order : {value.hanskin + value.sugarbear + value.mongdies})
             </MDTypography>
             <MDBox mt={2} display="flex" justifyContent="space-between" alignItems="center">
-              <MDTypography variant="h6" fontWeight="medium">
+              <MDTypography variant="h6" fontWeight="light">
                 Hanskin&nbsp;&nbsp;&nbsp;
-                <MDTypography variant="h5" component="span" color="text">
+                <MDTypography variant="h5" component="span" color="dark">
                   {value.hanskin}
                 </MDTypography>
               </MDTypography>
-              <MDTypography variant="h6" fontWeight="medium">
+              <MDTypography variant="h6" fontWeight="light">
                 Sugarbear&nbsp;&nbsp;&nbsp;
-                <MDTypography variant="h5" component="span" color="text">
+                <MDTypography variant="h5" component="span" color="dark">
                   {value.sugarbear}
                 </MDTypography>
               </MDTypography>
-              <MDTypography variant="h6" fontWeight="medium">
+              <MDTypography variant="h6" fontWeight="light">
                 Mongdies&nbsp;&nbsp;&nbsp;
-                <MDTypography variant="h5" component="span" color="text">
+                <MDTypography variant="h5" component="span" color="dark">
                   {value.mongdies}
                 </MDTypography>
               </MDTypography>

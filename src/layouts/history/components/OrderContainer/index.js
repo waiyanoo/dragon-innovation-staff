@@ -22,6 +22,7 @@ import {
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
 import {
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -66,6 +67,7 @@ function OrderContainer({ brand }) {
   const [open, setOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const { userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
   const segments = location.pathname.split("/").filter(Boolean);
@@ -267,6 +269,7 @@ function OrderContainer({ brand }) {
     () =>
       debounce((value) => {
         onSearch(value);
+        setIsLoading(false)
       }, 500),
     [onSearch]
   );
@@ -349,29 +352,38 @@ function OrderContainer({ brand }) {
         <MDBox px={2} pb={2}>
           <FilterOrders filerChange={(e) => setCheckedItems(e)} />
         </MDBox>
+        {
+          isLoading &&
+          <MDBox pt={1} pb={2} px={2} display="flex" justifyContent="center">
+            <CircularProgress color="success" />
+          </MDBox>
+        }
+        {
+          !isLoading &&
+          <MDBox pt={1} pb={2} px={2}>
+            <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
+              {searchedOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  data={order}
+                  noGutter
+                  handleClick={(e) => handleOrderCardClick(e, order)}
+                />
+              ))}
+            </MDBox>
+            <MDBox>
+              {searchedOrders.length < limitCount ? null : (
+                <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>
+                  Load More
+                </MDButton>
+              )}
+              {searchedOrders.length === 0 ? (
+                <MDAlert color="light">This is no orders yet.</MDAlert>
+              ) : null}
+            </MDBox>
+          </MDBox>
+        }
 
-        <MDBox pt={1} pb={2} px={2}>
-          <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
-            {searchedOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                data={order}
-                noGutter
-                handleClick={(e) => handleOrderCardClick(e, order)}
-              />
-            ))}
-          </MDBox>
-          <MDBox>
-            {searchedOrders.length < limitCount ? null : (
-              <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>
-                Load More
-              </MDButton>
-            )}
-            {searchedOrders.length === 0 ? (
-              <MDAlert color="light">This is no orders yet.</MDAlert>
-            ) : null}
-          </MDBox>
-        </MDBox>
       </Card>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>

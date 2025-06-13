@@ -110,7 +110,7 @@ function OrderCard({ data, noGutter, handleClick }) {
                 Order_Card_Actions.map((item) => {
                   const hasAccess = item.roles.includes(userData.role);
                   const isStatusAllowed = item.statuses.includes(data.status);
-                  const isDisabled = hasAccess && !isStatusAllowed;
+                  const isDisabled = (userData.role === 'super_admin' && item.allowSuper) ? false : hasAccess && !isStatusAllowed;
                   if (!hasAccess) return null;
 
                   return (
