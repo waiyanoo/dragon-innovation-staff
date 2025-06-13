@@ -177,7 +177,7 @@ function OrderCard({ data, noGutter, handleClick }) {
         <MDBox mb={1} lineHeight={0}>
           <MDTypography variant="caption" fontWeight="medium">
             Remark:&nbsp;&nbsp;&nbsp;
-            <MDTypography variant="caption" color="text">
+            <MDTypography variant="caption" color="error">
               {data.remark}
             </MDTypography>
           </MDTypography>
