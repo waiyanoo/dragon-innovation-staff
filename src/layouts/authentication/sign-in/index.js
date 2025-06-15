@@ -39,7 +39,9 @@ function Basic() {
     login(email, password)
       .then((user) => {
         console.log("what is user", user);
-        navigate("/dashboard");
+        setTimeout(()=>{
+          navigate("/dashboard");
+        }, 1000)
       })
       .catch((error) => {
         setErrors(true);
@@ -93,18 +95,6 @@ function Basic() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </MDBox>
-            {/*<MDBox display="flex" alignItems="center" ml={-1}>*/}
-            {/*  <Switch checked={rememberMe} onChange={handleSetRememberMe} />*/}
-            {/*  <MDTypography*/}
-            {/*    variant="button"*/}
-            {/*    fontWeight="regular"*/}
-            {/*    color="text"*/}
-            {/*    onClick={handleSetRememberMe}*/}
-            {/*    sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}*/}
-            {/*  >*/}
-            {/*    &nbsp;&nbsp;Remember me*/}
-            {/*  </MDTypography>*/}
-            {/*</MDBox>*/}
             {errors && <MDTypography variant="button" color="error">Invalid email or password</MDTypography>}
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth onClick={signInClick}

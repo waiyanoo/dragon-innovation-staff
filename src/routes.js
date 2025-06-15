@@ -36,6 +36,7 @@ import OrderHistory from "./layouts/history";
 import PrivateRoute from "./context/PrivateRoute";
 import OrderView from "./layouts/order/view";
 import Unauthorized from "./layouts/authentication/unauthorized";
+import Reward from "./layouts/reward";
 
 const routes = [
   {
@@ -67,6 +68,22 @@ const routes = [
         roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}
       >
         <Profile />
+      </PrivateRoute>
+    )
+  },
+  {
+    type: "collapse",
+    name: "Reward",
+    key: "reward",
+    icon: <Icon fontSize="small">emoji_events</Icon>,
+    route: "/reward",
+    routeToGo: "/reward",
+    roles: ["page_admin", "warehouse", "admin", "super_admin"],
+    component:(
+      <PrivateRoute
+        roles={["page_admin", "warehouse",  "admin", "super_admin"]}
+      >
+        <Reward />
       </PrivateRoute>
     )
   },

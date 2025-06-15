@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../../firebase";
+import Footer from "../../../examples/Footer";
 
 
 
@@ -87,7 +88,6 @@ function OrderView() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setOrder(docSnap.data());
-        console.log("order", docSnap.data())
         setLoading(false);
       } else {
         navigate(`/order`);
@@ -99,10 +99,6 @@ function OrderView() {
     }
   }, [id]);
 
-  useEffect(() => {
-    console.log("order", order)
-  }, [order])
-
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -112,7 +108,7 @@ function OrderView() {
       <DashboardNavbar />
       {
         order !== null &&
-        <MDBox mt={8}>
+        <MDBox mt={8} mb={3}>
           <Grid container spacing={3} justifyContent="center">
             <Grid size={{xs : 12, md : 8, lg : 6}}>
               <Card id="order-form">
@@ -158,6 +154,7 @@ function OrderView() {
           </Grid>
         </MDBox>
       }
+      <Footer />
     </DashboardLayout>
   );
 }

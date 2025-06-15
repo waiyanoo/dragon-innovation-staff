@@ -17,18 +17,7 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Data
 // Dashboard components
-import {
-  addDoc,
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  Timestamp,
-  where,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
 import OrderInfoCard from "./components/OrderInfoCard";

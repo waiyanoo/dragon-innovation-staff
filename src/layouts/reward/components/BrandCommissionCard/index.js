@@ -1,19 +1,11 @@
-
-
-// prop-types is a library for typechecking of props
-import PropTypes from "prop-types";
-
-// @mui material components
 import Card from "@mui/material/Card";
-import Divider from "@mui/material/Divider";
+import MDBox from "../../../../components/MDBox";
 import Icon from "@mui/material/Icon";
+import MDTypography from "../../../../components/MDTypography";
+import PropTypes from "prop-types";
+import MDProgress from "../../../../components/MDProgress";
 
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-
-function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
-  console.log(color);
+function BrandCommissionCard({ color, title, count, icon, progress }) {
   return (
     <Card>
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>
@@ -34,33 +26,22 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
             {icon}
           </Icon>
         </MDBox>
-        <MDBox textAlign="right" lineHeight={1.25}>
+        <MDBox textAlign="right" lineHeight={1.25} pb={3}>
           <MDTypography variant="button" fontWeight="medium">
             {title}
           </MDTypography>
           <MDTypography variant="h4">{count}</MDTypography>
         </MDBox>
       </MDBox>
-      <Divider />
-      <MDBox pb={2} px={2}>
-        <MDTypography component="p" variant="button" color="text" display="flex">
-          <MDTypography
-            component="span"
-            variant="button"
-            fontWeight="bold"
-            color={percentage.color}
-          >
-            {percentage.amount}%
-          </MDTypography>
-          &nbsp;{percentage.label}
-        </MDTypography>
+      <MDBox p={3}>
+        <MDProgress value={progress} variant="gradient" label color={color} />
       </MDBox>
     </Card>
   );
 }
 
 // Setting default values for the props of ComplexStatisticsCard
-ComplexStatisticsCard.defaultProps = {
+BrandCommissionCard.defaultProps = {
   color: "info",
   percentage: {
     color: "success",
@@ -70,7 +51,7 @@ ComplexStatisticsCard.defaultProps = {
 };
 
 // Typechecking props for the ComplexStatisticsCard
-ComplexStatisticsCard.propTypes = {
+BrandCommissionCard.propTypes = {
   color: PropTypes.oneOf([
     "primary",
     "secondary",
@@ -83,21 +64,8 @@ ComplexStatisticsCard.propTypes = {
   ]),
   title: PropTypes.string.isRequired,
   count: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  percentage: PropTypes.shape({
-    color: PropTypes.oneOf([
-      "primary",
-      "secondary",
-      "info",
-      "success",
-      "warning",
-      "error",
-      "dark",
-      "white",
-    ]),
-    amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    label: PropTypes.string,
-  }),
+  progress: PropTypes.number.isRequired,
   icon: PropTypes.node.isRequired,
 };
 
-export default ComplexStatisticsCard;
+export default BrandCommissionCard;

@@ -15,6 +15,7 @@ import { database } from "../../firebase";
 import { State_List } from "../../data/common";
 import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
+import Footer from "../../examples/Footer";
 
 
 function Order() {
@@ -164,7 +165,7 @@ function Order() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox mt={8}>
+      <MDBox mt={8} mb={3}>
         <Grid container spacing={3} justifyContent="center">
           <Grid size={{xs : 12, md : 8, lg : 8}}>
             <Card id="order-form">
@@ -417,6 +418,7 @@ function Order() {
         </Grid>
         {renderSnackBar}
       </MDBox>
+      <Footer />
     </DashboardLayout>
   );
 }

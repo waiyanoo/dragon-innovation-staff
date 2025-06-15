@@ -5,6 +5,7 @@ import MDBox from "../../components/MDBox";
 import OrderContainer from "./components/OrderContainer";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Footer from "../../examples/Footer";
 
 function OrderHistory() {
   const { brand } = useParams();
@@ -12,13 +13,14 @@ function OrderHistory() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox mt={8}>
+      <MDBox mt={8} mb={3}>
         <Grid container spacing={3} justifyContent="center">
           <Grid size={{xs : 12, md : 12, lg : 10, xl : 8}}>
             <OrderContainer brand={brand}/>
           </Grid>
         </Grid>
       </MDBox>
+      <Footer />
     </DashboardLayout>
   );
 }
