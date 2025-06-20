@@ -38,7 +38,6 @@ function Basic() {
     setIsLoading(true);
     login(email, password)
       .then((user) => {
-        console.log("what is user", user);
         setTimeout(()=>{
           navigate("/dashboard");
         }, 1000)
@@ -46,7 +45,6 @@ function Basic() {
       .catch((error) => {
         setErrors(true);
         setIsLoading(false);
-        console.log("what is error", error);
       });
   };
 

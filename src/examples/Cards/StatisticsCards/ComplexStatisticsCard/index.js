@@ -13,7 +13,6 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
 function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
-  console.log(color);
   return (
     <Card>
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>

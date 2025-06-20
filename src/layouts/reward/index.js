@@ -5,24 +5,32 @@ import MDTypography from "../../components/MDTypography";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import BrandCommissionCard from "./components/BrandCommissionCard";
-import { formattedAmount } from "../../functions/common-functions";
+import { formattedAmount, getOrderAmountByType, getOrderByType } from "../../functions/common-functions";
 import Footer from "../../examples/Footer";
-import { collection, getDocs, query, Timestamp, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 function Reward() {
-  const [brandSaleTotal, setBrandSaleTotal] = useState({});
+  const {userData} = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [settings, setSettings] = useState({});
+  const [hanskinTarget, setHanskinTarget] = useState({ commissions : 0, target: 0});
+  const [sugarbearTarget, setSugarbearTarget] = useState({ commissions : 0, target: 0});
+  const [mongdiesTarget, setMongdiesTarget] = useState({ commissions : 0, target: 0});
 
   useEffect(() => {
+    fetchSettings();
     fetchOrders();
+    console.log("userData", userData)
   },[])
 
   useEffect(() => {
-    if(brandSaleTotal) {
-      console.log(brandSaleTotal);
+    if(orders.length > 0 && Object.keys(settings).length > 0) {
+      calculateCommission();
     }
-  }, [brandSaleTotal]);
+  }, [orders, settings]);
 
   const fetchOrders = async () => {
     const now = new Date();
@@ -38,26 +46,57 @@ function Reward() {
           where("createdAt", ">=", startTimestamp),
           where("createdAt", "<", endTimestamp)
     ))
+    let data=  snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setOrders(data);
+  }
 
-    const reportData = {};
-    snapshot.forEach((doc) => {
-      const { brand, amount = 0 } = doc.data();
-      if (!brand) return;
-      if (!reportData[brand]) {
-        if (!reportData[brand]) {
-          reportData[brand] = {
-            totalAmount: 0,
-            targetPercentage: 0
-          };
-        }
+  const fetchSettings = async () => {
+    const docRef = doc(database, "settings", "v1")
+    const docSnap = await getDoc(docRef);
 
-        // Update totals
-        reportData[brand].totalAmount += +amount;
-        reportData[brand].orderCount += 1;
+
+    if(docSnap.exists()) {
+      setSettings(docSnap.data());
+    }
+  }
+
+  const calculateCommission = () => {
+    const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
+    const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
+
+    const hanskinTarget = settings.targets.hanskin;
+    setHanskinTarget(calculateCommissionEach(hanskinTotal, hanskinTarget));
+
+
+    const sugarbearTarget = settings.targets.sugarbear;
+    setSugarbearTarget(calculateCommissionEach(sugarBearTotal, sugarbearTarget));
+
+    const mongdiesTarget = settings.targets.mongdies;
+    setMongdiesTarget(calculateCommissionEach(mongdiesTotal, mongdiesTarget));
+  }
+
+  const calculateCommissionEach = (amount, targets) => {
+    if(amount < targets.level1.amount){
+      return {
+        commissions : 0,
+        target : (amount / targets.level1.amount) * 100,
       }
-      setBrandSaleTotal(reportData);
-    });
+    } else {
+      const percentage = amount > targets.level3.amount ? targets.level3.commission
+        : amount > targets.level2.amount ? targets.level2.commission
+          : targets.level1.commission;
 
+      return {
+        commissions : (  percentage / 100) * amount,
+        target : 100,
+      }
+    }
+  }
+
+  const formatNumber = (amount) => {
+    return Number.isInteger(amount)
+      ? +amount
+      : +amount.toFixed(2);
   }
 
   return (
@@ -65,7 +104,7 @@ function Reward() {
       <DashboardNavbar />
       <MDBox p={{xs : 1, md: 3, lg : 3}}>
         <MDBox mb={2}>
-          <MDTypography variant="h4">Incentive Dashboard</MDTypography>
+          <MDTypography variant="h4">Retail Incentive Dashboard</MDTypography>
         </MDBox>
         <Card mx={3}>
           <MDBox display="flex" justifyContent="space-between" p={3}>
@@ -73,7 +112,7 @@ function Reward() {
               Total Commission:
             </MDTypography>
             <MDTypography variant="h5" color="dark">
-              MMK 1,000,000
+              MMK {formatNumber(hanskinTarget.commissions + mongdiesTarget.commissions + sugarbearTarget.commissions)}
             </MDTypography>
           </MDBox>
         </Card>
@@ -85,8 +124,8 @@ function Reward() {
                 <BrandCommissionCard
                   icon="face"
                   title="Hanskin Commission"
-                  count={formattedAmount(100000)}
-                  progress={50}
+                  count={formattedAmount(hanskinTarget.commissions)}
+                  progress={formatNumber(hanskinTarget.target)}
                 />
               </MDBox>
             </Grid>
@@ -97,8 +136,8 @@ function Reward() {
                   color="primary"
                   icon="face_3"
                   title="SugarBear Commission"
-                  count={formattedAmount(100000)}
-                  progress={40}
+                  count={formattedAmount(sugarbearTarget.commissions)}
+                  progress={formatNumber(sugarbearTarget.target)}
                 />
               </MDBox>
             </Grid>
@@ -109,8 +148,8 @@ function Reward() {
                   color="success"
                   icon="child_care"
                   title="Mongdies Commission"
-                  count={formattedAmount(100000)}
-                  progress={70}
+                  count={formattedAmount(mongdiesTarget.commissions)}
+                  progress={formatNumber(mongdiesTarget.target)}
                 />
               </MDBox>
             </Grid>

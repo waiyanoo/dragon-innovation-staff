@@ -37,7 +37,6 @@ function FilterOrders({ filerChange }) {
   const [resetKey, setResetKey] = useState(0);
 
   const handleChange = (event) => {
-    console.log(event);
     setCheckedItems({
       ...checkedItems,
       [event.target.name]: event.target.checked,

@@ -49,7 +49,6 @@ function Order() {
 
 
   useEffect(() => {
-    console.log("userData", userData.role);
     setCollectionName(userData.role === 'sales' ? 'ws_orders' : 'orders')
     async function fetchOrder() {
       const docRef = doc(database, collectionName, id);

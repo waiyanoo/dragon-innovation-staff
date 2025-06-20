@@ -168,9 +168,7 @@ function OrderContainer({ brand }) {
         navigate(`/details?id=${order.id}`);
         break;
       case "edit":
-        if (order.status === 0) {
-          navigate(`/order?id=${order.id}`);
-        }
+        navigate(`/order?id=${order.id}`);
         break;
       case "delete":
         await deleteOrder(order.id);
@@ -366,7 +364,6 @@ function OrderContainer({ brand }) {
                 <OrderCard
                   key={order.id}
                   data={order}
-                  noGutter
                   handleClick={(e) => handleOrderCardClick(e, order)}
                 />
               ))}
