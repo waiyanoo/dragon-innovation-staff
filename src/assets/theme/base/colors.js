@@ -1,11 +1,11 @@
 const colors = {
   background: {
-    default: "#f0f2f5",
+    default: "#F3F4F6",
   },
 
   text: {
-    main: "#7b809a",
-    focus: "#7b809a",
+    main: "#4b4c55",
+    focus: "#515463",
   },
 
   transparent: {

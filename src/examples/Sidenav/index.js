@@ -52,6 +52,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
   useEffect(() => {
+    console.log("what is size nay", sidenavColor)
     // A function that sets the mini state of the sidenav.
     function handleMiniSidenav() {
       setMiniSidenav(dispatch, window.innerWidth < 1200);

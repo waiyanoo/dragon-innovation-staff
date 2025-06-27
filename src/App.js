@@ -27,7 +27,7 @@ import { setMiniSidenav, setOpenConfigurator, useMaterialUIController } from "co
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
-import brandDark from "assets/images/logo-ct-dark.png";
+import companyLogoDark from "assets/images/DragonInnovationDark.png";
 import companyLogo from "assets/images/DragonInnovation.png";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -104,7 +104,11 @@ export default function App() {
           <>
             <Sidenav
               color={sidenavColor}
-              brand={companyLogo}
+              brand={
+                (transparentSidenav && !darkMode) || whiteSidenav
+                  ? companyLogoDark
+                  : companyLogo
+              }
               brandName="Staff Portal"
               routes={routes}
               onMouseEnter={handleOnMouseEnter}

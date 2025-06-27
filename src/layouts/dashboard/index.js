@@ -24,11 +24,18 @@ import OrderInfoCard from "./components/OrderInfoCard";
 import { useAuth } from "../../context/AuthContext";
 import staffData from "./data/staffData";
 import IndividualSalesInfoCard from "./components/IndividualSalesInfoCard";
-import { calculateForChart, getOrderAmountByType, getOrderByType } from "../../functions/common-functions";
+import {
+  calculateForChart,
+  getDateRanges,
+  getOrderAmountByType,
+  getOrderByType,
+} from "../../functions/common-functions";
+import TimeFrameDropDown from "./components/TimeFrameDropDown";
 
 function Dashboard() {
   const {userData} = useAuth();
   const [value, setValue] = useState("retail");
+  const [timeFrame, setTimeFrame] = useState('thisMonth');
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [previousOrderTotal, setPreviousOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [orderTotalCount, setOrderTotalCount] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
@@ -40,52 +47,41 @@ function Dashboard() {
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [adminData, setAdminData] = useState(staffData);
 
-
   useEffect(() => {
     setValue(userData.role === 'sales' ? 'wholesale' : 'retail');
   }, []);
 
   useEffect(() => {
     if(userData){
-      getCurrentMonthOrders();
+      getCurrentOrders();
       getSixMonthOrders();
     }
-  }, [value]);
+  }, [value, timeFrame]);
 
-  const getDataByDateRange = async (startDate, endDate) => {
-    const start = Timestamp.fromDate(new Date(startDate));
-    const end = Timestamp.fromDate(new Date(endDate));
-
-    const retailQ = query(
-      collection(database, "orders"),
-      where("createdAt", ">=", start),
-      where("createdAt", "<", end),
-      orderBy('createdAt', 'desc')
-    );
-    const wholesaleQ = query(
-      collection(database, "ws_orders"),
-      where("createdAt", ">=", start),
-      where("createdAt", "<", end),
-      orderBy('createdAt', 'desc')
-    );
-
-    let data;
+  const getDataByDateRange = async (start, end) => {
     if (value === "wholesale") {
-      const snapshot = await getDocs(wholesaleQ);
-      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else if (value === "retail") {
-      const snapshot = await getDocs(retailQ);
-      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return await fetchOrdersByDateRange('ws_orders', start, end);
+    } else {
+      return await fetchOrdersByDateRange('orders', start, end);
     }
-
-    return data;
   }
 
-  const getCurrentMonthOrders = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    getDataByDateRange(firstDay, lastDay).then(orders => {
+  const fetchOrdersByDateRange = async (collectionName, start, end) => {
+    const q = query(
+      collection(database, collectionName),
+      where("createdAt", ">=", start),
+      where("createdAt", "<", end),
+      orderBy("createdAt", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  };
+
+  const getCurrentOrders = () => {
+    const ranges = getDateRanges();
+    const { start, end } = ranges[timeFrame];
+    getDataByDateRange(start, end).then(orders => {
       calculateDataForDashboard(orders);
     });
   }
@@ -100,10 +96,9 @@ function Dashboard() {
   }
 
   const getPreviousMonthOrders = (HTotal, STotal, MTotal) => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    getDataByDateRange(firstDay, lastDay).then(orders => {
+    const ranges = getDateRanges();
+    const { start, end } = ranges['previousMonth'];
+    getDataByDateRange(start, end).then(orders => {
       const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
       const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
       setPreviousOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
@@ -126,7 +121,10 @@ function Dashboard() {
   const getSixMonthOrders = () => {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-    getDataByDateRange(sixMonthsAgo, now).then(orders => {
+
+    const start = Timestamp.fromDate(new Date(sixMonthsAgo));
+    const end = Timestamp.fromDate(new Date(now));
+    getDataByDateRange(start, end).then(orders => {
       calculateDataForShipAndPack(orders);
     })
   }
@@ -140,8 +138,8 @@ function Dashboard() {
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
-
-    getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
+    if(timeFrame === 'thisMonth')
+      getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
   }
 
   const calculateDataForShipAndPack = (orders) => {
@@ -179,6 +177,9 @@ function Dashboard() {
   const renderLayout = () => {
     return (
       <MDBox>
+        <MDBox mb={5} display="flex" flexDirection="row" justifyContent="end" >
+          <TimeFrameDropDown value={timeFrame} changeHandler={setTimeFrame}/>
+        </MDBox>
         <Grid container spacing={3}>
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
@@ -191,6 +192,7 @@ function Dashboard() {
                   amount: percentageChange.hanskin,
                   label: `than last month ${formattedAmount(previousOrderTotal.hanskin)}`,
                 }}
+                showComparison={timeFrame === 'thisMonth'}
               />
             </MDBox>
           </Grid>
@@ -206,6 +208,7 @@ function Dashboard() {
                   amount: percentageChange.sugarbear,
                   label: `than last month ${formattedAmount(previousOrderTotal.sugarbear)}`,
                 }}
+                showComparison={timeFrame === 'thisMonth'}
               />
             </MDBox>
           </Grid>
@@ -221,6 +224,7 @@ function Dashboard() {
                   amount: percentageChange.mongdies,
                   label: `than last month ${formattedAmount(previousOrderTotal.mongdies)}`,
                 }}
+                showComparison={timeFrame === 'thisMonth'}
               />
             </MDBox>
           </Grid>
@@ -306,7 +310,6 @@ function Dashboard() {
           {renderLayout()}
         </TabPanel>
       </TabContext>
-
       <Footer />
     </DashboardLayout>
   );
