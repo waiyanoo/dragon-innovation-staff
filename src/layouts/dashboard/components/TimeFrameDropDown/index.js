@@ -8,10 +8,14 @@ const timeFrameList = [
   {id: 'previousMonth', display: 'Previous Month'},
   {id: 'previousQuarter', display: 'Previous Quarter'},
   {id: 'previousYear', display: 'Previous year'},
-
 ]
 
-function TimeFrameDropDown({ value, changeHandler }) {
+const shortTimeFrameList = [
+  {id: 'thisMonth', display: 'This Month'},
+  {id: 'previousMonth', display: 'Previous Month'}
+]
+
+function TimeFrameDropDown({ value, changeHandler, isShort }) {
   return (
     <FormControl variant="outlined">
       <InputLabel id="date-select-label">Date Range</InputLabel>
@@ -23,10 +27,14 @@ function TimeFrameDropDown({ value, changeHandler }) {
         value={value}
         label="Date Range"
         onChange={(event) => changeHandler(event.target.value)}
-        sx={{ lineHeight: "3rem", width: 300 }}
+        sx={{ lineHeight: "3rem", width: 200 }}
       >
         {
-          timeFrameList.map((timeFrame) =>
+          !isShort && timeFrameList.map((timeFrame) =>
+            <MenuItem key={timeFrame.id} value={timeFrame.id}>{timeFrame.display}</MenuItem>)
+        }
+        {
+          isShort && shortTimeFrameList.map((timeFrame) =>
             <MenuItem key={timeFrame.id} value={timeFrame.id}>{timeFrame.display}</MenuItem>)
         }
       </Select>
@@ -34,9 +42,14 @@ function TimeFrameDropDown({ value, changeHandler }) {
   );
 }
 
+TimeFrameDropDown.defaultProps = {
+  isShort : false,
+}
+
 TimeFrameDropDown.propTypes = {
   value: PropTypes.string.isRequired,
   changeHandler: PropTypes.func.isRequired,
+  isShort : PropTypes.bool
 };
 
 export default TimeFrameDropDown;

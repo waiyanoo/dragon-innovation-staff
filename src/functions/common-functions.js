@@ -110,3 +110,31 @@ export const getDateRanges = () => {
     },
   };
 };
+
+export const getPreviousMonthID = () => {
+  const now = new Date();
+
+  // Compute the previous month
+  const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  const month = now.getMonth() === 0 ? 12 : now.getMonth(); // 1-12
+
+  return `${year}_${month.toString().padStart(2, "0")}`
+}
+
+export const calculateCommissionEach = (amount, targets) => {
+  if(amount < targets.level1.amount){
+    return {
+      commissions : 0,
+      target : (amount / targets.level1.amount) * 100,
+    }
+  } else {
+    const percentage = amount > targets.level3.amount ? targets.level3.commission
+      : amount > targets.level2.amount ? targets.level2.commission
+        : targets.level1.commission;
+
+    return {
+      commissions : (  percentage / 100) * amount,
+      target : 100,
+    }
+  }
+}
