@@ -18,6 +18,7 @@ import {
   orderBy,
   query,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
@@ -65,6 +66,9 @@ function OrderContainer({ brand }) {
   const [selectedBrand, setSelectedBrand] = useState(brand);
   const [limitCount, setLimitCount] = useState(500);
   const [open, setOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [bulkTarget, setBulkTarget] = useState(null);
+  const [isBulkRunning, setIsBulkRunning] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -150,6 +154,65 @@ function OrderContainer({ brand }) {
     console.log("Document successfully updated!");
   };
 
+  const confirmDelete = async () => {
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    await deleteOrder(target.id);
+  };
+
+  // Orders in the current filtered view eligible for each bulk transition.
+  const pendingInView = searchedOrders.filter((order) => order.status === 0);
+  const packedInView = searchedOrders.filter((order) => order.status === 1);
+
+  const runBulkUpdate = async () => {
+    const target = bulkTarget;
+    setBulkTarget(null);
+    if (!target || target.orders.length === 0) return;
+
+    setIsBulkRunning(true);
+    const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
+    const historyEntry = { updatedAt: new Date(), updatedBy: userData.name };
+
+    try {
+      // Firestore caps a batch at 500 writes, so chunk to stay well under it.
+      for (let i = 0; i < target.orders.length; i += 400) {
+        const chunk = target.orders.slice(i, i + 400);
+        const batch = writeBatch(database);
+        chunk.forEach((order) => {
+          batch.update(doc(database, collectionName, order.id), {
+            status: target.toStatus,
+            updateHistory: [...(order.updateHistory || []), historyEntry],
+          });
+        });
+        await batch.commit();
+      }
+
+      const updatedIds = new Set(target.orders.map((order) => order.id));
+      setSearchedOrders(
+        searchedOrders.map((order) =>
+          updatedIds.has(order.id)
+            ? { ...order, status: target.toStatus, updateHistory: [...(order.updateHistory || []), historyEntry] }
+            : order
+        )
+      );
+      setSnack({
+        open: true,
+        message: `${target.orders.length} order(s) marked as ${target.label}.`,
+        color: "success",
+        icon: "check",
+      });
+    } catch (e) {
+      setSnack({
+        open: true,
+        message: "Bulk update failed. Please try again.",
+        color: "error",
+        icon: "warning",
+      });
+    } finally {
+      setIsBulkRunning(false);
+    }
+  };
+
   const deleteOrder = async (id) => {
     deleteDoc(doc(database, segments[0] === "history" ? "orders" : "ws_orders", id))
       .then(() => {
@@ -171,7 +234,7 @@ function OrderContainer({ brand }) {
         navigate(`/order?id=${order.id}`);
         break;
       case "delete":
-        await deleteOrder(order.id);
+        setDeleteTarget(order);
         break;
       case "packed":
         await updateOrder(1, order.id);
@@ -350,6 +413,44 @@ function OrderContainer({ brand }) {
         <MDBox px={2} pb={2}>
           <FilterOrders filerChange={(e) => setCheckedItems(e)} />
         </MDBox>
+        {userData.role === "super_admin" && !isLoading && searchedOrders.length > 0 && (
+          <MDBox
+            px={2}
+            pb={2}
+            display="flex"
+            flexDirection={{ xs: "column", sm: "row" }}
+            gap={1.5}
+          >
+            <MDButton
+              variant="gradient"
+              color="info"
+              disabled={pendingInView.length === 0 || isBulkRunning}
+              onClick={() =>
+                setBulkTarget({
+                  toStatus: 1,
+                  label: "Packed",
+                  orders: pendingInView,
+                })
+              }
+            >
+              Mark {pendingInView.length} pending as packed
+            </MDButton>
+            <MDButton
+              variant="gradient"
+              color="warning"
+              disabled={packedInView.length === 0 || isBulkRunning}
+              onClick={() =>
+                setBulkTarget({
+                  toStatus: 2,
+                  label: "Shipped",
+                  orders: packedInView,
+                })
+              }
+            >
+              Mark {packedInView.length} packed as shipped
+            </MDButton>
+          </MDBox>
+        )}
         {
           isLoading &&
           <MDBox pt={1} pb={2} px={2} display="flex" justifyContent="center">
@@ -417,6 +518,52 @@ function OrderContainer({ brand }) {
             disabled={invoiceNumber === ""}
           >
             Confirm
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)}>
+        <DialogTitle>
+          <MDTypography variant="h5" component="span" fontWeight="medium">
+            Delete this order?
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent sx={{ width: { xs: "350px", md: "450px" } }}>
+          <MDTypography variant="body2" color="text">
+            {deleteTarget
+              ? `The order for "${deleteTarget.name}" will be permanently deleted. This cannot be undone.`
+              : ""}
+          </MDTypography>
+        </DialogContent>
+        <DialogActions>
+          <MDButton variant="gradient" color="light" onClick={() => setDeleteTarget(null)}>
+            Cancel
+          </MDButton>
+          <MDButton variant="gradient" color="error" onClick={confirmDelete}>
+            Delete
+          </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(bulkTarget)} onClose={() => setBulkTarget(null)}>
+        <DialogTitle>
+          <MDTypography variant="h5" component="span" fontWeight="medium">
+            Mark {bulkTarget ? bulkTarget.orders.length : 0} order(s) as {bulkTarget?.label}?
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent sx={{ width: { xs: "350px", md: "450px" } }}>
+          <MDTypography variant="body2" color="text">
+            {bulkTarget
+              ? `This updates every ${
+                  bulkTarget.toStatus === 1 ? "pending" : "packed"
+                } order in the current view. Narrow the brand, status, or date filters first if you only want to change some of them.`
+              : ""}
+          </MDTypography>
+        </DialogContent>
+        <DialogActions>
+          <MDButton variant="gradient" color="light" onClick={() => setBulkTarget(null)}>
+            Cancel
+          </MDButton>
+          <MDButton variant="gradient" color="info" onClick={runBulkUpdate}>
+            Mark as {bulkTarget?.label}
           </MDButton>
         </DialogActions>
       </Dialog>

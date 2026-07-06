@@ -10,6 +10,7 @@ import OrderView from "./layouts/order/view";
 import Unauthorized from "./layouts/authentication/unauthorized";
 import Reward from "./layouts/reward";
 import Report_control_panel from "./layouts/report_control_panel";
+import ResetPassword from "./layouts/authentication/reset-password";
 
 const routes = [
   {
@@ -153,7 +154,7 @@ const routes = [
     ),
   },{
     type: "collapse",
-    name: "Report Control Panel",
+    name: "Admin Tools",
     key: "controlPanel",
     icon: <Icon fontSize="small">analytics</Icon>,
     route: "/report_control_panel",
@@ -184,6 +185,15 @@ const routes = [
     route: "/authentication/sign-in",
     routeToGo: "/authentication/sign-in",
     component: <SignIn />,
+  },
+  {
+    type: "",
+    name: "Reset Password",
+    key: "reset-password",
+    icon: <Icon fontSize="small">login</Icon>,
+    route: "/authentication/reset-password",
+    routeToGo: "/authentication/reset-password",
+    component: <ResetPassword />,
   },
 ];
 

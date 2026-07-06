@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // react-router-dom components
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -94,12 +94,28 @@ function Basic() {
               />
             </MDBox>
             {errors && <MDTypography variant="button" color="error">Invalid email or password</MDTypography>}
+
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth onClick={signInClick}
                         disabled={isLoading}
                         startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}>
                 sign in
               </MDButton>
+            </MDBox>
+            <MDBox mt={3} mb={1} textAlign="center">
+              <MDTypography variant="button" color="text">
+                Forgot your password?{" "}
+                <MDTypography
+                  component={Link}
+                  to="/authentication/reset-password"
+                  variant="button"
+                  color="info"
+                  fontWeight="medium"
+                  textGradient
+                >
+                  Reset
+                </MDTypography>
+              </MDTypography>
             </MDBox>
           </MDBox>
         </MDBox>

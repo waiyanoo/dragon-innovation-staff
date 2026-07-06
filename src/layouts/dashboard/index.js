@@ -20,10 +20,9 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useState } from "react";
-import OrderInfoCard from "./components/OrderInfoCard";
 import { useAuth } from "../../context/AuthContext";
 import staffData from "./data/staffData";
-import IndividualSalesInfoCard from "./components/IndividualSalesInfoCard";
+import StatMatrix from "./components/StatMatrix";
 import {
   calculateForChart,
   getDateRanges,
@@ -232,12 +231,45 @@ function Dashboard() {
         <MDBox mt={3}>
           <Grid container spacing={3}>
             <Grid size={12}>
-              <OrderInfoCard
+              <StatMatrix
                 color="primary"
                 icon="local_shipping"
-                count={orderTotalCount}
-                toShip={orderToShip}
-                toPack={orderToPack}/>
+                title="Orders Status"
+                columns={[
+                  { key: "orders", label: "Orders" },
+                  { key: "pack", label: "To pack" },
+                  { key: "ship", label: "To ship" },
+                ]}
+                rows={[
+                  {
+                    label: "Hanskin",
+                    dotColor: "info",
+                    values: [orderTotalCount.hanskin, orderToPack.hanskin, orderToShip.hanskin],
+                  },
+                  {
+                    label: "SugarBear",
+                    dotColor: "primary",
+                    values: [
+                      orderTotalCount.sugarbear,
+                      orderToPack.sugarbear,
+                      orderToShip.sugarbear,
+                    ],
+                  },
+                  {
+                    label: "Mongdies",
+                    dotColor: "success",
+                    values: [orderTotalCount.mongdies, orderToPack.mongdies, orderToShip.mongdies],
+                  },
+                ]}
+                totalRow={{
+                  label: "Total",
+                  values: [
+                    orderTotalCount.hanskin + orderTotalCount.sugarbear + orderTotalCount.mongdies,
+                    orderToPack.hanskin + orderToPack.sugarbear + orderToPack.mongdies,
+                    orderToShip.hanskin + orderToShip.sugarbear + orderToShip.mongdies,
+                  ],
+                }}
+              />
             </Grid>
           </Grid>
         </MDBox>
@@ -246,10 +278,25 @@ function Dashboard() {
           <MDBox mt={4.5}>
             <Grid container spacing={3}>
               <Grid size={12}>
-                <IndividualSalesInfoCard
+                <StatMatrix
                   color="info"
                   icon="person_outline"
-                  count={adminData}
+                  title="Individual Sales"
+                  columns={[
+                    { key: "hanskin", label: "Hanskin" },
+                    { key: "sugarbear", label: "SugarBear" },
+                    { key: "mongdies", label: "Mongdies" },
+                    { key: "total", label: "Total" },
+                  ]}
+                  rows={Object.entries(adminData).map(([key, val]) => ({
+                    label: key,
+                    values: [
+                      val.hanskin,
+                      val.sugarbear,
+                      val.mongdies,
+                      val.hanskin + val.sugarbear + val.mongdies,
+                    ],
+                  }))}
                 />
               </Grid>
             </Grid>

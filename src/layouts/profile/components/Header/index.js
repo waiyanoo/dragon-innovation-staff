@@ -1,49 +1,33 @@
-import { useEffect, useState } from "react";
-
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Grid from "@mui/material/Grid";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import MDAvatar from "components/MDAvatar";
-
-// Material Dashboard 2 React base styles
-import breakpoints from "assets/theme/base/breakpoints";
+import MDBadge from "components/MDBadge";
 
 // Images
-import profile from "assets/images/profile.png";
 import backgroundImage from "assets/images/bg-profile.jpeg";
 import { useAuth } from "../../../../context/AuthContext";
+import { ROLES } from "../../../../data/common";
+
+function getInitials(name) {
+  if (!name) return "?";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+}
 
 function Header({ children }) {
-  const [tabsOrientation, setTabsOrientation] = useState("horizontal");
-  const {userData} = useAuth();
-
-  useEffect(() => {
-    // A function that sets the orientation state of the tabs.
-    function handleTabsOrientation() {
-      return window.innerWidth < breakpoints.values.sm
-        ? setTabsOrientation("vertical")
-        : setTabsOrientation("horizontal");
-    }
-
-    /**
-     The event listener that's calling the handleTabsOrientation function when resizing the window.
-    */
-    window.addEventListener("resize", handleTabsOrientation);
-
-    // Call the handleTabsOrientation function to set the state with the initial value.
-    handleTabsOrientation();
-
-    // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleTabsOrientation);
-  }, [tabsOrientation]);
-
+  const { userData } = useAuth();
+  const roleLabel = ROLES[userData.role] || userData.role;
 
   return (
     <MDBox position="relative" mb={5}>
@@ -51,7 +35,7 @@ function Header({ children }) {
         display="flex"
         alignItems="center"
         position="relative"
-        minHeight="18.75rem"
+        minHeight="12rem"
         borderRadius="xl"
         sx={{
           backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
@@ -73,21 +57,41 @@ function Header({ children }) {
           px: 2,
         }}
       >
-        <Grid container spacing={3} alignItems="center">
-          <Grid>
-            <MDAvatar src={profile} alt="profile-image" size="xl" shadow="sm" />
-          </Grid>
-          <Grid>
-            <MDBox height="100%" mt={0.5} lineHeight={1}>
-              <MDTypography variant="h5" fontWeight="medium">
-                {userData.name}
-              </MDTypography>
-              <MDTypography variant="button" color="text" fontWeight="regular">
+        <MDBox
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems="center"
+          textAlign={{ xs: "center", sm: "left" }}
+          gap={2}
+        >
+          <MDBox
+            variant="gradient"
+            bgColor="info"
+            coloredShadow="info"
+            borderRadius="50%"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            width="5rem"
+            height="5rem"
+            flexShrink={0}
+          >
+            <MDTypography variant="h4" color="white" fontWeight="medium">
+              {getInitials(userData.name)}
+            </MDTypography>
+          </MDBox>
+          <MDBox display="flex" flexDirection="column" alignItems={{ xs: "center", sm: "flex-start" }}>
+            <MDTypography variant="h5" fontWeight="medium">
+              {userData.name}
+            </MDTypography>
+            {userData.position && (
+              <MDTypography variant="button" color="text" fontWeight="regular" mb={0.5}>
                 {userData.position}
               </MDTypography>
-            </MDBox>
-          </Grid>
-        </Grid>
+            )}
+            <MDBadge badgeContent={roleLabel} color="info" variant="gradient" size="sm" container />
+          </MDBox>
+        </MDBox>
         {children}
       </Card>
     </MDBox>

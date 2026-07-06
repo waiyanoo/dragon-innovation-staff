@@ -33,7 +33,7 @@ function Report_control_panel(){
 
   const generateSalesReport = async () => {
 
-    const snapshot = getOrderSnapShot()
+    const snapshot = await getOrderSnapShot()
     const reportData = {};
     snapshot.forEach((doc) => {
       const { brand, amount = 0, createdBy } = doc.data();
@@ -65,7 +65,15 @@ function Report_control_panel(){
   }
 
   const generateCommissionReport = () => {
-    const commissionData = {};
+    if (!snapshot || !settings.targets) {
+      setSnack({ open: true, message: 'Data is still loading. Please try again.', color: 'error', icon: 'warning' })
+      return;
+    }
+    const commissionData = {
+      hanskin: { totalAmount: 0, commissionData: {} },
+      sugarbear: { totalAmount: 0, commissionData: {} },
+      mongdies: { totalAmount: 0, commissionData: {} },
+    };
     snapshot.forEach((doc) => {
       const { brand, amount = 0, createdBy } = doc.data();
       if (!brand) return;
@@ -116,12 +124,13 @@ function Report_control_panel(){
       where("createdAt", "<", endTimestamp),
       orderBy("createdAt", "desc")
     );
-    setSnapshot(await getDocs(q));
+    const snap = await getDocs(q);
+    setSnapshot(snap);
+    return snap;
   }
 
   const closeSnack = () => {
-    snack.open = false;
-    setSnack({ ...snack })
+    setSnack({ ...snack, open: false })
   }
 
   const renderSnackBar = (
@@ -143,10 +152,10 @@ function Report_control_panel(){
       <DashboardNavbar />
       <MDBox p={{ xs: 1, md: 3, lg: 3 }}>
         <MDBox px={2} mb={2}>
-          <MDTypography variant="h4">Report Control Panel</MDTypography>
+          <MDTypography variant="h4">Admin Tools</MDTypography>
         </MDBox>
         <Card mx={3}>
-          <MDBox display="flex" justifyContent="start" flexDirection="row" gap={2} p={2}>
+          <MDBox display="flex" justifyContent="start" flexDirection={{xs: 'column', sm: 'row'}} gap={2} p={2}>
             <MDButton variant="gradient" color="info" onClick={generateSalesReport}>
               Generate Sales Report
             </MDButton>

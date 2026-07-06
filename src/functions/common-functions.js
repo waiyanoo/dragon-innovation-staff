@@ -2,15 +2,11 @@ import { Timestamp } from "firebase/firestore";
 
 export const TimestampDisplay = (timestamp) => {
   const date = timestamp.toDate();
-  return (
-    <p>
-      {date.toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })}
-    </p>
-  );
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 export const formattedAmount = (value) => {
