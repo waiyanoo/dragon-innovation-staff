@@ -8,17 +8,50 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import IconButton from "@mui/material/IconButton";
 import Icon from "@mui/material/Icon";
-import { useAuth } from "../../../../context/AuthContext";
-import { Order_Card_Actions } from "../../../../data/common";
-import { formattedAmount, TimestampDisplay } from "../../../../functions/common-functions";
-import { ReactComponent as Address } from "assets/images/icons/custom/location.svg";
-import { ReactComponent as Items } from "assets/images/icons/custom/inventory.svg";
-import { ReactComponent as City } from "assets/images/icons/custom/maps.svg";
-import { ReactComponent as Delivery } from "assets/images/icons/custom/delivery-truck.svg";
-import { ReactComponent as Money } from "assets/images/icons/custom/cash-on-delivery.svg";
-import { ReactComponent as Remark } from "assets/images/icons/custom/feedback.svg";
-import { ReactComponent as Phone } from "assets/images/icons/custom/call-center.svg";
+import Grid from "@mui/material/Grid";
+import Collapse from "@mui/material/Collapse";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import Divider from "@mui/material/Divider";
+import { useAuth } from "../../../../context/AuthContext";
+import { Order_Card_Actions, Order_Card_Action_Groups } from "../../../../data/common";
+import { formattedAmount, TimestampDisplay } from "../../../../functions/common-functions";
+
+function RowIcon({ name, color }) {
+  return (
+    <Icon fontSize="small" sx={{ color, flexShrink: 0 }}>
+      {name}
+    </Icon>
+  );
+}
+
+RowIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired,
+};
+
+function InfoRow({ icon, multiline, children }) {
+  return (
+    <MDBox display="flex" alignItems={multiline ? "flex-start" : "center"} gap={1.5} py={0.5}>
+      <MDBox display="flex" mt={multiline ? 0.25 : 0}>
+        {icon}
+      </MDBox>
+      <MDTypography variant="body2" color="text" style={{ whiteSpace: "pre-wrap" }}>
+        {children}
+      </MDTypography>
+    </MDBox>
+  );
+}
+
+InfoRow.propTypes = {
+  icon: PropTypes.node.isRequired,
+  multiline: PropTypes.bool,
+  children: PropTypes.node.isRequired,
+};
+
+InfoRow.defaultProps = {
+  multiline: false,
+};
 
 function OrderCard({ data, handleClick }) {
   const [controller] = useMaterialUIController();
@@ -26,6 +59,49 @@ function OrderCard({ data, handleClick }) {
   const { userData } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const [itemsToggled, setItemsToggled] = useState(null);
+  const itemsExpanded = itemsToggled === null ? isMdUp : itemsToggled;
+
+  const itemsText = data.items.replace(/"/g, "");
+  const itemCount = itemsText.split("\n").filter((line) => line.trim() !== "").length;
+  const iconColor = darkMode ? "grey.500" : "grey.600";
+
+  const paymentLabel =
+    data.paymentMode === "Paid" ? `Paid - ${data.paymentType}` : data.paymentMode;
+  const paymentColor =
+    data.paymentMode === "Paid" ? "success" : data.paymentMode === "COD" ? "warning" : "info";
+
+  // show only actions the role can use AND that apply to the order's current
+  // status (super_admin bypasses the status check where allowSuper is set)
+  const visibleActions = Order_Card_Actions.filter((item) => {
+    if (!item.roles.includes(userData.role)) return false;
+    if (userData.role === "super_admin" && item.allowSuper) return true;
+    return item.statuses.includes(data.status);
+  });
+
+  const menuItems = [];
+  Order_Card_Action_Groups.forEach((group) => {
+    const groupActions = visibleActions.filter((item) => item.group === group);
+    if (groupActions.length === 0) return;
+    if (menuItems.length > 0) {
+      menuItems.push(<Divider key={`divider-${group}`} />);
+    }
+    groupActions.forEach((item) => {
+      menuItems.push(
+        <MenuItem
+          key={item.label}
+          onClick={() => {
+            handleMenuItemClick(item.type);
+          }}
+          sx={group === "danger" ? { color: "error.main" } : undefined}
+        >
+          {item.label}
+        </MenuItem>
+      );
+    });
+  });
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,17 +116,17 @@ function OrderCard({ data, handleClick }) {
 
   return (
     <MDBox
-      // display="flex"
-      // justifyContent="space-between"
-      // alignItems="flex-start"
-      bgColor={darkMode ? "transparent" : "grey-100"}
+      bgColor={darkMode ? "transparent" : "white"}
       borderRadius="lg"
-      pl={3}
-      pb={3}
-      pr={3}
+      shadow="sm"
+      px={2.5}
+      pb={2}
       mb={3}
       mt={2}
-      // onClick={handleClick}
+      sx={{
+        border: "1px solid",
+        borderColor: darkMode ? "rgba(255, 255, 255, 0.2)" : "#dee2e6",
+      }}
     >
       <MDBox
         variant="gradient"
@@ -81,18 +157,11 @@ function OrderCard({ data, handleClick }) {
         </MDTypography>
       </MDBox>
       <MDBox width="100%" display="flex" flexDirection="column">
-        <MDBox
-          display="flex"
-          justifyContent="space-between"
-          alignItems={{ xs: "center", sm: "center" }}
-          flexDirection={{ xs: "row", sm: "row" }}
-          mb={2}
-        >
-          <MDBox display="flex" alignItems="center" mt={{ xs: 0.5, sm: 0 }}>
+        <MDBox display="flex" justifyContent="space-between" alignItems="center">
+          <MDBox display="flex" alignItems="center" gap={1} flexWrap="wrap" mt={0.5}>
             <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
               {data.name}
             </MDTypography>
-            {/*<MDBadge badgeContent={data.brand} color={data.brand === 'sugarbear' ? 'primary' : data.brand === 'mongdies' ? 'success' : 'info'} variant="gradient" size="md" ml={1} />*/}
             <MDBadge
               badgeContent={
                 data.status === 2
@@ -137,156 +206,99 @@ function OrderCard({ data, handleClick }) {
                 list: { "aria-labelledby": "dropdown-button" },
               }}
             >
-              {Order_Card_Actions.map((item) => {
-                const hasAccess = item.roles.includes(userData.role);
-                const isStatusAllowed = item.statuses.includes(data.status);
-                const isDisabled =
-                  userData.role === "super_admin" && item.allowSuper
-                    ? false
-                    : hasAccess && !isStatusAllowed;
-                if (!hasAccess) return null;
-
-                return (
-                  <MenuItem
-                    key={item.label}
-                    onClick={() => {
-                      handleMenuItemClick(item.type);
-                    }}
-                    disabled={isDisabled}
-                  >
-                    {item.label}
-                  </MenuItem>
-                );
-              })}
+              {menuItems}
             </Menu>
           </MDBox>
         </MDBox>
         <MDBox
-          lineHeight={0}
           display="flex"
-          flexDirection="row"
+          justifyContent="space-between"
           alignItems="center"
-          gap={2}
+          flexWrap="wrap"
+          gap={1}
+          pb={1.5}
+          sx={{
+            borderBottom: `1px solid ${darkMode ? "rgba(255, 255, 255, 0.12)" : "#f0f2f5"}`,
+          }}
         >
-          <MDBox>
-            <Phone style={{ width: 24, height: 24 }} />
+          <MDBox display="flex" alignItems="center" gap={1}>
+            <MDTypography variant="h6">{formattedAmount(data.amount)}</MDTypography>
+            <MDBadge badgeContent={paymentLabel} color={paymentColor} variant="gradient" size="sm" />
           </MDBox>
-          <MDTypography variant="caption" color="black" fontWeight="medium">
-            {data.primaryPhone} {data.secondaryPhone ? `, ${data.secondaryPhone}` : ""}
-          </MDTypography>
-        </MDBox>
-        <Divider p={-4} m={0}/>
-        <MDBox
-          lineHeight={0}
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          gap={2}
-        >
-          <MDBox>
-            <City style={{ width: 24, height: 24 }} />
-          </MDBox>
-          <MDTypography variant="caption" color="black" fontWeight="medium">
-            {data.state}/{data.city}
-          </MDTypography>
-        </MDBox>
-        <Divider p={-4} m={0}/>
-        <MDBox
-          lineHeight={0}
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          gap={2}
-        >
-          <MDBox>
-            <Address style={{ width: 24, height: 24 }} />
-          </MDBox>
-          <MDTypography
-            variant="caption"
-            color="black"
-            fontWeight="medium"
-            style={{ whiteSpace: "pre-wrap" }}
-          >
-            {data.address.replace(/"/g, "")}
-          </MDTypography>
-        </MDBox>
-        <Divider p={-4} m={0}/>
-        <MDBox
-          lineHeight={0}
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          gap={2}
-        >
-          <MDBox>
-            <Items style={{ width: 24, height: 24 }} />
-          </MDBox>
-          <MDTypography
-            variant="caption"
-            color="black"
-            fontWeight="medium"
-            style={{ whiteSpace: "pre-wrap" }}
-          >
-            {data.items.replace(/"/g, "")}
-          </MDTypography>
-        </MDBox>
-        <Divider p={-4} m={0}/>
-        <MDBox
-          lineHeight={0}
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          gap={2}
-        >
-          <MDBox>
-            <Money style={{ width: 24, height: 24 }} />
-          </MDBox>
-          <MDTypography variant="caption" color="black" fontWeight="medium">
-            {formattedAmount(data.amount)} - {data.paymentMode}{" "}
-            {data.paymentMode !== "Paid" ? "" : ` - ${data.paymentType}`}
-          </MDTypography>
-        </MDBox>
-        <Divider p={-4} m={0}/>
-        <MDBox
-          lineHeight={0}
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          gap={2}
-        >
-          <MDBox>
-            <Delivery style={{ width: 24, height: 24 }} />
-          </MDBox>
-          <MDTypography variant="caption" color="black" fontWeight="medium">
-            {formattedAmount(data.deliveryFees)}
-          </MDTypography>
-        </MDBox>
-        {data.remark.trim() !== "" && (
-          <MDBox
-            mb={1.5}
-            lineHeight={0}
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-            gap={2}
-          >
-            <MDBox>
-              <Remark style={{ width: 24, height: 24 }} />
-            </MDBox>
-            <MDTypography variant="caption" color="error">
-              {data.remark}
-            </MDTypography>
-          </MDBox>
-        )}
-
-        <MDBox mt={1.5} lineHeight={0} textAlign="right">
           <MDTypography variant="caption" color="text" fontWeight="medium">
-            {TimestampDisplay(data.createdAt)}
+            + {formattedAmount(data.deliveryFees)} delivery
           </MDTypography>
         </MDBox>
-        <MDBox mt={0} lineHeight={0} textAlign="right">
+        <Grid container columnSpacing={3} sx={{ pt: 1 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <InfoRow icon={<RowIcon name="phone" color={iconColor} />}>
+              {data.primaryPhone}
+              {data.secondaryPhone ? `, ${data.secondaryPhone}` : ""}
+            </InfoRow>
+            <InfoRow icon={<RowIcon name="location_city" color={iconColor} />}>
+              {data.state}/{data.city}
+            </InfoRow>
+            <InfoRow icon={<RowIcon name="place" color={iconColor} />} multiline>
+              {data.address.replace(/"/g, "")}
+            </InfoRow>
+            {data.remark.trim() !== "" && (
+              <MDBox
+                display="flex"
+                alignItems="flex-start"
+                gap={1.5}
+                mt={1}
+                px={1.5}
+                py={1}
+                borderRadius="md"
+                sx={{ backgroundColor: darkMode ? "rgba(244, 67, 53, 0.15)" : "#fdecea" }}
+              >
+                <MDBox display="flex" mt={0.25}>
+                  <RowIcon name="sticky_note_2" color="error.main" />
+                </MDBox>
+                <MDTypography variant="caption" color="error" fontWeight="medium">
+                  {data.remark}
+                </MDTypography>
+              </MDBox>
+            )}
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            {!isMdUp && (
+              <MDBox
+                display="flex"
+                alignItems="center"
+                gap={1.5}
+                py={0.5}
+                onClick={() => setItemsToggled(!itemsExpanded)}
+                sx={{ cursor: "pointer" }}
+              >
+                <MDBox display="flex">
+                  <RowIcon name="inventory_2" color={iconColor} />
+                </MDBox>
+                <MDTypography variant="body2" color="info" fontWeight="medium">
+                  {itemCount} {itemCount === 1 ? "item" : "items"}
+                </MDTypography>
+                <Icon fontSize="small">{itemsExpanded ? "expand_less" : "expand_more"}</Icon>
+              </MDBox>
+            )}
+            <Collapse in={itemsExpanded}>
+              <InfoRow
+                icon={
+                  isMdUp ? (
+                    <RowIcon name="inventory_2" color={iconColor} />
+                  ) : (
+                    <MDBox style={{ width: 20 }} />
+                  )
+                }
+                multiline
+              >
+                {itemsText}
+              </InfoRow>
+            </Collapse>
+          </Grid>
+        </Grid>
+        <MDBox mt={1} textAlign="right">
           <MDTypography variant="caption" color="text" fontWeight="medium">
-            {data.createdBy}
+            {TimestampDisplay(data.createdAt)} · {data.createdBy}
           </MDTypography>
         </MDBox>
       </MDBox>
