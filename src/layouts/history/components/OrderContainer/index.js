@@ -18,6 +18,7 @@ import {
   orderBy,
   query,
   updateDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { database } from "../../../../firebase";
@@ -78,7 +79,9 @@ function OrderContainer({ brand }) {
 
   useEffect(() => {
     filerOrders();
-  }, [segments[0]]);
+    // Refetch when the status filter changes so status-filtered views pull
+    // matching orders from the server instead of only the newest page.
+  }, [segments[0], checkedItems.pending, checkedItems.packed, checkedItems.shipped]);
 
   const handleClose = () => setOpen(false);
 
@@ -255,7 +258,19 @@ function OrderContainer({ brand }) {
     try {
       const segments = location.pathname.split("/").filter(Boolean);
       const brandRef = collection(database, segments[0] === "history" ? "orders" : "ws_orders");
-      const q = query(brandRef, orderBy('createdAt', 'desc'), limit(limitCount),);
+
+      const statuses = [];
+      if (checkedItems.pending) statuses.push(0);
+      if (checkedItems.packed) statuses.push(1);
+      if (checkedItems.shipped) statuses.push(2);
+
+      // With a status filter active, query by status so ALL matching orders
+      // load regardless of age (not just the newest `limitCount`). No orderBy
+      // keeps this on the automatic single-field index; we sort client-side.
+      const q =
+        statuses.length > 0
+          ? query(brandRef, where("status", "in", statuses), limit(3000))
+          : query(brandRef, orderBy("createdAt", "desc"), limit(limitCount));
 
       const querySnapshot = await getDocs(q);
 
