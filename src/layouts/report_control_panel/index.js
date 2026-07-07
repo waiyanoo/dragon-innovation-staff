@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import MDSnackbar from "../../components/MDSnackbar";
 import Footer from "../../examples/Footer";
 import { calculateCommissionEach, getPreviousMonthID } from "../../functions/common-functions";
+import UserManagement from "./components/UserManagement";
 
 function Report_control_panel(){
   const [snack, setSnack] = useState({ open: false, message: '', color: 'success', icon: 'check' });
@@ -155,6 +156,9 @@ function Report_control_panel(){
           <MDTypography variant="h4">Admin Tools</MDTypography>
         </MDBox>
         <Card mx={3}>
+          <MDBox px={2} pt={2}>
+            <MDTypography variant="h5">Reports</MDTypography>
+          </MDBox>
           <MDBox display="flex" justifyContent="start" flexDirection={{xs: 'column', sm: 'row'}} gap={2} p={2}>
             <MDButton variant="gradient" color="info" onClick={generateSalesReport}>
               Generate Sales Report
@@ -164,6 +168,9 @@ function Report_control_panel(){
             </MDButton>
           </MDBox>
         </Card>
+        <MDBox mt={3}>
+          <UserManagement />
+        </MDBox>
         {renderSnackBar}
       </MDBox>
       <Footer />

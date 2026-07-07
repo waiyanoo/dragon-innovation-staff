@@ -19,15 +19,17 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
-import { login } from "../../../services/authService";
+import { login, logout } from "../../../services/authService";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, database } from "../../../firebase";
 import { CircularProgress } from "@mui/material";
 
 function Basic() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState(false);
+  const [suspended, setSuspended] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -36,11 +38,20 @@ function Basic() {
 
   const signInClick = async () => {
     setIsLoading(true);
+    setErrors(false);
+    setSuspended(false);
     login(email, password)
-      .then((user) => {
-        setTimeout(()=>{
+      .then(async (cred) => {
+        const snap = await getDoc(doc(database, "users", cred.user.uid));
+        if (snap.exists() && snap.data().status === "suspended") {
+          await logout();
+          setSuspended(true);
+          setIsLoading(false);
+          return;
+        }
+        setTimeout(() => {
           navigate("/dashboard");
-        }, 1000)
+        }, 1000);
       })
       .catch((error) => {
         setErrors(true);
@@ -94,6 +105,11 @@ function Basic() {
               />
             </MDBox>
             {errors && <MDTypography variant="button" color="error">Invalid email or password</MDTypography>}
+            {suspended && (
+              <MDTypography variant="button" color="error">
+                Your account has been suspended. Contact an administrator.
+              </MDTypography>
+            )}
 
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth onClick={signInClick}

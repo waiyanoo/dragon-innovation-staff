@@ -1,6 +1,6 @@
 // AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import PropTypes from "prop-types";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import {database} from "../firebase";
@@ -19,12 +19,21 @@ export function AuthProvider({ children }) {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        setUserData(userSnap.data());
+        const data = userSnap.data();
+        // Suspended accounts are denied access at the app layer.
+        if (data.status === "suspended") {
+          await signOut(auth);
+          setAuthUser(null);
+          setUserData(null);
+          return;
+        }
+        setUserData(data);
       } else {
         const newUser = {
           email: user.email,
           name: user.email.split("@")[0],
           role: "admin",
+          status: "active",
           createdAt: new Date(),
         };
         await setDoc(userRef, newUser);
@@ -38,6 +47,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if(!user){
+        setAuthUser(null);
         setLoading(false);
       } else {
         setAuthUser(user);
