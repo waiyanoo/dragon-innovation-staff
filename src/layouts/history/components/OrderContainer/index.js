@@ -70,6 +70,8 @@ function OrderContainer({ brand }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [bulkTarget, setBulkTarget] = useState(null);
   const [isBulkRunning, setIsBulkRunning] = useState(false);
+  const [bulkPending, setBulkPending] = useState([]);
+  const [bulkPacked, setBulkPacked] = useState([]);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +84,10 @@ function OrderContainer({ brand }) {
     // Refetch when the status filter changes so status-filtered views pull
     // matching orders from the server instead of only the newest page.
   }, [segments[0], checkedItems.pending, checkedItems.packed, checkedItems.shipped]);
+
+  useEffect(() => {
+    loadBulkSets();
+  }, [selectedBrand]);
 
   const handleClose = () => setOpen(false);
 
@@ -147,6 +153,7 @@ function OrderContainer({ brand }) {
       .then(() => {
         const orders = searchedOrders.map((item) => (item.id === id ? { ...item, status } : item));
         setSearchedOrders(orders);
+        loadBulkSets();
         setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
         setOrderId("");
         setInvoiceNumber("");
@@ -162,10 +169,6 @@ function OrderContainer({ brand }) {
     setDeleteTarget(null);
     await deleteOrder(target.id);
   };
-
-  // Orders in the current filtered view eligible for each bulk transition.
-  const pendingInView = searchedOrders.filter((order) => order.status === 0);
-  const packedInView = searchedOrders.filter((order) => order.status === 1);
 
   const runBulkUpdate = async () => {
     const target = bulkTarget;
@@ -198,6 +201,7 @@ function OrderContainer({ brand }) {
             : order
         )
       );
+      await loadBulkSets();
       setSnack({
         open: true,
         message: `${target.orders.length} order(s) marked as ${target.label}.`,
@@ -221,6 +225,7 @@ function OrderContainer({ brand }) {
       .then(() => {
         const orders = searchedOrders.filter((item) => item.id !== id);
         setSearchedOrders(orders);
+        loadBulkSets();
         setSnack({ open: true, message: "Order delete success.", color: "success", icon: "check" });
       })
       .catch(() => {
@@ -251,6 +256,32 @@ function OrderContainer({ brand }) {
         break;
       default:
         break;
+    }
+  };
+
+  // Full pending/packed sets for the current brand, queried directly so the
+  // bulk counts are accurate regardless of the newest-page display limit or
+  // any active filter. Scoped to the brand client-side to avoid a composite
+  // index (status is on the automatic single-field index).
+  const loadBulkSets = async () => {
+    try {
+      const coll = location.pathname.split("/").filter(Boolean)[0] === "history" ? "orders" : "ws_orders";
+      const brandRef = collection(database, coll);
+      const [pendingSnap, packedSnap] = await Promise.all([
+        getDocs(query(brandRef, where("status", "==", 0), limit(3000))),
+        getDocs(query(brandRef, where("status", "==", 1), limit(3000))),
+      ]);
+      const mapDocs = (snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let pending = mapDocs(pendingSnap);
+      let packed = mapDocs(packedSnap);
+      if (selectedBrand !== "all") {
+        pending = pending.filter((order) => order.brand === selectedBrand);
+        packed = packed.filter((order) => order.brand === selectedBrand);
+      }
+      setBulkPending(pending);
+      setBulkPacked(packed);
+    } catch (e) {
+      console.error("Error loading bulk sets: ", e);
     }
   };
 
@@ -428,7 +459,7 @@ function OrderContainer({ brand }) {
         <MDBox px={2} pb={2}>
           <FilterOrders filerChange={(e) => setCheckedItems(e)} />
         </MDBox>
-        {userData.role === "super_admin" && !isLoading && searchedOrders.length > 0 && (
+        {userData.role === "super_admin" && (bulkPending.length > 0 || bulkPacked.length > 0) && (
           <MDBox
             px={2}
             pb={2}
@@ -439,30 +470,30 @@ function OrderContainer({ brand }) {
             <MDButton
               variant="gradient"
               color="info"
-              disabled={pendingInView.length === 0 || isBulkRunning}
+              disabled={bulkPending.length === 0 || isBulkRunning}
               onClick={() =>
                 setBulkTarget({
                   toStatus: 1,
                   label: "Packed",
-                  orders: pendingInView,
+                  orders: bulkPending,
                 })
               }
             >
-              Mark {pendingInView.length} pending as packed
+              Mark {bulkPending.length} pending as packed
             </MDButton>
             <MDButton
               variant="gradient"
               color="warning"
-              disabled={packedInView.length === 0 || isBulkRunning}
+              disabled={bulkPacked.length === 0 || isBulkRunning}
               onClick={() =>
                 setBulkTarget({
                   toStatus: 2,
                   label: "Shipped",
-                  orders: packedInView,
+                  orders: bulkPacked,
                 })
               }
             >
-              Mark {packedInView.length} packed as shipped
+              Mark {bulkPacked.length} packed as shipped
             </MDButton>
           </MDBox>
         )}
