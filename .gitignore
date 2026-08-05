@@ -23,6 +23,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# firebase emulator (npm run test:rules)
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
+
 package-lock.json
 yarn.lock
 

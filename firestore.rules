@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// Role-based access rules for the staff portal.
+//
+// Roles (users/{uid}.role): page_admin, sales, warehouse, admin, super_admin.
+// "pending" is the no-access default assigned when a signed-in account has no
+// profile yet; it matches no rule below, so pending users can only read their
+// own profile.
+//
+// Access is denied only when status is explicitly "suspended". Profiles
+// predating the user-management feature have no status field at all and must
+// keep working — an earlier version required status == "active" and locked
+// every such account out of every collection in production.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isActive() {
+      // Absent status is treated as active; only an explicit "suspended"
+      // revokes access.
+      return profile().get("status", "active") != "suspended";
+    }
+
+    function hasRole(roles) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && isActive()
+        && profile().role in roles;
+    }
+
+    match /users/{uid} {
+      // Own profile is readable even while suspended/pending; listing all
+      // users is reserved for user management.
+      allow get: if isSignedIn() && (request.auth.uid == uid || hasRole(["super_admin"]));
+      // Super admins list everyone for user management. Other staff may list
+      // ONLY page admins, for the dashboard's Individual Sales table — the
+      // resource.data check forces the client query to carry a matching
+      // where("role", "==", "page_admin") filter, so no other profile is
+      // exposed.
+      allow list: if hasRole(["super_admin"])
+        || (hasRole(["page_admin", "warehouse", "admin"]) && resource.data.role == "page_admin");
+      // Super admins provision accounts. A user may self-create ONLY the
+      // no-access "pending" profile (the AuthContext fallback) — never a
+      // profile that names its own role.
+      allow create: if hasRole(["super_admin"])
+        || (isSignedIn()
+          && request.auth.uid == uid
+          && request.resource.data.role == "pending");
+      // Role/status changes are super admin only, so nobody can promote
+      // themselves by editing their own document.
+      allow update: if hasRole(["super_admin"]);
+      allow delete: if false;
+    }
+
+    // Warehouse staff only ever advance an order through pack/ship, which
+    // writes these two fields. Editing order details (amount, address,
+    // customer) is reserved for the roles that get the Edit action in the UI.
+    function onlyAdvancesStatus() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(["status", "updateHistory"]);
+    }
+
+    // Retail orders.
+    match /orders/{orderId} {
+      allow read: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
+      allow create: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
+      allow update: if hasRole(["page_admin", "admin", "super_admin"])
+        || (hasRole(["warehouse"]) && onlyAdvancesStatus());
+      allow delete: if hasRole(["page_admin", "admin", "super_admin"]);
+    }
+
+    // Wholesale orders.
+    match /ws_orders/{orderId} {
+      allow read: if hasRole(["sales", "warehouse", "admin", "super_admin"]);
+      allow create: if hasRole(["sales", "admin", "super_admin"]);
+      allow update: if hasRole(["sales", "admin", "super_admin"])
+        || (hasRole(["warehouse"]) && onlyAdvancesStatus());
+      allow delete: if hasRole(["sales", "admin", "super_admin"]);
+    }
+
+    // Commission targets (settings/v1): read by the reward page, edited only
+    // from the super admin control panel.
+    match /settings/{settingId} {
+      allow read: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
+      allow write: if hasRole(["super_admin"]);
+    }
+
+    // Generated monthly commission snapshots shown on the reward page.
+    match /monthlyCommission/{reportId} {
+      allow read: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
+      allow write: if hasRole(["super_admin"]);
+    }
+
+    // Generated monthly sales reports.
+    match /monthlyReports/{reportId} {
+      allow read: if hasRole(["admin", "super_admin"]);
+      allow write: if hasRole(["super_admin"]);
+    }
+
+    // Everything else is denied (Firestore's default), stated explicitly.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

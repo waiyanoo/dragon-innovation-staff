@@ -29,10 +29,14 @@ export function AuthProvider({ children }) {
         }
         setUserData(data);
       } else {
+        // No profile yet: register the account with the no-access "pending"
+        // role so it shows up in user management for a super admin to
+        // promote. Never default to a privileged role here — anyone who can
+        // obtain a Firebase Auth session would become that role.
         const newUser = {
           email: user.email,
           name: user.email.split("@")[0],
-          role: "admin",
+          role: "pending",
           status: "active",
           createdAt: new Date(),
         };
