@@ -7,12 +7,12 @@ import MDTypography from "components/MDTypography";
 
 // Billing page components
 import OrderCard from "../OrderCard";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
-  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -82,8 +82,9 @@ function OrderContainer({ brand }) {
   useEffect(() => {
     filerOrders();
     // Refetch when the status filter changes so status-filtered views pull
-    // matching orders from the server instead of only the newest page.
-  }, [segments[0], checkedItems.pending, checkedItems.packed, checkedItems.shipped]);
+    // matching orders from the server instead of only the newest page, and
+    // when limitCount grows so "Load More" queries with the new limit.
+  }, [segments[0], checkedItems.pending, checkedItems.packed, checkedItems.shipped, limitCount]);
 
   useEffect(() => {
     loadBulkSets();
@@ -91,10 +92,14 @@ function OrderContainer({ brand }) {
 
   const handleClose = () => setOpen(false);
 
-  const fuse = new Fuse(orders, {
-    keys: ["name", "primaryPhone", "secondaryPhone"],
-    threshold: 0.3,
-  });
+  const fuse = useMemo(
+    () =>
+      new Fuse(orders, {
+        keys: ["name", "primaryPhone", "secondaryPhone"],
+        threshold: 0.3,
+      }),
+    [orders]
+  );
 
   const handleConfirm = async () => {
     await updateOrder(3, orderId, true);
@@ -110,8 +115,9 @@ function OrderContainer({ brand }) {
   }, [selectedBrand, orders]);
 
   const loadMore = () => {
-    setLimitCount(limitCount + 10);
-    filerOrders();
+    // The refetch effect keyed on limitCount runs the query with the new
+    // limit; calling filerOrders() here would still use the old value.
+    setLimitCount((prev) => prev + 100);
   };
 
   const handleBrandChange = (e) => {
@@ -121,47 +127,28 @@ function OrderContainer({ brand }) {
 
   const updateOrder = async (status = 0, id, setInvoice = false) => {
     const docRef = doc(database, segments[0] === "history" ? "orders" : "ws_orders", id);
-    const docSnap = await getDoc(docRef);
-    const data = docSnap.data();
-    let updateHistory = data.updateHistory;
-    let dataToUpdate;
+    // arrayUnion appends server-side, so concurrent updates from two staff
+    // can't overwrite each other's history entries.
+    const dataToUpdate = {
+      status,
+      updateHistory: arrayUnion({
+        updatedAt: new Date(),
+        updatedBy: userData.name,
+      }),
+    };
     if (setInvoice) {
-      dataToUpdate = {
-        invoiceNumber: invoiceNumber,
-        status,
-        updateHistory: [
-          ...updateHistory,
-          {
-            updatedAt: new Date(),
-            updatedBy: userData.name,
-          },
-        ],
-      };
-    } else {
-      dataToUpdate = {
-        status,
-        updateHistory: [
-          ...updateHistory,
-          {
-            updatedAt: new Date(),
-            updatedBy: userData.name,
-          },
-        ],
-      };
+      dataToUpdate.invoiceNumber = invoiceNumber;
     }
-    updateDoc(docRef, dataToUpdate)
-      .then(() => {
-        const orders = searchedOrders.map((item) => (item.id === id ? { ...item, status } : item));
-        setSearchedOrders(orders);
-        loadBulkSets();
-        setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
-        setOrderId("");
-        setInvoiceNumber("");
-      })
-      .catch(() => {
-        setSnack({ open: true, message: "Order update failed.", color: "error", icon: "warning" });
-      });
-    console.log("Document successfully updated!");
+    try {
+      await updateDoc(docRef, dataToUpdate);
+      setSearchedOrders((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)));
+      loadBulkSets();
+      setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
+      setOrderId("");
+      setInvoiceNumber("");
+    } catch (e) {
+      setSnack({ open: true, message: "Order update failed.", color: "error", icon: "warning" });
+    }
   };
 
   const confirmDelete = async () => {
@@ -187,7 +174,7 @@ function OrderContainer({ brand }) {
         chunk.forEach((order) => {
           batch.update(doc(database, collectionName, order.id), {
             status: target.toStatus,
-            updateHistory: [...(order.updateHistory || []), historyEntry],
+            updateHistory: arrayUnion(historyEntry),
           });
         });
         await batch.commit();
@@ -221,16 +208,14 @@ function OrderContainer({ brand }) {
   };
 
   const deleteOrder = async (id) => {
-    deleteDoc(doc(database, segments[0] === "history" ? "orders" : "ws_orders", id))
-      .then(() => {
-        const orders = searchedOrders.filter((item) => item.id !== id);
-        setSearchedOrders(orders);
-        loadBulkSets();
-        setSnack({ open: true, message: "Order delete success.", color: "success", icon: "check" });
-      })
-      .catch(() => {
-        setSnack({ open: true, message: "Order delete failed.", color: "error", icon: "warning" });
-      });
+    try {
+      await deleteDoc(doc(database, segments[0] === "history" ? "orders" : "ws_orders", id));
+      setSearchedOrders((prev) => prev.filter((item) => item.id !== id));
+      loadBulkSets();
+      setSnack({ open: true, message: "Order delete success.", color: "success", icon: "check" });
+    } catch (e) {
+      setSnack({ open: true, message: "Order delete failed.", color: "error", icon: "warning" });
+    }
   };
 
   const handleOrderCardClick = async (e, order) => {
@@ -372,14 +357,21 @@ function OrderContainer({ brand }) {
     debouncedSearch(searchKeywords);
   }, [searchKeywords, checkedItems, brand, orders]);
 
+  // Keep one debounce instance for the component's lifetime (recreating it
+  // each render never lets the timer elapse) while the ref always points at
+  // the latest onSearch closure so it filters with current state.
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
   const debouncedSearch = useMemo(
     () =>
       debounce((value) => {
-        onSearch(value);
-        setIsLoading(false)
+        onSearchRef.current(value);
+        setIsLoading(false);
       }, 500),
-    [onSearch]
+    []
   );
+
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -624,41 +616,3 @@ OrderContainer.propTypes = {
 };
 
 export default OrderContainer;
-
-// const searchClient = algoliasearch(
-//   'LUQUCJ1X7P',
-//   'eee17237305148cd06aa66b6fc86d680'
-// );
-
-//  const CustomHits = () =>{
-//   const { hits } = useHits();
-//   if(hits.length === 0){
-//     return (
-//       <MDBox>
-//         <MDAlert color="light">
-//             No order found.
-//           </MDAlert>
-//       </MDBox>
-//     )
-//   }
-//   return (
-//     <div>
-//       {hits.map((hit, index) => (
-//         <OrderCard key={index} data={hit} noGutter handleClick={(e) => handleOrderCardClick(e, hit)} />
-//       ))}
-//     </div>
-//   );
-// }
-
-{
-  /*<InstantSearch indexName="Dragon" searchClient={searchClient}>*/
-}
-{
-  /*  <SearchOrder/>*/
-}
-{
-  /*  <CustomHits/>*/
-}
-{
-  /*</InstantSearch>*/
-}

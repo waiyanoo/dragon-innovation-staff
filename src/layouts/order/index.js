@@ -10,7 +10,15 @@ import MenuItem from "@mui/material/MenuItem";
 import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import MDButton from "../../components/MDButton";
-import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../firebase";
 import { State_List } from "../../data/common";
@@ -128,16 +136,21 @@ function Order() {
   };
 
   const update = async () => {
-    let data = {
-      ...formData,
+    // Drop the local copy of updateHistory and append via arrayUnion instead:
+    // pushing into formData.updateHistory mutates React state in place (the
+    // spread is shallow), so a retry after a failure appended twice, and
+    // writing the whole array back clobbers concurrent updates.
+    const { updateHistory, ...formFields } = formData;
+    const data = {
+      ...formFields,
       amount: Number(formData.amount) || 0,
       deliveryFees: Number(formData.deliveryFees) || 0,
       brand: brand,
+      updateHistory: arrayUnion({
+        updatedAt: new Date(),
+        updatedBy: userData.name,
+      }),
     };
-    data.updateHistory.push({
-      updatedAt: new Date(),
-      updatedBy: userData.name,
-    });
 
     try {
       await updateDoc(orderRef, data);
@@ -469,6 +482,7 @@ function Order() {
                             <MenuItem value="Cash">Cash</MenuItem>
                             <MenuItem value="Kpay">KPay</MenuItem>
                             <MenuItem value="Bank">Bank</MenuItem>
+                            <MenuItem value="MMQR">MMQR</MenuItem>
                           </Select>
                         </FormControl>
                       </MDBox>
