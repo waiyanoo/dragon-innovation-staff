@@ -6,14 +6,23 @@ import {
   collection,
   doc,
   getDocs,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { database, firebaseConfig } from "../firebase";
 
 export const listUsers = async () => {
   const snapshot = await getDocs(collection(database, "users"));
+  return snapshot.docs.map((d) => ({ uid: d.id, ...d.data() }));
+};
+
+// Non-super-admin callers may only list users of a single role, so the
+// where() filter here is what makes the read pass the security rules.
+export const listUsersByRole = async (role) => {
+  const snapshot = await getDocs(query(collection(database, "users"), where("role", "==", role)));
   return snapshot.docs.map((d) => ({ uid: d.id, ...d.data() }));
 };
 

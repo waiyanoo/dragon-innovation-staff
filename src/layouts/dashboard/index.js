@@ -19,9 +19,9 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 // Dashboard components
 import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 import { database } from "../../firebase";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import staffData from "./data/staffData";
+import { listUsersByRole } from "../../services/userService";
 import StatMatrix from "./components/StatMatrix";
 import {
   calculateForChart,
@@ -44,10 +44,27 @@ function Dashboard() {
   const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
-  const [adminData, setAdminData] = useState(staffData);
+  const [staffNames, setStaffNames] = useState([]);
+  const [currentOrders, setCurrentOrders] = useState([]);
 
   useEffect(() => {
     setValue(userData.role === 'sales' ? 'wholesale' : 'retail');
+  }, []);
+
+  // The Individual Sales table lists the page admins who take retail orders.
+  // Sales users only ever see the wholesale tab, so they skip this read.
+  useEffect(() => {
+    if (userData.role === 'sales') return;
+    listUsersByRole('page_admin')
+      .then((users) => {
+        setStaffNames(
+          users
+            .map((user) => user.name)
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b))
+        );
+      })
+      .catch((e) => console.error("Error loading staff list: ", e));
   }, []);
 
   useEffect(() => {
@@ -85,14 +102,24 @@ function Dashboard() {
     });
   }
 
-  const getOrderCountForEachStaff = (hanskinOrder, sugarBearOrder, mongdiesOrder) => {
-    Object.keys(adminData).forEach((key) => {
-      adminData[key].hanskin = hanskinOrder.filter(hanskin => hanskin.createdBy === key).length;
-      adminData[key].mongdies = mongdiesOrder.filter(hanskin => hanskin.createdBy === key).length;
-      adminData[key].sugarbear = sugarBearOrder.filter(hanskin => hanskin.createdBy === key).length;
-      setAdminData(adminData);
-    })
-  }
+  // Per-staff counts are derived rather than stored so they can't go stale
+  // against the loaded orders, and so the order fetch and the staff fetch
+  // can land in either order.
+  const individualSalesRows = useMemo(() => {
+    const { hanskinOrder, sugarBearOrder, mongdiesOrder } = getOrderByType(currentOrders);
+    // Orders record the creator's display name in createdBy.
+    const countFor = (orders, name) => orders.filter((order) => order.createdBy === name).length;
+
+    return staffNames.map((name) => {
+      const hanskin = countFor(hanskinOrder, name);
+      const sugarbear = countFor(sugarBearOrder, name);
+      const mongdies = countFor(mongdiesOrder, name);
+      return {
+        label: name,
+        values: [hanskin, sugarbear, mongdies, hanskin + sugarbear + mongdies],
+      };
+    });
+  }, [currentOrders, staffNames]);
 
   const getPreviousMonthOrders = (HTotal, STotal, MTotal) => {
     const ranges = getDateRanges();
@@ -133,7 +160,7 @@ function Dashboard() {
     //Calculate Total
     const { hanskinTotal, sugarBearTotal, mongdiesTotal } = getOrderAmountByType(hanskinOrder, sugarBearOrder, mongdiesOrder);
 
-    getOrderCountForEachStaff(hanskinOrder, sugarBearOrder, mongdiesOrder);
+    setCurrentOrders(orders);
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
@@ -288,15 +315,7 @@ function Dashboard() {
                     { key: "mongdies", label: "Mongdies" },
                     { key: "total", label: "Total" },
                   ]}
-                  rows={Object.entries(adminData).map(([key, val]) => ({
-                    label: key,
-                    values: [
-                      val.hanskin,
-                      val.sugarbear,
-                      val.mongdies,
-                      val.hanskin + val.sugarbear + val.mongdies,
-                    ],
-                  }))}
+                  rows={individualSalesRows}
                 />
               </Grid>
             </Grid>
