@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
-import { CircularProgress, FormControl, InputLabel, Select } from "@mui/material";
+import { Autocomplete, CircularProgress, FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
@@ -22,6 +22,7 @@ import {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../firebase";
 import { State_List } from "../../data/common";
+import { citiesForState } from "../../data/cityList";
 import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
 import Footer from "../../examples/Footer";
@@ -106,6 +107,18 @@ function Order() {
   const handleBrandChange = (e) => {
     const { value } = e.target;
     setBrand(value);
+  };
+
+  const setCity = (value) => {
+    setFormData((prevState) => ({ ...prevState, city: value }));
+  };
+
+  // Cities are offered per state, so a leftover township from the previously
+  // selected state would be wrong. Only fires on user interaction — loading an
+  // existing order sets formData directly and keeps its stored city.
+  const handleStateChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevState) => ({ ...prevState, state: value, city: "" }));
   };
 
   const save = async () => {
@@ -325,7 +338,7 @@ function Order() {
                             value={formData.state}
                             label="state"
                             name="state"
-                            onChange={handleChange}
+                            onChange={handleStateChange}
                             sx={{ lineHeight: "3rem" }}
                             variant="outlined"
                           >
@@ -340,14 +353,24 @@ function Order() {
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <MDBox mb={2}>
-                        <MDInput
-                          type="text"
-                          label="City"
-                          variant="outlined"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleChange}
-                          fullWidth
+                        <Autocomplete
+                          freeSolo
+                          autoHighlight
+                          options={citiesForState(formData.state)}
+                          value={formData.city || ""}
+                          // Fires on picking an option; onInputChange covers typing.
+                          onChange={(event, value) => setCity(value || "")}
+                          onInputChange={(event, value) => setCity(value)}
+                          renderInput={(params) => (
+                            <MDInput
+                              {...params}
+                              type="text"
+                              label="City"
+                              variant="outlined"
+                              name="city"
+                              fullWidth
+                            />
+                          )}
                         />
                       </MDBox>
                     </Grid>

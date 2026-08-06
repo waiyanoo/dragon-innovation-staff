@@ -155,7 +155,7 @@ function Statistics() {
 
   const totals = useMemo(() => summarise(orders), [orders]);
   const cityStats = useMemo(
-    () => groupByField(orders, "city", { normaliseLabel: true }),
+    () => groupByField(orders, "city", { canonicalise: true }),
     [orders]
   );
   const stateStats = useMemo(() => groupByField(orders, "state"), [orders]);

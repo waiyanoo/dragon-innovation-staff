@@ -4,31 +4,31 @@
 // dashboard and reward pages compute brand totals, so figures reconcile
 // across pages.
 
+import { canonicalCity } from "../../data/cityList";
+
 export const UNSPECIFIED = "(Not specified)";
 
 const collapseSpace = (value) => String(value || "").trim().replace(/\s+/g, " ");
-
-const titleCase = (value) =>
-  value
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
 
 export const netSales = (order) => (+order.amount || 0) - (+order.deliveryFees || 0);
 
 /**
  * Group orders by a text field, returning rows sorted by order count.
  *
- * City is typed by hand, so "yangon", "Yangon" and " Yangon " must land in one
- * bucket — keys are compared case-insensitively with runs of whitespace
- * collapsed. `normaliseLabel` title-cases the display value for those
- * free-text fields; state comes from a fixed Select and is shown as stored.
+ * City has always been typed by hand, so orders predating the picker hold
+ * spellings like "ygn" or "hpa an". `canonicalise` maps each value onto the
+ * curated city list — collapsing case, punctuation and known aliases — so
+ * historical rows group with newly picked ones. Unrecognised places are kept
+ * (tidied) rather than dropped. State comes from a fixed Select and is shown
+ * as stored.
  */
-export const groupByField = (orders, field, { normaliseLabel = false } = {}) => {
+export const groupByField = (orders, field, { canonicalise = false } = {}) => {
   const buckets = new Map();
 
   orders.forEach((order) => {
-    const raw = collapseSpace(order[field]);
+    const raw = canonicalise
+      ? canonicalCity(order[field]) || ""
+      : collapseSpace(order[field]);
     const key = raw ? raw.toLowerCase() : "";
     const existing = buckets.get(key);
 
@@ -41,7 +41,7 @@ export const groupByField = (orders, field, { normaliseLabel = false } = {}) => 
 
     buckets.set(key, {
       key: key || "__unspecified__",
-      label: raw ? (normaliseLabel ? titleCase(key) : raw) : UNSPECIFIED,
+      label: raw || UNSPECIFIED,
       orders: 1,
       sales: netSales(order),
       deliveryFees: +order.deliveryFees || 0,
