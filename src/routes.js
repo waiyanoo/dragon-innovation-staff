@@ -9,6 +9,7 @@ import PrivateRoute from "./context/PrivateRoute";
 import OrderView from "./layouts/order/view";
 import Unauthorized from "./layouts/authentication/unauthorized";
 import Reward from "./layouts/reward";
+import Statistics from "./layouts/statistics";
 import Report_control_panel from "./layouts/report_control_panel";
 import ResetPassword from "./layouts/authentication/reset-password";
 
@@ -150,6 +151,21 @@ const routes = [
         roles={["admin", "super_admin"]}
       >
         <Tables />
+      </PrivateRoute>
+    ),
+  },{
+    type: "collapse",
+    name: "Statistics",
+    key: "statistics",
+    icon: <Icon fontSize="small">query_stats</Icon>,
+    route: "/statistics",
+    routeToGo: "/statistics",
+    roles: [ "admin", "super_admin"],
+    component: (
+      <PrivateRoute
+        roles={["admin", "super_admin"]}
+      >
+        <Statistics />
       </PrivateRoute>
     ),
   },{
