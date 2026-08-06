@@ -121,16 +121,9 @@ function DataTable({
   // Setting the entries starting point
   const entriesStart = pageIndex === 0 ? pageIndex + 1 : pageIndex * pageSize + 1;
 
-  // Setting the entries ending point
-  let entriesEnd;
-
-  if (pageIndex === 0) {
-    entriesEnd = pageSize;
-  } else if (pageIndex === pageOptions.length - 1) {
-    entriesEnd = rows.length;
-  } else {
-    entriesEnd = pageSize * (pageIndex + 1);
-  }
+  // Setting the entries ending point. Clamped to the row count so a partly
+  // filled page does not read "Showing 1 to 10 of 4 entries".
+  const entriesEnd = Math.min(pageSize * (pageIndex + 1), rows.length);
 
   return (
     <TableContainer sx={{ boxShadow: "none" }}>
