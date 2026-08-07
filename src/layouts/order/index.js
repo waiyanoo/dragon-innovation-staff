@@ -5,7 +5,18 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
-import { Autocomplete, CircularProgress, FormControl, InputLabel, Select } from "@mui/material";
+import {
+  Autocomplete,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  Select,
+} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
@@ -16,18 +27,45 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
+  limit,
+  query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../firebase";
 import { State_List } from "../../data/common";
 import { citiesForState } from "../../data/cityList";
+import { formattedAmount } from "../../functions/common-functions";
 import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
 import Footer from "../../examples/Footer";
 
 const NUMERIC_INPUT_PROPS = { inputMode: "numeric", pattern: "[0-9]*" };
+
+const EMPTY_FORM = {
+  name: "",
+  primaryPhone: "",
+  secondaryPhone: "",
+  address: "",
+  state: "",
+  city: "",
+  items: "",
+  amount: "",
+  deliveryFees: "",
+  paymentStatus: "COD",
+  deliveryType: "1",
+  paymentMode: "NoPay",
+  remark: "",
+  status: 0,
+  invoiceNumber: "",
+};
+
+// A second order for the same phone within a day is nearly always a
+// double-entry rather than a genuine repeat, so it is worth querying for.
+const DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function SectionTitle({ children }) {
   return (
@@ -55,23 +93,13 @@ function Order() {
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
   const [collectionName, setCollectionName] = useState("orders");
-  const [formData, setFormData] = useState({
-    name: "",
-    primaryPhone: "",
-    secondaryPhone: "",
-    address: "",
-    state: "",
-    city: "",
-    items: "",
-    amount: "",
-    deliveryFees: "",
-    paymentStatus: "COD",
-    deliveryType: "1",
-    paymentMode: "NoPay",
-    remark: "",
-    status: 0,
-    invoiceNumber: "",
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  // Set when a same-day order for this phone already exists; holds the pending
+  // save until the user confirms it is not a duplicate.
+  const [duplicate, setDuplicate] = useState(null);
+  const [stateError, setStateError] = useState(false);
+  const addAnotherRef = useRef(false);
+  const nameInputRef = useRef(null);
 
   useEffect(() => {
     const targetCollection = userData.role === "sales" ? "ws_orders" : "orders";
@@ -118,7 +146,55 @@ function Order() {
   // existing order sets formData directly and keeps its stored city.
   const handleStateChange = (e) => {
     const { value } = e.target;
+    setStateError(false);
     setFormData((prevState) => ({ ...prevState, state: value, city: "" }));
+  };
+
+  // COD means the money has not been collected yet, so the mode follows the
+  // status rather than being picked separately. Marking an order paid without
+  // saying how was previously savable.
+  const handlePaymentStatusChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      paymentStatus: value,
+      paymentMode:
+        value === "COD"
+          ? "NoPay"
+          : prevState.paymentMode === "NoPay"
+            ? "Cash"
+            : prevState.paymentMode,
+    }));
+  };
+
+  // Equality on primaryPhone rides the automatic single-field index, so this
+  // needs no composite index; the age filter happens client-side.
+  const findSameDayOrder = async (phone) => {
+    const trimmed = String(phone || "").trim();
+    if (!trimmed) return null;
+    try {
+      const snapshot = await getDocs(
+        query(collection(database, collectionName), where("primaryPhone", "==", trimmed), limit(25))
+      );
+      const cutoff = Date.now() - DUPLICATE_WINDOW_MS;
+      return (
+        snapshot.docs
+          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+          .find((order) => (order.createdAt?.toMillis?.() ?? 0) >= cutoff) || null
+      );
+    } catch (e) {
+      // A failed duplicate check must never block recording the order.
+      console.error("Duplicate check failed: ", e);
+      return null;
+    }
+  };
+
+  const resetForNextOrder = () => {
+    // Brand is kept (batches tend to share one); everything customer-specific
+    // is cleared, including state, so nothing carries over unnoticed.
+    setFormData(EMPTY_FORM);
+    setStateError(false);
+    nameInputRef.current?.focus();
   };
 
   const save = async () => {
@@ -140,8 +216,19 @@ function Order() {
 
     try {
       await addDoc(collection(database, collectionName), data);
-      setSnack({ open: true, message: "Order create success.", color: "success", icon: "check" });
-      routeToHistory();
+      if (addAnotherRef.current) {
+        setSnack({
+          open: true,
+          message: `Order for ${formData.name} saved. Ready for the next one.`,
+          color: "success",
+          icon: "check",
+        });
+        resetForNextOrder();
+        setIsLoading(false);
+      } else {
+        setSnack({ open: true, message: "Order create success.", color: "success", icon: "check" });
+        routeToHistory();
+      }
     } catch (e) {
       setSnack({ open: true, message: "Order create failed.", color: "error", icon: "warning" });
       setIsLoading(false);
@@ -180,18 +267,54 @@ function Order() {
     // ref guard: state updates are async, so a second tap can arrive
     // before the disabled re-render on slow devices
     if (isSubmittingRef.current) return;
+
+    // Select does not take part in native form validation, so check it here.
+    if (!formData.state) {
+      setStateError(true);
+      setSnack({
+        open: true,
+        message: "Please choose a state before saving.",
+        color: "error",
+        icon: "warning",
+      });
+      return;
+    }
+
     isSubmittingRef.current = true;
     setIsLoading(true);
     try {
       if (id) {
         await update();
-      } else {
-        await save();
+        return;
       }
+      const sameDay = await findSameDayOrder(formData.primaryPhone);
+      if (sameDay) {
+        // Hold the save until confirmed; the dialog resumes it.
+        setDuplicate(sameDay);
+        setIsLoading(false);
+        return;
+      }
+      await save();
     } finally {
       isSubmittingRef.current = false;
     }
   };
+
+  const confirmDuplicateSave = async () => {
+    setDuplicate(null);
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsLoading(true);
+    try {
+      await save();
+    } finally {
+      isSubmittingRef.current = false;
+    }
+  };
+
+  // Everything downstream reports amount minus delivery fees, so show that
+  // figure while it is being typed rather than after the fact.
+  const productSales = (Number(formData.amount) || 0) - (Number(formData.deliveryFees) || 0);
 
   const routeToHistory = () => {
     if (userData.role === "sales") {
@@ -294,6 +417,8 @@ function Order() {
                           onChange={handleChange}
                           required
                           fullWidth
+                          autoFocus={!id}
+                          inputRef={nameInputRef}
                         />
                       </MDBox>
                     </Grid>
@@ -330,7 +455,7 @@ function Order() {
                   <Grid container columnSpacing={2}>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <MDBox mb={2}>
-                        <FormControl fullWidth variant="outlined">
+                        <FormControl fullWidth variant="outlined" error={stateError}>
                           <InputLabel id="state-select-label">State</InputLabel>
                           <Select
                             labelId="state-select-label"
@@ -348,6 +473,7 @@ function Order() {
                               </MenuItem>
                             ))}
                           </Select>
+                          {stateError && <FormHelperText>Choose a state.</FormHelperText>}
                         </FormControl>
                       </MDBox>
                     </Grid>
@@ -462,6 +588,19 @@ function Order() {
                         />
                       </MDBox>
                     </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <MDBox mb={2} mt={-1}>
+                        <MDTypography
+                          variant="caption"
+                          color={productSales < 0 ? "error" : "text"}
+                          fontWeight="medium"
+                        >
+                          {productSales < 0
+                            ? "Delivery fees are more than the total amount — check these figures."
+                            : `Product sales after delivery fees: ${formattedAmount(productSales)}`}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
                   </Grid>
 
                   <SectionTitle>Payment</SectionTitle>
@@ -477,7 +616,7 @@ function Order() {
                             label="Payment Status"
                             name="paymentStatus"
                             variant="outlined"
-                            onChange={handleChange}
+                            onChange={handlePaymentStatusChange}
                             sx={{ lineHeight: "3rem" }}
                           >
                             <MenuItem value="COD">COD</MenuItem>
@@ -501,7 +640,9 @@ function Order() {
                             onChange={handleChange}
                             sx={{ lineHeight: "3rem" }}
                           >
-                            <MenuItem value="NoPay">Not Yet Paid</MenuItem>
+                            <MenuItem value="NoPay" disabled={formData.paymentStatus === "Paid"}>
+                              Not Yet Paid
+                            </MenuItem>
                             <MenuItem value="Cash">Cash</MenuItem>
                             <MenuItem value="Kpay">KPay</MenuItem>
                             <MenuItem value="Bank">Bank</MenuItem>
@@ -529,16 +670,38 @@ function Order() {
                   </Grid>
 
                   <MDBox mt={2} mb={1}>
-                    <MDButton
-                      type="submit"
-                      variant="gradient"
-                      color="info"
-                      fullWidth
-                      disabled={isLoading}
-                      startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
-                    >
-                      {isLoading ? (id ? "Updating…" : "Creating…") : id ? "Update" : "Create"}
-                    </MDButton>
+                    <MDBox display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={1.5}>
+                      {!id && (
+                        // Both buttons submit so native required-field
+                        // validation still runs; onClick records which was used
+                        // before the submit handler reads it.
+                        <MDButton
+                          type="submit"
+                          variant="outlined"
+                          color="info"
+                          fullWidth
+                          disabled={isLoading}
+                          onClick={() => {
+                            addAnotherRef.current = true;
+                          }}
+                        >
+                          Save &amp; Add Another
+                        </MDButton>
+                      )}
+                      <MDButton
+                        type="submit"
+                        variant="gradient"
+                        color="info"
+                        fullWidth
+                        disabled={isLoading}
+                        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                        onClick={() => {
+                          addAnotherRef.current = false;
+                        }}
+                      >
+                        {isLoading ? (id ? "Updating…" : "Creating…") : id ? "Update" : "Create"}
+                      </MDButton>
+                    </MDBox>
                     {isLoading && (
                       <MDBox mt={1} textAlign="center">
                         <MDTypography variant="caption" color="text">
@@ -552,6 +715,37 @@ function Order() {
             </Card>
           </Grid>
         </Grid>
+        <Dialog open={Boolean(duplicate)} onClose={() => setDuplicate(null)}>
+          <DialogTitle>
+            <MDTypography variant="h5" component="span" fontWeight="medium">
+              Possible duplicate order
+            </MDTypography>
+          </DialogTitle>
+          <DialogContent sx={{ width: { xs: "320px", md: "440px" } }}>
+            <MDTypography variant="body2" color="text">
+              {duplicate
+                ? `${duplicate.name || "This customer"} (${
+                    duplicate.primaryPhone
+                  }) already has an order recorded today for ${formattedAmount(
+                    duplicate.amount || 0
+                  )}.`
+                : ""}
+            </MDTypography>
+            <MDBox mt={1}>
+              <MDTypography variant="body2" color="text">
+                Save this as a separate order anyway?
+              </MDTypography>
+            </MDBox>
+          </DialogContent>
+          <DialogActions>
+            <MDButton variant="gradient" color="light" onClick={() => setDuplicate(null)}>
+              Cancel
+            </MDButton>
+            <MDButton variant="gradient" color="info" onClick={confirmDuplicateSave}>
+              Save anyway
+            </MDButton>
+          </DialogActions>
+        </Dialog>
         {renderSnackBar}
       </MDBox>
       <Footer />
