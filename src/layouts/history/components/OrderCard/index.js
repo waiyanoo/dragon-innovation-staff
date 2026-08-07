@@ -64,7 +64,10 @@ function OrderCard({ data, handleClick }) {
   const [itemsToggled, setItemsToggled] = useState(null);
   const itemsExpanded = itemsToggled === null ? isMdUp : itemsToggled;
 
-  const itemsText = data.items.replace(/"/g, "");
+  // Older orders predate some of these fields. An absent one used to throw
+  // here, and since the whole list renders in one tree, a single such order
+  // blanked the entire history page.
+  const itemsText = (data.items || "").replace(/"/g, "");
   const itemCount = itemsText.split("\n").filter((line) => line.trim() !== "").length;
   const iconColor = darkMode ? "grey.500" : "grey.600";
 
@@ -239,9 +242,9 @@ function OrderCard({ data, handleClick }) {
               {data.state}/{data.city}
             </InfoRow>
             <InfoRow icon={<RowIcon name="place" color={iconColor} />} multiline>
-              {data.address.replace(/"/g, "")}
+              {(data.address || "").replace(/"/g, "")}
             </InfoRow>
-            {data.remark.trim() !== "" && (
+            {(data.remark || "").trim() !== "" && (
               <MDBox
                 display="flex"
                 alignItems="flex-start"
