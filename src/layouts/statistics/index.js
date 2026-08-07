@@ -5,6 +5,10 @@ import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import CircularProgress from "@mui/material/CircularProgress";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -23,6 +27,7 @@ import dayjs from "dayjs";
 import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 
 import { database } from "../../firebase";
+import { BRANDS, BRAND_LABELS } from "../../data/common";
 import { formattedAmount, getDateRanges } from "../../functions/common-functions";
 import DateRangeSelector from "./components/DateRangeSelector";
 import { groupByField, shareOf, summarise } from "./aggregate";
@@ -102,6 +107,7 @@ function Statistics() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [brand, setBrand] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -153,14 +159,34 @@ function Statistics() {
     };
   }, [orderType, range]);
 
-  const totals = useMemo(() => summarise(orders), [orders]);
+  // The brand filter narrows the already-loaded period rather than refetching.
+  const visibleOrders = useMemo(
+    () => (brand === "all" ? orders : orders.filter((order) => order.brand === brand)),
+    [orders, brand]
+  );
+
+  const totals = useMemo(() => summarise(visibleOrders), [visibleOrders]);
   const cityStats = useMemo(
-    () => groupByField(orders, "city", { canonicalise: true }),
+    () => groupByField(visibleOrders, "city", { canonicalise: true }),
+    [visibleOrders]
+  );
+  const stateStats = useMemo(() => groupByField(visibleOrders, "state"), [visibleOrders]);
+
+  // Always computed across every brand in the period, so the split stays
+  // meaningful; the table itself is hidden once a single brand is selected.
+  const brandStats = useMemo(
+    () =>
+      groupByField(orders, "brand").map((row) => ({
+        ...row,
+        label: BRAND_LABELS[row.key] || row.label,
+      })),
     [orders]
   );
-  const stateStats = useMemo(() => groupByField(orders, "state"), [orders]);
+  const periodOrderCount = orders.length;
 
-  const toRows = (stats) =>
+  // `total` is the denominator for the share column — the brand table is
+  // shared against every order in the period, the rest against the filtered set.
+  const toRows = (stats, total = totals.totalOrders) =>
     stats.map((row) => ({
       location: (
         <MDTypography variant="caption" color="dark" fontWeight="bold">
@@ -179,7 +205,7 @@ function Statistics() {
       ),
       share: (
         <MDTypography variant="caption" color="text" fontWeight="medium">
-          {shareOf(row.orders, totals.totalOrders).toFixed(1)}%
+          {shareOf(row.orders, total).toFixed(1)}%
         </MDTypography>
       ),
     }));
@@ -221,11 +247,13 @@ function Statistics() {
       );
     }
 
-    if (orders.length === 0) {
+    if (visibleOrders.length === 0) {
       return (
         <MDBox display="flex" justifyContent="center" py={6}>
           <MDTypography variant="button" color="text">
-            No {orderType} orders in this period.
+            {orders.length === 0
+              ? `No ${orderType} orders in this period.`
+              : `No ${BRAND_LABELS[brand] || brand} orders in this period.`}
           </MDTypography>
         </MDBox>
       );
@@ -255,6 +283,24 @@ function Statistics() {
             />
           </Grid>
         </Grid>
+
+        {brand === "all" && brandStats.length > 1 && (
+          <MDBox mt={4}>
+            <MDTypography variant="h6" mb={1}>
+              Sales by brand
+            </MDTypography>
+            <DataTable
+              table={{
+                columns: locationColumns("brand"),
+                rows: toRows(brandStats, periodOrderCount),
+              }}
+              isSorted
+              entriesPerPage={false}
+              showTotalEntries={false}
+              noEndBorder
+            />
+          </MDBox>
+        )}
 
         {cityStats.length > 0 && (
           <MDBox mt={4}>
@@ -322,6 +368,7 @@ function Statistics() {
                   Statistics
                 </MDTypography>
                 <MDTypography variant="caption" color="white">
+                  {brand === "all" ? "All brands" : BRAND_LABELS[brand] || brand} ·{" "}
                   {rangeLabel(preset, startDate, endDate)}
                 </MDTypography>
               </MDBox>
@@ -335,7 +382,34 @@ function Statistics() {
                 </TabContext>
               </MDBox>
 
-              <MDBox px={{ xs: 2, md: 3 }} pt={3}>
+              <MDBox
+                px={{ xs: 2, md: 3 }}
+                pt={3}
+                display="flex"
+                flexDirection={{ xs: "column", md: "row" }}
+                gap={2}
+                justifyContent="space-between"
+                alignItems={{ xs: "stretch", md: "flex-start" }}
+              >
+                <FormControl variant="outlined" sx={{ minWidth: { xs: "100%", md: 200 } }}>
+                  <InputLabel id="brand-filter-label">Brand</InputLabel>
+                  <Select
+                    labelId="brand-filter-label"
+                    id="brand-filter"
+                    variant="outlined"
+                    value={brand}
+                    label="Brand"
+                    onChange={(event) => setBrand(event.target.value)}
+                    sx={{ lineHeight: "3rem" }}
+                  >
+                    <MenuItem value="all">All brands</MenuItem>
+                    {BRANDS.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 <DateRangeSelector
                   preset={preset}
                   onPresetChange={setPreset}

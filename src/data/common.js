@@ -16,6 +16,18 @@ export const State_List = [
   "Yangon"
 ]
 
+// Brand ids as stored on orders, with their display labels.
+export const BRANDS = [
+  { id: "hanskin", label: "Hanskin" },
+  { id: "sugarbear", label: "SugarBear" },
+  { id: "mongdies", label: "Mongdies" },
+];
+
+export const BRAND_LABELS = BRANDS.reduce((acc, brand) => {
+  acc[brand.id] = brand.label;
+  return acc;
+}, {});
+
 export const ROLES = {
   page_admin: "Page Admin",
   sales: "Wholesale",
