@@ -169,10 +169,24 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           (darkMode && !transparentSidenav && whiteSidenav)
         }
       />
-      {
-        userData !== null &&
+      {userData !== null && (
+        // Only the menu scrolls, so the brand and the close button stay
+        // reachable. minHeight 0 lets a flex child actually shrink and scroll;
+        // overscrollBehavior stops the drag continuing into the page behind,
+        // which on mobile made the menu feel stuck (the drawer is permanent,
+        // so there is no backdrop or scroll lock to absorb the gesture).
+        <MDBox
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
           <List>{renderRoutes}</List>
-      }
+        </MDBox>
+      )}
 
       {/*<MDBox p={2} mt="auto">*/}
       {/*  <MDButton*/}
