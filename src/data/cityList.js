@@ -135,6 +135,15 @@ const CANONICAL_BY_KEY = ALL_CITIES.reduce((acc, city) => {
   return acc;
 }, {});
 
+// No city name in the list belongs to two states, so a known city always
+// implies exactly one state.
+const STATE_BY_CITY = Object.entries(CITY_BY_STATE).reduce((acc, [state, cities]) => {
+  cities.forEach((city) => {
+    acc[normaliseCityKey(city)] = state;
+  });
+  return acc;
+}, {});
+
 const titleCase = (value) =>
   value
     .split(" ")
@@ -154,4 +163,16 @@ export const canonicalCity = (value) => {
 
   const key = normaliseCityKey(trimmed);
   return CANONICAL_BY_KEY[key] || CITY_ALIASES[key] || titleCase(trimmed.toLowerCase());
+};
+
+/**
+ * The state a city belongs to, or null if it is not a known city.
+ *
+ * Goes through canonicalCity first so aliases resolve too ("ygn" -> "Yangon"
+ * -> "Yangon" state).
+ */
+export const stateForCity = (city) => {
+  const canonical = canonicalCity(city);
+  if (!canonical) return null;
+  return STATE_BY_CITY[normaliseCityKey(canonical)] || null;
 };

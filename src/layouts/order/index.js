@@ -1,3 +1,4 @@
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MDBox from "../../components/MDBox";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
@@ -6,6 +7,9 @@ import Card from "@mui/material/Card";
 import MDTypography from "../../components/MDTypography";
 import MDInput from "../../components/MDInput";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Autocomplete,
   CircularProgress,
   Dialog,
@@ -37,10 +41,12 @@ import {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../firebase";
 import { State_List } from "../../data/common";
-import { citiesForState } from "../../data/cityList";
+import { citiesForState, stateForCity } from "../../data/cityList";
+import { parseMessengerText } from "./parseMessage";
 import { formattedAmount } from "../../functions/common-functions";
 import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
+import { useMaterialUIController } from "../../context";
 import Footer from "../../examples/Footer";
 
 const NUMERIC_INPUT_PROPS = { inputMode: "numeric", pattern: "[0-9]*" };
@@ -85,6 +91,8 @@ function Order() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { userData } = useAuth();
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
   const id = searchParams.get("id");
 
   const [brand, setBrand] = useState("hanskin");
@@ -100,6 +108,8 @@ function Order() {
   const [stateError, setStateError] = useState(false);
   const addAnotherRef = useRef(false);
   const nameInputRef = useRef(null);
+  const [pasteText, setPasteText] = useState("");
+  const [pasteSummary, setPasteSummary] = useState("");
 
   useEffect(() => {
     const targetCollection = userData.role === "sales" ? "ws_orders" : "orders";
@@ -137,8 +147,17 @@ function Order() {
     setBrand(value);
   };
 
+  // A known city implies exactly one state, so fill it in rather than making
+  // them pick. Only when state is still empty — silently moving a choice they
+  // made deliberately would be worse than leaving it.
   const setCity = (value) => {
-    setFormData((prevState) => ({ ...prevState, city: value }));
+    const derivedState = formData.state ? null : stateForCity(value);
+    if (derivedState) setStateError(false);
+    setFormData((prevState) => ({
+      ...prevState,
+      city: value,
+      ...(derivedState && !prevState.state ? { state: derivedState } : {}),
+    }));
   };
 
   // Cities are offered per state, so a leftover township from the previously
@@ -189,11 +208,51 @@ function Order() {
     }
   };
 
+  // Fills only what is empty, so nothing already typed is overwritten, and
+  // reports what it did rather than changing fields silently.
+  const applyPastedMessage = () => {
+    const parsed = parseMessengerText(pasteText);
+    const updates = {};
+    const filled = [];
+
+    if (parsed.phones[0] && !formData.primaryPhone) {
+      updates.primaryPhone = parsed.phones[0];
+      filled.push("phone");
+    }
+    if (parsed.phones[1] && !formData.secondaryPhone) {
+      updates.secondaryPhone = parsed.phones[1];
+      filled.push("second phone");
+    }
+    if (parsed.city && !formData.city) {
+      updates.city = parsed.city;
+      filled.push("city");
+      const derivedState = stateForCity(parsed.city);
+      if (derivedState && !formData.state) {
+        updates.state = derivedState;
+        filled.push("state");
+      }
+    }
+    if (parsed.address && !formData.address) {
+      updates.address = parsed.address;
+      filled.push("address");
+    }
+
+    if (updates.state) setStateError(false);
+    setFormData((prevState) => ({ ...prevState, ...updates }));
+    setPasteSummary(
+      filled.length > 0
+        ? `Filled ${filled.join(", ")}. Check everything before saving.`
+        : "Nothing recognised in that message — fill the fields in by hand."
+    );
+  };
+
   const resetForNextOrder = () => {
     // Brand is kept (batches tend to share one); everything customer-specific
     // is cleared, including state, so nothing carries over unnoticed.
     setFormData(EMPTY_FORM);
     setStateError(false);
+    setPasteText("");
+    setPasteSummary("");
     nameInputRef.current?.focus();
   };
 
@@ -403,6 +462,51 @@ function Order() {
                       </Grid>
                     )}
                   </Grid>
+
+                  {!id && (
+                    <Accordion sx={{ mt: 1 }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <MDTypography variant="button" fontWeight="medium">
+                          Paste from Messenger
+                        </MDTypography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <MDInput
+                          type="text"
+                          label="Paste the customer's message"
+                          variant="outlined"
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          maxRows={8}
+                          value={pasteText}
+                          onChange={(e) => setPasteText(e.target.value)}
+                        />
+                        <MDBox
+                          mt={1.5}
+                          display="flex"
+                          flexDirection={{ xs: "column", sm: "row" }}
+                          alignItems={{ xs: "stretch", sm: "center" }}
+                          gap={1.5}
+                        >
+                          <MDButton
+                            type="button"
+                            variant="gradient"
+                            color="info"
+                            size="small"
+                            onClick={applyPastedMessage}
+                            disabled={pasteText.trim() === ""}
+                          >
+                            Fill from message
+                          </MDButton>
+                          <MDTypography variant="caption" color="text">
+                            {pasteSummary ||
+                              "Picks out phone numbers and the city. Only fills empty fields."}
+                          </MDTypography>
+                        </MDBox>
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
 
                   <SectionTitle>Customer</SectionTitle>
                   <Grid container columnSpacing={2}>
@@ -669,7 +773,23 @@ function Order() {
                     </Grid>
                   </Grid>
 
-                  <MDBox mt={2} mb={1}>
+                  {/* The form is long, so on small screens the actions stick to
+                      the bottom rather than living a scroll away. */}
+                  <MDBox
+                    mt={2}
+                    mb={1}
+                    sx={{
+                      position: { xs: "sticky", md: "static" },
+                      bottom: 0,
+                      zIndex: 2,
+                      pt: { xs: 1.5, md: 0 },
+                      pb: { xs: 1, md: 0 },
+                      backgroundColor: ({ palette }) =>
+                        darkMode ? palette.background.card : palette.white.main,
+                      borderTop: { xs: "1px solid", md: "none" },
+                      borderColor: "grey.300",
+                    }}
+                  >
                     <MDBox display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={1.5}>
                       {!id && (
                         // Both buttons submit so native required-field
