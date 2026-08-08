@@ -9,6 +9,9 @@ import CssBaseline from "@mui/material/CssBaseline";
 
 // Material Dashboard 2 React components
 
+// Material Dashboard 2 React components
+import ErrorBoundary from "components/ErrorBoundary";
+
 // Material Dashboard 2 React example components
 import Sidenav from "examples/Sidenav";
 
@@ -116,10 +119,15 @@ export default function App() {
             />
           </>
         )}
-        <Routes>
-          {getRoutes(routes)}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-        </Routes>
+        {/* Outside the Sidenav on purpose: if a page throws, the nav stays
+            usable so the user can walk away from it. resetKey clears the
+            error once they navigate. */}
+        <ErrorBoundary resetKey={pathname}>
+          <Routes>
+            {getRoutes(routes)}
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </ErrorBoundary>
       </ThemeProvider>
     </AuthProvider>
   );
