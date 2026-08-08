@@ -16,12 +16,19 @@ export const State_List = [
   "Yangon"
 ]
 
-// Brand ids as stored on orders, with their display labels.
+// Brand ids as stored on orders, with their display labels and the palette
+// colour each one is drawn in. Colours match the dashboard cards so a brand
+// reads the same everywhere.
 export const BRANDS = [
-  { id: "hanskin", label: "Hanskin" },
-  { id: "sugarbear", label: "SugarBear" },
-  { id: "mongdies", label: "Mongdies" },
+  { id: "hanskin", label: "Hanskin", color: "info" },
+  { id: "sugarbear", label: "SugarBear", color: "primary" },
+  { id: "mongdies", label: "Mongdies", color: "success" },
 ];
+
+export const BRAND_COLORS = BRANDS.reduce((acc, brand) => {
+  acc[brand.id] = brand.color;
+  return acc;
+}, {});
 
 export const BRAND_LABELS = BRANDS.reduce((acc, brand) => {
   acc[brand.id] = brand.label;

@@ -11,8 +11,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 
 // Material Dashboard 2 React components
+import Icon from "@mui/material/Icon";
+
+// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -27,14 +31,19 @@ import dayjs from "dayjs";
 import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
 
 import { database } from "../../firebase";
-import { BRANDS, BRAND_LABELS } from "../../data/common";
+import { BRANDS, BRAND_COLORS, BRAND_LABELS } from "../../data/common";
+import { csvFilename, downloadCsv } from "./exportCsv";
+import { changePercent, previousPeriod } from "./periods";
 import { formattedAmount, getDateRanges } from "../../functions/common-functions";
 import DateRangeSelector from "./components/DateRangeSelector";
 import { groupByField, shareOf, summarise } from "./aggregate";
 
 const TOP_CITY_COUNT = 10;
 
-function StatCard({ label, value, hint }) {
+function StatCard({ label, value, hint, change }) {
+  const hasChange = typeof change === "number" && Number.isFinite(change);
+  const rounded = hasChange ? Math.round(change) : 0;
+
   return (
     <MDBox borderRadius="lg" p={2} sx={{ backgroundColor: "grey.100", height: "100%" }}>
       <MDTypography
@@ -49,8 +58,21 @@ function StatCard({ label, value, hint }) {
       <MDTypography variant="h5" sx={{ wordBreak: "break-word" }}>
         {value}
       </MDTypography>
+      {hasChange && (
+        <MDTypography
+          variant="caption"
+          fontWeight="bold"
+          color={rounded < 0 ? "error" : rounded > 0 ? "success" : "text"}
+        >
+          {rounded > 0 ? "+" : ""}
+          {rounded}%{" "}
+          <MDTypography variant="caption" color="text" fontWeight="regular" component="span">
+            vs previous
+          </MDTypography>
+        </MDTypography>
+      )}
       {hint && (
-        <MDTypography variant="caption" color="text">
+        <MDTypography variant="caption" color="text" display="block">
           {hint}
         </MDTypography>
       )}
@@ -58,12 +80,13 @@ function StatCard({ label, value, hint }) {
   );
 }
 
-StatCard.defaultProps = { hint: null };
+StatCard.defaultProps = { hint: null, change: null };
 
 StatCard.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.node.isRequired,
   hint: PropTypes.node,
+  change: PropTypes.number,
 };
 
 // Resolve the selected range to Firestore Timestamps. Returns null when a
@@ -94,6 +117,17 @@ const rangeLabel = (preset, startDate, endDate) => {
   return `${from.format("DD MMM YYYY")} – ${to.format("DD MMM YYYY")}`;
 };
 
+// Wraps the pure period arithmetic (see periods.js) back into Timestamps.
+const previousRange = (preset, range) => {
+  const period = previousPeriod(preset, range.start.toDate(), range.end.toDate());
+  if (!period) return null;
+  return {
+    start: Timestamp.fromDate(period.start),
+    end: Timestamp.fromDate(period.end),
+    label: period.label,
+  };
+};
+
 const locationColumns = (heading) => [
   { Header: heading, accessor: "location", align: "left" },
   { Header: "orders", accessor: "orders", align: "right" },
@@ -107,6 +141,7 @@ function Statistics() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [previousOrders, setPreviousOrders] = useState([]);
   const [brand, setBrand] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -116,10 +151,13 @@ function Statistics() {
     [preset, startDate, endDate]
   );
 
+  const comparison = useMemo(() => (range ? previousRange(preset, range) : null), [preset, range]);
+
   useEffect(() => {
     // An incomplete custom range has nothing to query for.
     if (!range) {
       setOrders([]);
+      setPreviousOrders([]);
       setIsLoading(false);
       return;
     }
@@ -127,24 +165,34 @@ function Statistics() {
     let cancelled = false;
     const collectionName = orderType === "wholesale" ? "ws_orders" : "orders";
 
+    const fetchRange = async (target) => {
+      const snapshot = await getDocs(
+        query(
+          collection(database, collectionName),
+          where("createdAt", ">=", target.start),
+          where("createdAt", "<", target.end),
+          orderBy("createdAt", "desc")
+        )
+      );
+      return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    };
+
     const load = async () => {
       setIsLoading(true);
       setLoadError(false);
       try {
-        const snapshot = await getDocs(
-          query(
-            collection(database, collectionName),
-            where("createdAt", ">=", range.start),
-            where("createdAt", "<", range.end),
-            orderBy("createdAt", "desc")
-          )
-        );
+        const [current, previous] = await Promise.all([
+          fetchRange(range),
+          comparison ? fetchRange(comparison) : Promise.resolve([]),
+        ]);
         if (cancelled) return;
-        setOrders(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+        setOrders(current);
+        setPreviousOrders(previous);
       } catch (e) {
         if (cancelled) return;
         console.error("Error loading statistics: ", e);
         setOrders([]);
+        setPreviousOrders([]);
         setLoadError(true);
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -157,7 +205,7 @@ function Statistics() {
     return () => {
       cancelled = true;
     };
-  }, [orderType, range]);
+  }, [orderType, range, comparison]);
 
   // The brand filter narrows the already-loaded period rather than refetching.
   const visibleOrders = useMemo(
@@ -166,6 +214,19 @@ function Statistics() {
   );
 
   const totals = useMemo(() => summarise(visibleOrders), [visibleOrders]);
+
+  // Compared like-for-like: the same brand filter applies to both periods.
+  const previousTotals = useMemo(
+    () =>
+      summarise(
+        brand === "all"
+          ? previousOrders
+          : previousOrders.filter((order) => order.brand === brand)
+      ),
+    [previousOrders, brand]
+  );
+  const ordersChange = changePercent(totals.totalOrders, previousTotals.totalOrders);
+  const salesChange = changePercent(totals.totalSales, previousTotals.totalSales);
   const cityStats = useMemo(
     () => groupByField(visibleOrders, "city", { canonicalise: true }),
     [visibleOrders]
@@ -186,12 +247,23 @@ function Statistics() {
 
   // `total` is the denominator for the share column — the brand table is
   // shared against every order in the period, the rest against the filtered set.
-  const toRows = (stats, total = totals.totalOrders) =>
+  const toRows = (stats, total = totals.totalOrders, { showBrandDot = false } = {}) =>
     stats.map((row) => ({
       location: (
-        <MDTypography variant="caption" color="dark" fontWeight="bold">
-          {row.label}
-        </MDTypography>
+        <MDBox display="flex" alignItems="center" gap={1}>
+          {showBrandDot && BRAND_COLORS[row.key] && (
+            <MDBox
+              bgColor={BRAND_COLORS[row.key]}
+              borderRadius="50%"
+              width="0.6rem"
+              height="0.6rem"
+              flexShrink={0}
+            />
+          )}
+          <MDTypography variant="caption" color="dark" fontWeight="bold">
+            {row.label}
+          </MDTypography>
+        </MDBox>
       ),
       orders: (
         <MDTypography variant="caption" color="dark" fontWeight="bold">
@@ -209,6 +281,48 @@ function Statistics() {
         </MDTypography>
       ),
     }));
+
+  // Search and paging controls are noise on a table that fits on one screen.
+  const SINGLE_PAGE_LIMIT = 10;
+  const tableChrome = (rowCount) =>
+    rowCount > SINGLE_PAGE_LIMIT
+      ? {
+          entriesPerPage: { defaultValue: 10, entries: [10, 25, 50, 100] },
+          canSearch: true,
+          showTotalEntries: true,
+        }
+      : { entriesPerPage: false, canSearch: false, showTotalEntries: false };
+
+  const exportSection = (section, stats, total) => {
+    const startLabel = range ? dayjs(range.start.toDate()).format("YYYY-MM-DD") : "";
+    downloadCsv(
+      csvFilename(section, brand === "all" ? "all-brands" : brand, startLabel),
+      [section, "orders", "sales", "share %"],
+      stats.map((row) => [
+        row.label,
+        row.orders,
+        row.sales,
+        shareOf(row.orders, total).toFixed(1),
+      ])
+    );
+  };
+
+  const sectionHeading = (title, onExport) => (
+    <MDBox
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+      gap={2}
+      mb={1}
+      flexWrap="wrap"
+    >
+      <MDTypography variant="h6">{title}</MDTypography>
+      <MDButton variant="outlined" color="info" size="small" onClick={onExport}>
+        <Icon sx={{ mr: 0.5 }}>download</Icon>
+        CSV
+      </MDButton>
+    </MDBox>
+  );
 
   const topCityChart = useMemo(() => {
     const top = cityStats.slice(0, TOP_CITY_COUNT);
@@ -263,12 +377,18 @@ function Statistics() {
       <>
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, md: 3 }}>
-            <StatCard label="Orders" value={totals.totalOrders} />
+            <StatCard
+              label="Orders"
+              value={totals.totalOrders}
+              change={ordersChange}
+              hint={comparison ? `vs ${comparison.label}` : null}
+            />
           </Grid>
           <Grid size={{ xs: 6, md: 3 }}>
             <StatCard
               label="Sales"
               value={formattedAmount(totals.totalSales)}
+              change={salesChange}
               hint="excludes delivery fees"
             />
           </Grid>
@@ -286,13 +406,13 @@ function Statistics() {
 
         {brand === "all" && brandStats.length > 1 && (
           <MDBox mt={4}>
-            <MDTypography variant="h6" mb={1}>
-              Sales by brand
-            </MDTypography>
+            {sectionHeading("Sales by brand", () =>
+              exportSection("brand", brandStats, periodOrderCount)
+            )}
             <DataTable
               table={{
                 columns: locationColumns("brand"),
-                rows: toRows(brandStats, periodOrderCount),
+                rows: toRows(brandStats, periodOrderCount, { showBrandDot: true }),
               }}
               isSorted
               entriesPerPage={false}
@@ -318,29 +438,26 @@ function Statistics() {
         )}
 
         <MDBox mt={4}>
-          <MDTypography variant="h6" mb={1}>
-            Sales by city
-          </MDTypography>
+          {sectionHeading("Sales by city", () =>
+            exportSection("city", cityStats, totals.totalOrders)
+          )}
           <DataTable
             table={{ columns: locationColumns("city"), rows: toRows(cityStats) }}
             isSorted
-            canSearch
-            entriesPerPage={{ defaultValue: 10, entries: [10, 25, 50, 100] }}
-            showTotalEntries
             noEndBorder
+            {...tableChrome(cityStats.length)}
           />
         </MDBox>
 
         <MDBox mt={4}>
-          <MDTypography variant="h6" mb={1}>
-            Sales by state
-          </MDTypography>
+          {sectionHeading("Sales by state", () =>
+            exportSection("state", stateStats, totals.totalOrders)
+          )}
           <DataTable
             table={{ columns: locationColumns("state"), rows: toRows(stateStats) }}
             isSorted
-            entriesPerPage={{ defaultValue: 15, entries: [15, 25, 50] }}
-            showTotalEntries
             noEndBorder
+            {...tableChrome(stateStats.length)}
           />
         </MDBox>
       </>
