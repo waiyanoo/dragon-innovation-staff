@@ -68,7 +68,6 @@ function OrderCard({ data, handleClick }) {
   // here, and since the whole list renders in one tree, a single such order
   // blanked the entire history page.
   const itemsText = (data.items || "").replace(/"/g, "");
-  const itemCount = itemsText.split("\n").filter((line) => line.trim() !== "").length;
   const iconColor = darkMode ? "grey.500" : "grey.600";
 
   const paymentLabel =
@@ -278,7 +277,7 @@ function OrderCard({ data, handleClick }) {
                   <RowIcon name="inventory_2" color={iconColor} />
                 </MDBox>
                 <MDTypography variant="body2" color="info" fontWeight="medium">
-                  {itemCount} {itemCount === 1 ? "item" : "items"}
+                  Items
                 </MDTypography>
                 <Icon fontSize="small">{itemsExpanded ? "expand_less" : "expand_more"}</Icon>
               </MDBox>
