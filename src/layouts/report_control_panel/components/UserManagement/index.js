@@ -13,6 +13,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 import MDBox from "../../../../components/MDBox";
 import MDTypography from "../../../../components/MDTypography";
@@ -23,6 +24,7 @@ import MDSnackbar from "../../../../components/MDSnackbar";
 import { useAuth } from "../../../../context/AuthContext";
 import { ROLES } from "../../../../data/common";
 import { createUser, listUsers, setUserStatus, updateUser } from "../../../../services/userService";
+import BrandedErrorState from "../../../../components/BrandedErrorState";
 
 const ROLE_OPTIONS = Object.entries(ROLES).map(([value, label]) => ({ value, label }));
 
@@ -39,6 +41,7 @@ function UserManagement() {
   const { authUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [dialogMode, setDialogMode] = useState(null); // "create" | "edit" | null
   const [editingUid, setEditingUid] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -52,11 +55,13 @@ function UserManagement() {
 
   const loadUsers = async () => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const data = await listUsers();
       data.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
       setUsers(data);
     } catch (e) {
+      setLoadError(true);
       showSnack("Failed to load users.", "error", "warning");
     } finally {
       setIsLoading(false);
@@ -191,9 +196,22 @@ function UserManagement() {
       </MDBox>
 
       {isLoading ? (
-        <MDBox display="flex" justifyContent="center" py={4}>
-          <CircularProgress color="info" />
+        <MDBox px={2} pb={3} aria-label="Loading users">
+          {[0, 1, 2, 3].map((row) => (
+            <MDBox key={row} display="flex" gap={2} py={1}>
+              <Skeleton variant="rounded" width="28%" height={34} />
+              <Skeleton variant="rounded" width="34%" height={34} />
+              <Skeleton variant="rounded" width="18%" height={34} />
+              <Skeleton variant="rounded" width="20%" height={34} />
+            </MDBox>
+          ))}
         </MDBox>
+      ) : loadError ? (
+        <BrandedErrorState
+          title="Could not load users"
+          description="Check your connection and try loading the user list again."
+          onRetry={loadUsers}
+        />
       ) : (
         <MDBox px={1} pb={2} sx={{ overflowX: "auto" }}>
           <Table sx={{ minWidth: 640 }}>

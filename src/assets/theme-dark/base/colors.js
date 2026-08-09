@@ -7,15 +7,22 @@
  */
 
 const colors = {
+  brand: {
+    primary: "#D7192D",
+    primaryFocus: "#B51224",
+    gold: "#D7AD42",
+    ink: "#2A0B10",
+  },
+
   background: {
-    default: "#1a2035",
-    sidenav: "#1f283e",
-    card: "#202940",
+    default: "#16070A",
+    sidenav: "#1F080C",
+    card: "#2A0B10",
   },
 
   text: {
-    main: "#ffffffcc",
-    focus: "#ffffffcc",
+    main: "#F5EDEF",
+    focus: "#FFFFFF",
   },
 
   transparent: {
@@ -34,18 +41,18 @@ const colors = {
   },
 
   primary: {
-    main: "#e91e63",
-    focus: "#e91e63",
+    main: "#D7192D",
+    focus: "#B51224",
   },
 
   secondary: {
-    main: "#7b809a",
-    focus: "#8f93a9",
+    main: "#BCA8AD",
+    focus: "#D1C0C4",
   },
 
   info: {
-    main: "#1A73E8",
-    focus: "#1662C4",
+    main: "#D7192D",
+    focus: "#B51224",
   },
 
   success: {
@@ -54,8 +61,8 @@ const colors = {
   },
 
   warning: {
-    main: "#fb8c00",
-    focus: "#fc9d26",
+    main: "#D7AD42",
+    focus: "#BD9130",
   },
 
   error: {
@@ -64,13 +71,13 @@ const colors = {
   },
 
   light: {
-    main: "#f0f2f566",
-    focus: "#f0f2f566",
+    main: "#FFFFFF22",
+    focus: "#FFFFFF33",
   },
 
   dark: {
-    main: "#344767",
-    focus: "#2c3c58",
+    main: "#2A0B10",
+    focus: "#1F080C",
   },
 
   grey: {
@@ -87,8 +94,8 @@ const colors = {
 
   gradients: {
     primary: {
-      main: "#EC407A",
-      state: "#D81B60",
+      main: "#D7192D",
+      state: "#B51224",
     },
 
     secondary: {
@@ -97,8 +104,8 @@ const colors = {
     },
 
     info: {
-      main: "#49a3f1",
-      state: "#1A73E8",
+      main: "#D7192D",
+      state: "#B51224",
     },
 
     success: {
@@ -107,8 +114,8 @@ const colors = {
     },
 
     warning: {
-      main: "#FFA726",
-      state: "#FB8C00",
+      main: "#E3C466",
+      state: "#D7AD42",
     },
 
     error: {

@@ -4,7 +4,8 @@ import Card from "@mui/material/Card";
 import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
-import CircularProgress from "@mui/material/CircularProgress";
+import BrandedLoader from "components/BrandedLoader";
+import BrandedErrorState from "components/BrandedErrorState";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -145,6 +146,7 @@ function Statistics() {
   const [brand, setBrand] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const range = useMemo(
     () => resolveRange(preset, startDate, endDate),
@@ -205,7 +207,7 @@ function Statistics() {
     return () => {
       cancelled = true;
     };
-  }, [orderType, range, comparison]);
+  }, [orderType, range, comparison, refreshKey]);
 
   // The brand filter narrows the already-loaded period rather than refetching.
   const visibleOrders = useMemo(
@@ -335,19 +337,17 @@ function Statistics() {
   const renderBody = () => {
     if (isLoading) {
       return (
-        <MDBox display="flex" justifyContent="center" py={6}>
-          <CircularProgress color="info" />
-        </MDBox>
+        <BrandedLoader label="Calculating statistics…" />
       );
     }
 
     if (loadError) {
       return (
-        <MDBox display="flex" justifyContent="center" py={6}>
-          <MDTypography variant="button" color="error">
-            Could not load orders. Please try again.
-          </MDTypography>
-        </MDBox>
+        <BrandedErrorState
+          title="Could not load statistics"
+          description="Check your connection and try loading the report again."
+          onRetry={() => setRefreshKey((key) => key + 1)}
+        />
       );
     }
 

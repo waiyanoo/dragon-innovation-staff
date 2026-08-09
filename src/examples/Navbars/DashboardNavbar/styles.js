@@ -3,7 +3,7 @@ function navbar(theme, ownerState) {
   const { palette, boxShadows, functions, transitions, breakpoints, borders } = theme;
   const { transparentNavbar, absolute, light, darkMode } = ownerState;
 
-  const { dark, white, text, transparent, background } = palette;
+  const { dark, white, text, transparent, background, brand } = palette;
   const { navbarBoxShadow } = boxShadows;
   const { rgba, pxToRem } = functions;
   const { borderRadius } = borders;
@@ -15,6 +15,7 @@ function navbar(theme, ownerState) {
       transparentNavbar || absolute
         ? `${transparent.main} !important`
         : rgba(darkMode ? background.default : white.main, 0.8),
+    border: transparentNavbar || absolute ? "none" : `1px solid ${rgba(brand.border, darkMode ? 0.35 : 0.1)}`,
 
     color: () => {
       let color;

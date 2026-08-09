@@ -8,14 +8,14 @@ import typography from "assets/theme/base/typography";
 // Material Dashboard 2 React helper functions
 import pxToRem from "assets/theme/functions/pxToRem";
 
-const { inputBorderColor, info, grey, transparent } = colors;
+const { inputBorderColor, info, grey, white } = colors;
 const { borderRadius } = borders;
 const { size } = typography;
 
 const inputOutlined = {
   styleOverrides: {
     root: {
-      backgroundColor: transparent.main,
+      backgroundColor: white.main,
       fontSize: size.sm,
       borderRadius: borderRadius.md,
 
@@ -24,6 +24,7 @@ const inputOutlined = {
       },
 
       "&.Mui-focused": {
+        boxShadow: `0 0 0 ${pxToRem(3)} rgba(215, 25, 45, 0.1)`,
         "& .MuiOutlinedInput-notchedOutline": {
           borderColor: info.main,
         },
@@ -37,7 +38,7 @@ const inputOutlined = {
     input: {
       color: grey[700],
       padding: pxToRem(12),
-      backgroundColor: transparent.main,
+      backgroundColor: white.main,
     },
 
     inputSizeSmall: {

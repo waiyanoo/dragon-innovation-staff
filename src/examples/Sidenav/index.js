@@ -108,6 +108,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           variant="caption"
           fontWeight="bold"
           textTransform="uppercase"
+          sx={{ color: ({ palette: { brand } }) => `${brand.gold} !important`, letterSpacing: "0.08em" }}
           pl={3}
           mt={2}
           mb={1}
@@ -138,7 +139,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       variant="permanent"
       ownerState={{ transparentSidenav, whiteSidenav, miniSidenav, darkMode }}
     >
-      <MDBox pt={3} pb={1} px={4} textAlign="center">
+      <MDBox py={1.5} px={2}>
         <MDBox
           display={{ xs: "block", xl: "none" }}
           position="absolute"
@@ -152,12 +153,48 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <Icon sx={{ fontWeight: "bold" }}>close</Icon>
           </MDTypography>
         </MDBox>
-        <MDBox component={NavLink} to="/" display="flex" alignItems="center" flexDirection="column" gap={2}>
-          {brand && <MDBox component="img" src={brand} alt="Brand" width="90%" />}
+        <MDBox
+          component={NavLink}
+          to="/"
+          display="flex"
+          alignItems="center"
+          gap={1.25}
+          sx={{ textDecoration: "none" }}
+        >
+          {brand && (
+            <MDBox
+              display="grid"
+              sx={{
+                width: 64,
+                height: 64,
+                flexShrink: 0,
+                placeItems: "center",
+                overflow: "hidden",
+                borderRadius: "12px",
+                backgroundColor: "#FAF8F4",
+                border: "1px solid rgba(215, 173, 66, 0.28)",
+              }}
+            >
+              <MDBox
+                component="img"
+                src={brand}
+                alt="Dragon Innovation"
+                width="58px"
+                height="58px"
+                sx={{ objectFit: "contain" }}
+              />
+            </MDBox>
+          )}
           <MDBox
             sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}
           >
-            <MDTypography component="h6" variant="button" fontWeight="medium" color={textColor}>
+            <MDTypography
+              component="h6"
+              variant="button"
+              fontWeight="medium"
+              color={textColor}
+              sx={{ lineHeight: 1.25 }}
+            >
               {brandName}
             </MDTypography>
           </MDBox>

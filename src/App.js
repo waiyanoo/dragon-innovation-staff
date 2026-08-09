@@ -6,6 +6,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // @mui material components
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import MDBox from "components/MDBox";
 
 // Material Dashboard 2 React components
 
@@ -29,9 +30,7 @@ import routes from "routes";
 import { setMiniSidenav, setOpenConfigurator, useMaterialUIController } from "context";
 
 // Images
-import brandWhite from "assets/images/logo-ct.png";
 import companyLogoDark from "assets/images/DragonInnovationDark.png";
-import companyLogo from "assets/images/DragonInnovation.png";
 import { AuthProvider } from "./context/AuthContext";
 
 export default function App() {
@@ -42,8 +41,6 @@ export default function App() {
     layout,
     openConfigurator,
     sidenavColor,
-    transparentSidenav,
-    whiteSidenav,
     darkMode,
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
@@ -105,13 +102,23 @@ export default function App() {
         <CssBaseline />
         {layout === "dashboard" && (
           <>
+            {!miniSidenav && (
+              <MDBox
+                display={{ xs: "block", xl: "none" }}
+                position="fixed"
+                top={0}
+                left={0}
+                width="100vw"
+                height="100vh"
+                bgColor="dark"
+                sx={{ opacity: 0.48, zIndex: 1195 }}
+                onClick={() => setMiniSidenav(dispatch, true)}
+                aria-hidden="true"
+              />
+            )}
             <Sidenav
               color={sidenavColor}
-              brand={
-                (transparentSidenav && !darkMode) || whiteSidenav
-                  ? companyLogoDark
-                  : companyLogo
-              }
+              brand={companyLogoDark}
               brandName="Staff Portal"
               routes={routes}
               onMouseEnter={handleOnMouseEnter}

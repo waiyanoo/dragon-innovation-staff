@@ -9,13 +9,11 @@ export default styled(Drawer)(({ theme, ownerState }) => {
   const { transparentSidenav, whiteSidenav, miniSidenav, darkMode } = ownerState;
 
   const sidebarWidth = 250;
-  const { transparent, gradients, white, background } = palette;
+  const { transparent, white, background, brand } = palette;
   const { xxl } = boxShadows;
-  const { pxToRem, linearGradient } = functions;
+  const { pxToRem } = functions;
 
-  let backgroundValue = darkMode
-    ? background.sidenav
-    : linearGradient(gradients.dark.main, gradients.dark.state);
+  let backgroundValue = darkMode ? background.sidenav : brand.ink;
 
   if (transparentSidenav) {
     backgroundValue = transparent.main;
@@ -71,7 +69,7 @@ export default styled(Drawer)(({ theme, ownerState }) => {
   return {
     "& .MuiDrawer-paper": {
       boxShadow: xxl,
-      border: "none",
+      border: `1px solid ${darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(215, 173, 66, 0.18)"}`,
 
       ...(miniSidenav ? drawerCloseStyles() : drawerOpenStyles()),
     },

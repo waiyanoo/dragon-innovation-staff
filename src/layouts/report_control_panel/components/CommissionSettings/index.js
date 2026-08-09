@@ -3,6 +3,7 @@ import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 import MDBox from "../../../../components/MDBox";
 import MDTypography from "../../../../components/MDTypography";
@@ -11,6 +12,7 @@ import MDInput from "../../../../components/MDInput";
 import MDSnackbar from "../../../../components/MDSnackbar";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { database } from "../../../../firebase";
+import BrandedErrorState from "../../../../components/BrandedErrorState";
 
 const BRANDS = [
   { key: "hanskin", label: "Hanskin", color: "info" },
@@ -44,6 +46,7 @@ const normalize = (targets) => {
 function CommissionSettings() {
   const [targets, setTargets] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
@@ -51,20 +54,23 @@ function CommissionSettings() {
   const showSnack = (message, color = "success", icon = "check") =>
     setSnack({ open: true, message, color, icon });
 
+  const loadSettings = async () => {
+    setIsLoading(true);
+    setLoadError(false);
+    try {
+      const snap = await getDoc(doc(database, "settings", "v1"));
+      const data = snap.exists() ? snap.data() : {};
+      setTargets(normalize(data.targets));
+    } catch (e) {
+      setLoadError(true);
+      showSnack("Failed to load commission settings.", "error", "warning");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const snap = await getDoc(doc(database, "settings", "v1"));
-        const data = snap.exists() ? snap.data() : {};
-        setTargets(normalize(data.targets));
-      } catch (e) {
-        showSnack("Failed to load commission settings.", "error", "warning");
-        setTargets(normalize({}));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
+    loadSettings();
   }, []);
 
   const setField = (brand, level, field, value) => {
@@ -146,10 +152,24 @@ function CommissionSettings() {
         </MDButton>
       </MDBox>
 
-      {isLoading || !targets ? (
-        <MDBox display="flex" justifyContent="center" py={4}>
-          <CircularProgress color="info" />
+      {isLoading ? (
+        <MDBox px={2} pb={3} aria-label="Loading commission settings">
+          {[0, 1, 2].map((row) => (
+            <MDBox key={row} mb={2}>
+              <Skeleton variant="text" width={100} height={28} />
+              <MDBox display="flex" gap={2}>
+                <Skeleton variant="rounded" width="50%" height={44} />
+                <Skeleton variant="rounded" width="50%" height={44} />
+              </MDBox>
+            </MDBox>
+          ))}
         </MDBox>
+      ) : loadError || !targets ? (
+        <BrandedErrorState
+          title="Could not load commission settings"
+          description="Check your connection and try loading the commission model again."
+          onRetry={loadSettings}
+        />
       ) : (
         <MDBox px={2} pb={2}>
           {BRANDS.map((brand) => (

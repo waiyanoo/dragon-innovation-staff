@@ -126,7 +126,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
             {/*</MDBox>*/}
             <MDBox color={light ? "white" : "inherit"}>
               <Link to="/profile">
-                <IconButton sx={navbarIconButton} size="small" disableRipple>
+                <IconButton sx={navbarIconButton} size="small" disableRipple aria-label="Open profile" title="Profile">
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
               </Link>
@@ -136,6 +136,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 color="inherit"
                 sx={navbarMobileMenu}
                 onClick={handleMiniSidenav}
+                aria-label={miniSidenav ? "Open navigation" : "Close navigation"}
+                title={miniSidenav ? "Open navigation" : "Close navigation"}
               >
                 <Icon sx={iconsStyle} fontSize="medium">
                   {miniSidenav ? "menu_open" : "menu"}
@@ -147,6 +149,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 color="inherit"
                 sx={navbarIconButton}
                 onClick={handleLogout}
+                aria-label="Sign out"
+                title="Sign out"
               >
                 <Icon sx={iconsStyle} fontSize="medium">
                   logout

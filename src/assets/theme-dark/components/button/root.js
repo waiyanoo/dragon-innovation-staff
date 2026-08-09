@@ -20,11 +20,16 @@ const root = {
   padding: `${pxToRem(6.302)} ${pxToRem(16.604)}`,
   lineHeight: 1.4,
   textAlign: "center",
-  textTransform: "uppercase",
+  textTransform: "none",
+  letterSpacing: "0.01em",
   userSelect: "none",
   backgroundSize: "150% !important",
   backgroundPositionX: "25% !important",
-  transition: "all 150ms ease-in",
+  transition: "background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease",
+
+  "&:not(:disabled):active": {
+    transform: "translateY(1px)",
+  },
 
   "&:disabled": {
     pointerEvent: "none",

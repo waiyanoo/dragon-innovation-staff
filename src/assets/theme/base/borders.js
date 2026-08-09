@@ -23,8 +23,8 @@ const borders = {
     sm: pxToRem(2),
     md: pxToRem(6),
     lg: pxToRem(8),
-    xl: pxToRem(12),
-    xxl: pxToRem(16),
+    xl: pxToRem(16),
+    xxl: pxToRem(20),
     section: pxToRem(160),
   },
 };

@@ -10,7 +10,7 @@ import pxToRem from "assets/theme-dark/functions/pxToRem";
 
 const { size, fontWeightRegular } = typography;
 const { borderRadius } = borders;
-const { white } = colors;
+const { white, brand } = colors;
 
 const tab = {
   styleOverrides: {
@@ -31,6 +31,11 @@ const tab = {
       borderRadius: borderRadius.lg,
       color: `${white.main} !important`,
       opacity: "1 !important",
+
+      "&.Mui-selected": {
+        color: `${brand.gold} !important`,
+        fontWeight: 600,
+      },
 
       "& .material-icons, .material-icons-round": {
         marginBottom: "0 !important",

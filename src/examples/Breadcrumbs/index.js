@@ -14,6 +14,11 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
+const titleCase = (value = "") =>
+  decodeURIComponent(value)
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
 function Breadcrumbs({ icon, title, route, light }) {
   const routes = route.slice(0, -1);
 
@@ -43,33 +48,30 @@ function Breadcrumbs({ icon, title, route, light }) {
               component="span"
               variant="button"
               fontWeight="regular"
-              textTransform="capitalize"
               color={light ? "white" : "dark"}
               opacity={light ? 0.8 : 0.5}
               sx={{ lineHeight: 0 }}
             >
-              {el}
+              {titleCase(el)}
             </MDTypography>
           </Link>
         ))}
         <MDTypography
           variant="button"
           fontWeight="regular"
-          textTransform="capitalize"
           color={light ? "white" : "dark"}
           sx={{ lineHeight: 0 }}
         >
-          {title.replace("-", " ")}
+          {titleCase(title)}
         </MDTypography>
       </MuiBreadcrumbs>
       <MDTypography
         fontWeight="bold"
-        textTransform="capitalize"
         variant="h6"
         color={light ? "white" : "dark"}
         noWrap
       >
-        {title.replace("-", " ")}
+        {titleCase(title)}
       </MDTypography>
     </MDBox>
   );

@@ -24,7 +24,6 @@ import {
 import { database } from "../../../../firebase";
 import PropTypes from "prop-types";
 import {
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -37,9 +36,10 @@ import MenuItem from "@mui/material/MenuItem";
 import { useLocation, useNavigate } from "react-router-dom";
 import MDSnackbar from "../../../../components/MDSnackbar";
 import { useAuth } from "../../../../context/AuthContext";
-import MDAlert from "../../../../components/MDAlert";
 import MDButton from "../../../../components/MDButton";
 import MDInput from "../../../../components/MDInput";
+import BrandedLoader from "../../../../components/BrandedLoader";
+import EmptyState from "../../../../components/EmptyState";
 import Fuse from "fuse.js";
 import { debounce } from "lodash";
 import FilterOrders from "../Filters";
@@ -491,9 +491,7 @@ function OrderContainer({ brand }) {
         )}
         {
           isLoading &&
-          <MDBox pt={1} pb={2} px={2} display="flex" justifyContent="center">
-            <CircularProgress color="success" />
-          </MDBox>
+          <BrandedLoader label="Loading order records…" />
         }
         {
           !isLoading &&
@@ -514,7 +512,10 @@ function OrderContainer({ brand }) {
                 </MDButton>
               )}
               {searchedOrders.length === 0 ? (
-                <MDAlert color="light">This is no orders yet.</MDAlert>
+                <EmptyState
+                  title="No orders found"
+                  description="Try another brand, status, date range, or search term."
+                />
               ) : null}
             </MDBox>
           </MDBox>

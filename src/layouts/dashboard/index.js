@@ -225,7 +225,7 @@ function Dashboard() {
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                color="primary"
+                color="warning"
                 icon="face_3"
                 title="SugarBear"
                 count={formattedAmount(orderTotal.sugarbear)}
@@ -275,7 +275,7 @@ function Dashboard() {
                   },
                   {
                     label: "SugarBear",
-                    dotColor: "primary",
+                    dotColor: "warning",
                     values: [
                       orderTotalCount.sugarbear,
                       orderToPack.sugarbear,
@@ -336,7 +336,7 @@ function Dashboard() {
             <Grid size={{xs : 12, md : 6, lg : 4}}>
               <MDBox mb={3}>
                 <ReportsLineChart
-                  color="primary"
+                  color="warning"
                   title="SugarBear sales"
                   description="Monthly Performance"
                   chart={sugarbearChartData}

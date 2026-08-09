@@ -1,11 +1,22 @@
 const colors = {
+  brand: {
+    primary: "#D7192D",
+    primaryFocus: "#B51224",
+    gold: "#D7AD42",
+    ink: "#2A0B10",
+    cream: "#FAF8F4",
+    surface: "#F7F1EF",
+    softRed: "#FBEAEC",
+    border: "#571B23",
+  },
+
   background: {
-    default: "#F3F4F6",
+    default: "#FAF8F4",
   },
 
   text: {
-    main: "#4b4c55",
-    focus: "#515463",
+    main: "#463438",
+    focus: "#2A0B10",
   },
 
   transparent: {
@@ -24,18 +35,18 @@ const colors = {
   },
 
   primary: {
-    main: "#e91e63",
-    focus: "#e91e63",
+    main: "#D7192D",
+    focus: "#B51224",
   },
 
   secondary: {
-    main: "#7b809a",
-    focus: "#8f93a9",
+    main: "#6F5A60",
+    focus: "#604C51",
   },
 
   info: {
-    main: "#1A73E8",
-    focus: "#1662C4",
+    main: "#D7192D",
+    focus: "#B51224",
   },
 
   success: {
@@ -44,8 +55,8 @@ const colors = {
   },
 
   warning: {
-    main: "#fb8c00",
-    focus: "#fc9d26",
+    main: "#D7AD42",
+    focus: "#BD9130",
   },
 
   error: {
@@ -54,13 +65,13 @@ const colors = {
   },
 
   light: {
-    main: "#f0f2f5",
-    focus: "#f0f2f5",
+    main: "#F7F1EF",
+    focus: "#F1E7E3",
   },
 
   dark: {
-    main: "#344767",
-    focus: "#2c3c58",
+    main: "#2A0B10",
+    focus: "#1F080C",
   },
 
   grey: {
@@ -77,8 +88,8 @@ const colors = {
 
   gradients: {
     primary: {
-      main: "#EC407A",
-      state: "#D81B60",
+      main: "#D7192D",
+      state: "#B51224",
     },
 
     secondary: {
@@ -87,8 +98,8 @@ const colors = {
     },
 
     info: {
-      main: "#49a3f1",
-      state: "#1A73E8",
+      main: "#D7192D",
+      state: "#B51224",
     },
 
     success: {
@@ -97,8 +108,8 @@ const colors = {
     },
 
     warning: {
-      main: "#FFA726",
-      state: "#FB8C00",
+      main: "#E3C466",
+      state: "#D7AD42",
     },
 
     error: {
@@ -222,11 +233,11 @@ const colors = {
   },
 
   coloredShadows: {
-    primary: "#e91e62",
+    primary: "#D7192D",
     secondary: "#110e0e",
-    info: "#00bbd4",
+    info: "#D7192D",
     success: "#4caf4f",
-    warning: "#ff9900",
+    warning: "#D7AD42",
     error: "#f44336",
     light: "#adb5bd",
     dark: "#404040",

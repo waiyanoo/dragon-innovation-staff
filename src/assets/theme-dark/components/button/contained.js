@@ -54,7 +54,7 @@ const contained = {
     backgroundColor: info.main,
 
     "&:hover": {
-      backgroundColor: info.main,
+      backgroundColor: info.focus,
     },
 
     "&:focus:not(:hover)": {
@@ -66,7 +66,7 @@ const contained = {
     backgroundColor: secondary.main,
 
     "&:hover": {
-      backgroundColor: secondary.main,
+      backgroundColor: secondary.focus,
     },
 
     "&:focus:not(:hover)": {

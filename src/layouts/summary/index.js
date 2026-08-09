@@ -1,7 +1,8 @@
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import CircularProgress from "@mui/material/CircularProgress";
+import BrandedLoader from "components/BrandedLoader";
+import EmptyState from "components/EmptyState";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -256,15 +257,9 @@ function Tables() {
 
               <MDBox pt={1}>
                 {isLoading ? (
-                  <MDBox display="flex" justifyContent="center" py={5}>
-                    <CircularProgress color="info" />
-                  </MDBox>
+                  <BrandedLoader label="Preparing order summary…" />
                 ) : orders.length === 0 ? (
-                  <MDBox display="flex" justifyContent="center" py={5}>
-                    <MDTypography variant="button" color="text">
-                      No orders match this filter.
-                    </MDTypography>
-                  </MDBox>
+                  <EmptyState title="No matching orders" description="Adjust the date or brand filters to see more results." />
                 ) : (
                   <DataTable
                     table={{ columns, rows: dataColumns }}

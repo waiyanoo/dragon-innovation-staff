@@ -10,25 +10,10 @@ const { black, white, tabs, coloredShadows } = colors;
 const boxShadows = {
   xs: boxShadow([0, 2], [9, -5], black.main, 0.15),
   sm: boxShadow([0, 5], [10, 0], black.main, 0.12),
-  md: `${boxShadow([0, 4], [6, -1], black.main, 0.1)}, ${boxShadow(
-    [0, 2],
-    [4, -1],
-    black.main,
-    0.06
-  )}`,
-  lg: `${boxShadow([0, 10], [15, -3], black.main, 0.1)}, ${boxShadow(
-    [0, 4],
-    [6, -2],
-    black.main,
-    0.05
-  )}`,
-  xl: `${boxShadow([0, 20], [25, -5], black.main, 0.1)}, ${boxShadow(
-    [0, 10],
-    [10, -5],
-    black.main,
-    0.04
-  )}`,
-  xxl: boxShadow([0, 20], [27, 0], black.main, 0.05),
+  md: boxShadow([0, 18], [50, 0], "#3A0D14", 0.07),
+  lg: boxShadow([0, 20], [50, 0], "#3A0D14", 0.08),
+  xl: boxShadow([0, 24], [60, 0], "#3A0D14", 0.09),
+  xxl: boxShadow([0, 28], [70, 0], "#3A0D14", 0.1),
   inset: boxShadow([0, 1], [2, 0], black.main, 0.075, "inset"),
   colored: {
     primary: `${boxShadow([0, 4], [20, 0], black.main, 0.14)}, ${boxShadow(

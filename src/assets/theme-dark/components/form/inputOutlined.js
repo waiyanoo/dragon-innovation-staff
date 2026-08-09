@@ -25,6 +25,7 @@ const inputOutlined = {
       },
 
       "&.Mui-focused": {
+        boxShadow: `0 0 0 ${pxToRem(3)} ${rgba(info.main, 0.16)}`,
         "& .MuiOutlinedInput-notchedOutline": {
           borderColor: info.main,
         },

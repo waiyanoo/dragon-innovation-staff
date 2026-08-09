@@ -12,6 +12,7 @@ import Reward from "./layouts/reward";
 import Statistics from "./layouts/statistics";
 import Report_control_panel from "./layouts/report_control_panel";
 import ResetPassword from "./layouts/authentication/reset-password";
+import Action from "./layouts/authentication/action";
 
 const routes = [
   {
@@ -96,8 +97,8 @@ const routes = [
   },
   {
     type: 'title',
-    name: "History",
-    title: "History",
+    name: "Order Records",
+    title: "Order Records",
     key: "order-history",
     color: "white"
   },
@@ -105,7 +106,7 @@ const routes = [
     type: "collapse",
     name: "Retail",
     key: "retail-history",
-    icon: <Icon fontSize="small">local_shipping</Icon>,
+    icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/history/:brand",
     routeToGo: "/history/hanskin",
     roles: ["page_admin", "warehouse", "admin", "super_admin"],
@@ -120,7 +121,7 @@ const routes = [
     type: "collapse",
     name: "Wholesale",
     key: "wholesale-history",
-    icon: <Icon fontSize="small">local_shipping</Icon>,
+    icon: <Icon fontSize="small">inventory_2</Icon>,
     route: "/wholesale-history/:brand",
     routeToGo: "/wholesale-history/hanskin",
     roles: ["warehouse", "sales", "admin", "super_admin"],
@@ -142,7 +143,7 @@ const routes = [
     type: "collapse",
     name: "Summary",
     key: "summary",
-    icon: <Icon fontSize="small">important_devices</Icon>,
+    icon: <Icon fontSize="small">summarize</Icon>,
     route: "/summary",
     routeToGo: "/summary",
     roles: [ "admin", "super_admin"],
@@ -172,7 +173,7 @@ const routes = [
     type: "collapse",
     name: "Admin Tools",
     key: "controlPanel",
-    icon: <Icon fontSize="small">analytics</Icon>,
+    icon: <Icon fontSize="small">admin_panel_settings</Icon>,
     route: "/report_control_panel",
     routeToGo: "/report_control_panel",
     roles: [ "super_admin"],
@@ -210,6 +211,15 @@ const routes = [
     route: "/authentication/reset-password",
     routeToGo: "/authentication/reset-password",
     component: <ResetPassword />,
+  },
+  {
+    type: "",
+    name: "Action",
+    key: "action",
+    icon: <Icon fontSize="small">login</Icon>,
+    route: "/authentication/action",
+    routeToGo: "/authentication/action",
+    component: <Action />,
   },
 ];
 

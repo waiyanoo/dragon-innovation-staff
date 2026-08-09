@@ -17,6 +17,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import MDButton from "../../../../components/MDButton";
+import MDBadge from "../../../../components/MDBadge";
 
 function FilterOrders({ filerChange }) {
   const [checkedItems, setCheckedItems] = useState({
@@ -35,6 +36,26 @@ function FilterOrders({ filerChange }) {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [resetKey, setResetKey] = useState(0);
+  const activeFilterCount = Object.entries(checkedItems).filter(([, value]) => Boolean(value)).length;
+
+  const clearFilters = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setResetKey((prev) => prev + 2);
+    setCheckedItems({
+      pending: false,
+      packed: false,
+      shipped: false,
+      cod: false,
+      fullPaid: false,
+      other: false,
+      cash: false,
+      kpay: false,
+      bank: false,
+      startDate: "",
+      endDate: "",
+    });
+  };
 
   const handleChange = (event) => {
     setCheckedItems({
@@ -79,11 +100,23 @@ function FilterOrders({ filerChange }) {
         aria-controls="panel1-content"
         id="panel1-header"
       >
-        <MDTypography variant="button" fontWeight="light">
-          Filters
-        </MDTypography>
+        <MDBox display="flex" alignItems="center" width="100%" mr={1}>
+          <MDBox display="flex" alignItems="center" gap={1}>
+            <MDTypography variant="button" fontWeight="medium">Filters</MDTypography>
+            {activeFilterCount > 0 && (
+              <MDBadge badgeContent={activeFilterCount} color="info" variant="contained" size="xs" container />
+            )}
+          </MDBox>
+        </MDBox>
       </AccordionSummary>
       <AccordionDetails sx={{ padding: "5px" }}>
+        {activeFilterCount > 0 && (
+          <MDBox display="flex" justifyContent="flex-end" px={1} mb={1}>
+            <MDButton variant="text" color="info" size="small" onClick={clearFilters}>
+              Clear all
+            </MDButton>
+          </MDBox>
+        )}
         <MDTypography variant="button" fontWeight="medium" pl={1}>
           Shipment Status
         </MDTypography>
@@ -220,23 +253,9 @@ function FilterOrders({ filerChange }) {
             variant="gradient"
             color="info"
             size="small"
-            onClick={() =>
-              setCheckedItems({
-                pending: false,
-                packed: false,
-                shipped: false,
-                cod: false,
-                fullPaid: false,
-                other: false,
-                cash: false,
-                kpay: false,
-                bank: false,
-                startDate: "",
-                endDate: "",
-              })
-            }
+            onClick={clearFilters}
           >
-            Reset
+            Clear all filters
           </MDButton>
         </MDBox>
       </AccordionDetails>

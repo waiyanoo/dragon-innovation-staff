@@ -28,7 +28,7 @@ export default styled(Badge)(({ theme, ownerState }) => {
   const borderValue = border ? `${borderWidth[3]} solid ${white.main}` : "none";
 
   // borderRadius value
-  const borderRadiusValue = circular ? borderRadius.section : borderRadius.md;
+  const borderRadiusValue = circular ? borderRadius.section : borderRadius.lg;
 
   // styles for the badge with indicator={true}
   const indicatorStyles = (sizeProp) => {
@@ -104,7 +104,8 @@ export default styled(Badge)(({ theme, ownerState }) => {
       padding: paddings[size] || paddings.xs,
       fontSize: fontSizeValue,
       fontWeight: fontWeightBold,
-      textTransform: "uppercase",
+      textTransform: "none",
+      letterSpacing: "0.01em",
       lineHeight: 1,
       textAlign: "center",
       whiteSpace: "nowrap",

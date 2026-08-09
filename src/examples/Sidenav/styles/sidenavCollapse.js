@@ -1,17 +1,14 @@
 
 function collapseItem(theme, ownerState) {
-  const { palette, transitions, breakpoints, boxShadows, borders, functions } = theme;
+  const { palette, transitions, breakpoints, borders, functions } = theme;
   const { active, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = ownerState;
 
-  const { white, transparent, dark, grey, gradients } = palette;
-  const { md } = boxShadows;
+  const { white, transparent, dark, grey, gradients, brand } = palette;
   const { borderRadius } = borders;
-  const { pxToRem, rgba, linearGradient } = functions;
+  const { pxToRem, rgba } = functions;
 
   return {
-    background: active
-      ? linearGradient(gradients[sidenavColor].main, gradients[sidenavColor].state)
-      : transparent.main,
+    background: active ? gradients[sidenavColor].main : transparent.main,
     color:
       (transparentSidenav && !darkMode && !active) || (whiteSidenav && !active)
         ? dark.main
@@ -25,7 +22,8 @@ function collapseItem(theme, ownerState) {
     cursor: "pointer",
     userSelect: "none",
     whiteSpace: "nowrap",
-    boxShadow: active && !whiteSidenav && !darkMode && !transparentSidenav ? md : "none",
+    boxShadow: "none",
+    borderLeft: active ? `${pxToRem(3)} solid ${brand.gold}` : `${pxToRem(3)} solid transparent`,
     [breakpoints.up("xl")]: {
       transition: transitions.create(["box-shadow", "background-color"], {
         easing: transitions.easing.easeInOut,
@@ -41,7 +39,7 @@ function collapseItem(theme, ownerState) {
           backgroundValue =
             transparentSidenav && !darkMode
               ? grey[300]
-              : rgba(whiteSidenav ? grey[400] : white.main, 0.2);
+              : rgba(whiteSidenav ? grey[400] : white.main, 0.12);
         }
 
         return backgroundValue;

@@ -38,10 +38,10 @@ function Header({ children }) {
         minHeight="12rem"
         borderRadius="xl"
         sx={{
-          backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
+          backgroundImage: ({ functions: { rgba, linearGradient }, palette: { brand } }) =>
             `${linearGradient(
-              rgba(gradients.info.main, 0.6),
-              rgba(gradients.info.state, 0.6)
+              rgba(brand.primary, 0.78),
+              rgba(brand.ink, 0.72)
             )}, url(${backgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "50%",
@@ -65,9 +65,10 @@ function Header({ children }) {
           gap={2}
         >
           <MDBox
-            variant="gradient"
-            bgColor="info"
-            coloredShadow="info"
+            sx={({ palette: { brand }, functions: { linearGradient } }) => ({
+              background: linearGradient(brand.primary, brand.gold),
+              boxShadow: "0 8px 20px rgba(87, 27, 35, 0.2)",
+            })}
             borderRadius="50%"
             display="flex"
             justifyContent="center"

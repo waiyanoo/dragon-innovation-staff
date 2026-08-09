@@ -20,6 +20,7 @@ const tabs = {
       borderRadius: borderRadius.xl,
       minHeight: "unset",
       padding: pxToRem(4),
+      border: `1px solid rgba(215, 173, 66, 0.14)`,
     },
 
     flexContainer: {
@@ -43,6 +44,7 @@ const tabs = {
       height: "100%",
       borderRadius: borderRadius.lg,
       backgroundColor: background.default,
+      border: `1px solid rgba(215, 25, 45, 0.28)`,
       boxShadow: md,
       transition: "all 500ms ease",
     },

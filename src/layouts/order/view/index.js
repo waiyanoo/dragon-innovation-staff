@@ -9,6 +9,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../../firebase";
 import Footer from "../../../examples/Footer";
+import BrandedLoader from "../../../components/BrandedLoader";
 
 
 
@@ -100,7 +101,7 @@ function OrderView() {
   }, [id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <BrandedLoader label="Loading order details…" fullPage />;
   }
 
   return (
