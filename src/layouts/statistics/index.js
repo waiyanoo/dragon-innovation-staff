@@ -37,7 +37,7 @@ import { csvFilename, downloadCsv } from "./exportCsv";
 import { changePercent, previousPeriod } from "./periods";
 import { formattedAmount, getDateRanges } from "../../functions/common-functions";
 import DateRangeSelector from "./components/DateRangeSelector";
-import { groupByField, shareOf, summarise } from "./aggregate";
+import { groupByField, groupRepeatCustomers, shareOf, summarise } from "./aggregate";
 
 const TOP_CITY_COUNT = 10;
 
@@ -134,6 +134,16 @@ const locationColumns = (heading) => [
   { Header: "orders", accessor: "orders", align: "right" },
   { Header: "sales", accessor: "sales", align: "right" },
   { Header: "share", accessor: "share", align: "right" },
+];
+
+const repeatCustomerColumns = [
+  { Header: "customer", accessor: "customer", align: "left" },
+  { Header: "phone", accessor: "phone", align: "left" },
+  { Header: "orders", accessor: "orders", align: "right" },
+  { Header: "sales", accessor: "sales", align: "right" },
+  { Header: "avg order", accessor: "averageOrder", align: "right" },
+  { Header: "brands", accessor: "brands", align: "left" },
+  { Header: "last order", accessor: "lastOrder", align: "left" },
 ];
 
 function Statistics() {
@@ -234,6 +244,11 @@ function Statistics() {
     [visibleOrders]
   );
   const stateStats = useMemo(() => groupByField(visibleOrders, "state"), [visibleOrders]);
+  const repeatStats = useMemo(() => groupRepeatCustomers(visibleOrders), [visibleOrders]);
+  const repeatRate =
+    repeatStats.uniqueCustomers > 0
+      ? (repeatStats.repeatCustomerCount / repeatStats.uniqueCustomers) * 100
+      : 0;
 
   // Always computed across every brand in the period, so the split stays
   // meaningful; the table itself is hidden once a single brand is selected.
@@ -308,6 +323,61 @@ function Statistics() {
       ])
     );
   };
+
+  const exportRepeatCustomers = () => {
+    const startLabel = range ? dayjs(range.start.toDate()).format("YYYY-MM-DD") : "";
+    downloadCsv(
+      csvFilename("repeat-customers", brand === "all" ? "all-brands" : brand, startLabel),
+      ["customer", "phone", "orders", "sales", "average order", "brands", "last order"],
+      repeatStats.customers.map((customer) => [
+        customer.names.join(" / ") || "Unknown",
+        customer.phone,
+        customer.orders,
+        customer.sales,
+        customer.averageOrder,
+        customer.brands.map((key) => BRAND_LABELS[key] || key).join(" / "),
+        customer.lastOrderAt ? dayjs(customer.lastOrderAt).format("YYYY-MM-DD") : "",
+      ])
+    );
+  };
+
+  const repeatCustomerRows = repeatStats.customers.map((customer) => ({
+    customer: (
+      <MDTypography variant="caption" color="dark" fontWeight="bold">
+        {customer.names.join(" / ") || "Unknown"}
+      </MDTypography>
+    ),
+    phone: (
+      <MDTypography variant="caption" color="text" fontWeight="medium">
+        {customer.phone}
+      </MDTypography>
+    ),
+    orders: (
+      <MDTypography variant="caption" color="dark" fontWeight="bold">
+        {customer.orders}
+      </MDTypography>
+    ),
+    sales: (
+      <MDTypography variant="caption" color="text" fontWeight="medium">
+        {formattedAmount(customer.sales)}
+      </MDTypography>
+    ),
+    averageOrder: (
+      <MDTypography variant="caption" color="text" fontWeight="medium">
+        {formattedAmount(customer.averageOrder)}
+      </MDTypography>
+    ),
+    brands: (
+      <MDTypography variant="caption" color="text" fontWeight="medium">
+        {customer.brands.map((key) => BRAND_LABELS[key] || key).join(", ")}
+      </MDTypography>
+    ),
+    lastOrder: (
+      <MDTypography variant="caption" color="text" fontWeight="medium">
+        {customer.lastOrderAt ? dayjs(customer.lastOrderAt).format("DD MMM YYYY") : "—"}
+      </MDTypography>
+    ),
+  }));
 
   const sectionHeading = (title, onExport) => (
     <MDBox
@@ -421,6 +491,41 @@ function Statistics() {
             />
           </MDBox>
         )}
+
+        <MDBox mt={4}>
+          {sectionHeading("Repeated customers", exportRepeatCustomers)}
+          <MDTypography variant="caption" color="text" display="block" mb={2}>
+            Customers with at least two orders in the selected period, matched by primary phone.
+          </MDTypography>
+          <Grid container spacing={2} mb={2}>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatCard label="Repeat customers" value={repeatStats.repeatCustomerCount} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatCard label="Repeat rate" value={`${repeatRate.toFixed(1)}%`} hint="of unique customers" />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatCard label="Repeat orders" value={repeatStats.repeatOrders} />
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <StatCard label="Repeat sales" value={formattedAmount(repeatStats.repeatSales)} />
+            </Grid>
+          </Grid>
+          {repeatCustomerRows.length > 0 ? (
+            <DataTable
+              table={{ columns: repeatCustomerColumns, rows: repeatCustomerRows }}
+              isSorted
+              noEndBorder
+              {...tableChrome(repeatCustomerRows.length)}
+            />
+          ) : (
+            <MDBox py={3} textAlign="center">
+              <MDTypography variant="button" color="text">
+                No repeated customers in this period.
+              </MDTypography>
+            </MDBox>
+          )}
+        </MDBox>
 
         {cityStats.length > 0 && (
           <MDBox mt={4}>

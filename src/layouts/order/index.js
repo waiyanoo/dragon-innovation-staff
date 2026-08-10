@@ -44,6 +44,7 @@ import { State_List } from "../../data/common";
 import { citiesForState, stateForCity } from "../../data/cityList";
 import { parseMessengerText } from "./parseMessage";
 import { formattedAmount } from "../../functions/common-functions";
+import { normalizeMyanmarPhone } from "../../functions/phone";
 import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
 import { useMaterialUIController } from "../../context";
@@ -189,11 +190,11 @@ function Order() {
   // Equality on primaryPhone rides the automatic single-field index, so this
   // needs no composite index; the age filter happens client-side.
   const findSameDayOrder = async (phone) => {
-    const trimmed = String(phone || "").trim();
-    if (!trimmed) return null;
+    const normalized = normalizeMyanmarPhone(phone);
+    if (!normalized) return null;
     try {
       const snapshot = await getDocs(
-        query(collection(database, collectionName), where("primaryPhone", "==", trimmed), limit(25))
+        query(collection(database, collectionName), where("primaryPhone", "==", normalized), limit(25))
       );
       const cutoff = Date.now() - DUPLICATE_WINDOW_MS;
       return (
@@ -259,6 +260,8 @@ function Order() {
   const save = async () => {
     const data = {
       ...formData,
+      primaryPhone: normalizeMyanmarPhone(formData.primaryPhone),
+      secondaryPhone: normalizeMyanmarPhone(formData.secondaryPhone),
       amount: Number(formData.amount) || 0,
       deliveryFees: Number(formData.deliveryFees) || 0,
       orderType: userData.role === "sales" ? "wholesale" : "retail",
@@ -302,6 +305,8 @@ function Order() {
     const { updateHistory, ...formFields } = formData;
     const data = {
       ...formFields,
+      primaryPhone: normalizeMyanmarPhone(formData.primaryPhone),
+      secondaryPhone: normalizeMyanmarPhone(formData.secondaryPhone),
       amount: Number(formData.amount) || 0,
       deliveryFees: Number(formData.deliveryFees) || 0,
       brand: brand,
@@ -333,6 +338,18 @@ function Order() {
       setSnack({
         open: true,
         message: "Please choose a state before saving.",
+        color: "error",
+        icon: "warning",
+      });
+      return;
+    }
+
+    const normalizedPrimaryPhone = normalizeMyanmarPhone(formData.primaryPhone);
+    const normalizedSecondaryPhone = normalizeMyanmarPhone(formData.secondaryPhone);
+    if (!normalizedPrimaryPhone || normalizedSecondaryPhone === null) {
+      setSnack({
+        open: true,
+        message: "Enter Myanmar phone numbers in a valid 09 or +959 format.",
         color: "error",
         icon: "warning",
       });

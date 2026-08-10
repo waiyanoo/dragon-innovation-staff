@@ -6,6 +6,7 @@
 // leftover text is handed back for a human to sort out rather than split up.
 
 import { ALL_CITIES } from "../../data/cityList";
+import { normalizeMyanmarPhone } from "../../functions/phone";
 
 // Digits with the separators people actually type between them.
 const PHONE_CANDIDATE = /\+?\d[\d\s\-().]{6,17}\d/g;
@@ -19,20 +20,10 @@ const toWords = (value) =>
 
 // Myanmar mobile numbers are 09 followed by 7-9 digits, written variously as
 // 09..., 959... or +959...
-const normalisePhone = (raw) => {
-  let digits = String(raw || "").replace(/\D/g, "");
-  if (digits.startsWith("95")) {
-    digits = `0${digits.slice(2)}`;
-  } else if (digits.startsWith("9") && !digits.startsWith("09")) {
-    digits = `0${digits}`;
-  }
-  return /^09\d{7,9}$/.test(digits) ? digits : null;
-};
-
 export const extractPhones = (text) => {
   const found = [];
   (String(text || "").match(PHONE_CANDIDATE) || []).forEach((candidate) => {
-    const phone = normalisePhone(candidate);
+    const phone = normalizeMyanmarPhone(candidate);
     if (phone && !found.includes(phone)) found.push(phone);
   });
   return found;
@@ -63,7 +54,7 @@ export const detectCity = (text) => {
 export const stripPhones = (text) => {
   let remaining = String(text || "");
   (String(text || "").match(PHONE_CANDIDATE) || []).forEach((candidate) => {
-    if (normalisePhone(candidate)) remaining = remaining.replace(candidate, " ");
+    if (normalizeMyanmarPhone(candidate)) remaining = remaining.replace(candidate, " ");
   });
   return remaining
     .replace(/[ \t]+/g, " ")

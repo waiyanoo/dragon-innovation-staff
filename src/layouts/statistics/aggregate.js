@@ -5,6 +5,7 @@
 // across pages.
 
 import { canonicalCity } from "../../data/cityList";
+import { normalizeMyanmarPhone } from "../../functions/phone";
 
 export const UNSPECIFIED = "(Not specified)";
 
@@ -65,3 +66,57 @@ export const summarise = (orders) => {
 };
 
 export const shareOf = (value, total) => (total > 0 ? (value / total) * 100 : 0);
+
+// A repeat customer is a normalized primary phone with at least two orders in
+// the currently selected report period. Secondary numbers are intentionally
+// excluded because they may belong to a different contact person.
+export const groupRepeatCustomers = (orders) => {
+  const customers = new Map();
+
+  orders.forEach((order) => {
+    const phone = normalizeMyanmarPhone(order.primaryPhone);
+    if (!phone) return;
+
+    const existing = customers.get(phone) || {
+      phone,
+      names: new Map(),
+      brands: new Set(),
+      orders: 0,
+      sales: 0,
+      lastOrderAt: null,
+    };
+
+    const name = collapseSpace(order.name);
+    if (name && !existing.names.has(name.toLowerCase())) {
+      existing.names.set(name.toLowerCase(), name);
+    }
+    if (order.brand) existing.brands.add(order.brand);
+    existing.orders += 1;
+    existing.sales += netSales(order);
+
+    const createdAt = order.createdAt?.toDate?.() || null;
+    if (createdAt && (!existing.lastOrderAt || createdAt > existing.lastOrderAt)) {
+      existing.lastOrderAt = createdAt;
+    }
+    customers.set(phone, existing);
+  });
+
+  const allCustomers = [...customers.values()];
+  const repeated = allCustomers
+    .filter((customer) => customer.orders >= 2)
+    .map((customer) => ({
+      ...customer,
+      names: [...customer.names.values()],
+      brands: [...customer.brands],
+      averageOrder: customer.sales / customer.orders,
+    }))
+    .sort((a, b) => b.orders - a.orders || b.sales - a.sales);
+
+  return {
+    customers: repeated,
+    uniqueCustomers: allCustomers.length,
+    repeatCustomerCount: repeated.length,
+    repeatOrders: repeated.reduce((sum, customer) => sum + customer.orders, 0),
+    repeatSales: repeated.reduce((sum, customer) => sum + customer.sales, 0),
+  };
+};

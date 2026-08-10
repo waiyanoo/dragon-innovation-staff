@@ -41,6 +41,7 @@
     "deploy": "firebase deploy --only hosting",
     "test": "react-scripts test",
     "test:rules": "firebase emulators:exec --only firestore --project dragon-rules-test \"node firestore-tests/rules.test.js\"",
+    "migrate:phones": "node functions/scripts/migrate-phone-numbers.js",
     "eject": "react-scripts eject",
     "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
   },
