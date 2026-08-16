@@ -13,6 +13,7 @@ import Statistics from "./layouts/statistics";
 import Report_control_panel from "./layouts/report_control_panel";
 import ResetPassword from "./layouts/authentication/reset-password";
 import Action from "./layouts/authentication/action";
+import Waybill from "./layouts/waybill";
 
 const routes = [
   {
@@ -182,6 +183,20 @@ const routes = [
         roles={["super_admin"]}
       >
         <Report_control_panel />
+      </PrivateRoute>
+    ),
+  },
+  {
+    type: "",
+    name: "Waybill",
+    key: "waybill",
+    icon: "",
+    route: "/waybill",
+    routeToGo: "/waybill",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
+    component: (
+      <PrivateRoute roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}>
+        <Waybill />
       </PrivateRoute>
     ),
   },

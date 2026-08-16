@@ -226,6 +226,11 @@ function OrderContainer({ brand }) {
       case "edit":
         navigate(`/order?id=${order.id}`);
         break;
+      case "waybill": {
+        const orderType = segments[0] === "history" ? "retail" : "wholesale";
+        window.open(`/waybill?type=${orderType}&id=${order.id}`, "_blank", "noopener,noreferrer");
+        break;
+      }
       case "delete":
         setDeleteTarget(order);
         break;
