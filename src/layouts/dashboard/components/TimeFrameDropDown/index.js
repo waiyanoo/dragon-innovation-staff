@@ -3,6 +3,7 @@ import MenuItem from "@mui/material/MenuItem";
 import PropTypes from "prop-types";
 
 const timeFrameList = [
+  {id: 'today', display: 'Today'},
   {id: 'thisMonth', display: 'This Month'},
   {id: 'thisYear', display: 'This Year'},
   {id: 'previousMonth', display: 'Previous Month'},
@@ -11,6 +12,7 @@ const timeFrameList = [
 ]
 
 const shortTimeFrameList = [
+  {id: 'today', display: 'Today'},
   {id: 'thisMonth', display: 'This Month'},
   {id: 'previousMonth', display: 'Previous Month'}
 ]
