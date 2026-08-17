@@ -67,30 +67,68 @@ export const summarise = (orders) => {
 
 export const shareOf = (value, total) => (total > 0 ? (value / total) * 100 : 0);
 
-// A repeat customer is a normalized primary phone with at least two orders in
-// the currently selected report period. Secondary numbers are intentionally
-// excluded because they may belong to a different contact person.
+// Orders belong to the same customer when any normalized primary/secondary
+// phone or normalized Facebook name overlaps. This is intentionally broader
+// than duplicate-order protection: the report is meant to reconnect a
+// customer's historical orders even when they use another saved phone field.
 export const groupRepeatCustomers = (orders) => {
+  const parent = orders.map((_, index) => index);
+  const find = (index) => {
+    if (parent[index] !== index) parent[index] = find(parent[index]);
+    return parent[index];
+  };
+  const union = (left, right) => {
+    const leftRoot = find(left);
+    const rightRoot = find(right);
+    if (leftRoot !== rightRoot) parent[rightRoot] = leftRoot;
+  };
+
+  const identityOwner = new Map();
+  const identifiedOrders = new Set();
+
+  orders.forEach((order, index) => {
+    const phones = [order.primaryPhone, order.secondaryPhone]
+      .map(normalizeMyanmarPhone)
+      .filter(Boolean);
+    const name = collapseSpace(order.name).toLowerCase();
+    const identities = [
+      ...new Set(phones.map((phone) => `phone:${phone}`)),
+      ...(name ? [`name:${name}`] : []),
+    ];
+
+    if (identities.length === 0) return;
+    identifiedOrders.add(index);
+    identities.forEach((identity) => {
+      if (identityOwner.has(identity)) union(index, identityOwner.get(identity));
+      else identityOwner.set(identity, index);
+    });
+  });
+
   const customers = new Map();
-
-  orders.forEach((order) => {
-    const phone = normalizeMyanmarPhone(order.primaryPhone);
-    if (!phone) return;
-
-    const existing = customers.get(phone) || {
-      phone,
+  orders.forEach((order, index) => {
+    if (!identifiedOrders.has(index)) return;
+    const root = find(index);
+    const existing = customers.get(root) || {
+      phones: new Set(),
       names: new Map(),
       brands: new Set(),
+      orderRecords: [],
       orders: 0,
       sales: 0,
       lastOrderAt: null,
     };
+
+    [order.primaryPhone, order.secondaryPhone]
+      .map(normalizeMyanmarPhone)
+      .filter(Boolean)
+      .forEach((phone) => existing.phones.add(phone));
 
     const name = collapseSpace(order.name);
     if (name && !existing.names.has(name.toLowerCase())) {
       existing.names.set(name.toLowerCase(), name);
     }
     if (order.brand) existing.brands.add(order.brand);
+    existing.orderRecords.push(order);
     existing.orders += 1;
     existing.sales += netSales(order);
 
@@ -98,7 +136,7 @@ export const groupRepeatCustomers = (orders) => {
     if (createdAt && (!existing.lastOrderAt || createdAt > existing.lastOrderAt)) {
       existing.lastOrderAt = createdAt;
     }
-    customers.set(phone, existing);
+    customers.set(root, existing);
   });
 
   const allCustomers = [...customers.values()];
@@ -106,6 +144,7 @@ export const groupRepeatCustomers = (orders) => {
     .filter((customer) => customer.orders >= 2)
     .map((customer) => ({
       ...customer,
+      phone: [...customer.phones].join(" / "),
       names: [...customer.names.values()],
       brands: [...customer.brands],
       averageOrder: customer.sales / customer.orders,

@@ -10,6 +10,10 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 
 // Material Dashboard 2 React components
 import Icon from "@mui/material/Icon";
@@ -157,6 +161,7 @@ function Statistics() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const range = useMemo(
     () => resolveRange(preset, startDate, endDate),
@@ -343,9 +348,20 @@ function Statistics() {
 
   const repeatCustomerRows = repeatStats.customers.map((customer) => ({
     customer: (
-      <MDTypography variant="caption" color="dark" fontWeight="bold">
-        {customer.names.join(" / ") || "Unknown"}
-      </MDTypography>
+      <MDButton
+        variant="text"
+        color="info"
+        size="small"
+        onClick={() => setSelectedCustomer(customer)}
+        sx={{ px: 0, minWidth: 0, justifyContent: "flex-start", textAlign: "left" }}
+      >
+        <MDBox display="flex" alignItems="center" gap={0.5}>
+          <MDTypography variant="caption" color="info" fontWeight="bold">
+            {customer.names.join(" / ") || "Unknown"}
+          </MDTypography>
+          <Icon fontSize="small">chevron_right</Icon>
+        </MDBox>
+      </MDButton>
     ),
     phone: (
       <MDTypography variant="caption" color="text" fontWeight="medium">
@@ -495,7 +511,8 @@ function Statistics() {
         <MDBox mt={4}>
           {sectionHeading("Repeated customers", exportRepeatCustomers)}
           <MDTypography variant="caption" color="text" display="block" mb={2}>
-            Customers with at least two orders in the selected period, matched by primary phone.
+            Customers with at least two orders in the selected period, matched by either phone
+            number or Facebook name. Select a customer to see their purchases.
           </MDTypography>
           <Grid container spacing={2} mb={2}>
             <Grid size={{ xs: 6, md: 3 }}>
@@ -649,6 +666,88 @@ function Statistics() {
           </Grid>
         </Grid>
       </MDBox>
+      <Dialog
+        open={Boolean(selectedCustomer)}
+        onClose={() => setSelectedCustomer(null)}
+        fullWidth
+        maxWidth="md"
+        scroll="paper"
+      >
+        <DialogTitle>
+          <MDTypography variant="h5" fontWeight="medium">
+            Purchase history
+          </MDTypography>
+          <MDTypography variant="button" color="text" display="block">
+            {selectedCustomer?.names.join(" / ") || "Unknown customer"}
+          </MDTypography>
+          <MDTypography variant="caption" color="text" display="block">
+            {selectedCustomer?.phone || "No phone recorded"} · {selectedCustomer?.orders || 0}{" "}
+            orders · {formattedAmount(selectedCustomer?.sales || 0)} sales
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent dividers sx={{ px: { xs: 2, md: 3 } }}>
+          {selectedCustomer?.orderRecords.map((order, index) => {
+            const orderDate = order.createdAt?.toDate?.();
+            return (
+              <MDBox
+                key={order.id || `${orderDate?.getTime?.() || "order"}-${index}`}
+                py={2}
+                sx={{
+                  borderBottom: index < selectedCustomer.orderRecords.length - 1
+                    ? "1px solid"
+                    : "none",
+                  borderColor: "grey.300",
+                }}
+              >
+                <MDBox
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                  gap={2}
+                  mb={1}
+                >
+                  <MDBox>
+                    <MDTypography variant="button" color="dark" fontWeight="bold" display="block">
+                      {BRAND_LABELS[order.brand] || order.brand || "Unknown brand"}
+                    </MDTypography>
+                    <MDTypography variant="caption" color="text">
+                      {orderDate ? dayjs(orderDate).format("DD MMM YYYY, h:mm A") : "Date unavailable"}
+                    </MDTypography>
+                  </MDBox>
+                  <MDTypography variant="button" color="dark" fontWeight="bold">
+                    {formattedAmount(order.amount || 0)}
+                  </MDTypography>
+                </MDBox>
+
+                <MDTypography variant="caption" color="text" fontWeight="medium" display="block">
+                  Purchased items
+                </MDTypography>
+                <MDTypography
+                  variant="body2"
+                  color="dark"
+                  sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
+                >
+                  {(order.items || "Items not recorded").replace?.(/"/g, "") || "Items not recorded"}
+                </MDTypography>
+
+                <MDBox mt={1} display="flex" flexWrap="wrap" columnGap={3} rowGap={0.5}>
+                  <MDTypography variant="caption" color="text">
+                    Delivery fee: {formattedAmount(order.deliveryFees || 0)}
+                  </MDTypography>
+                  <MDTypography variant="caption" color="text">
+                    Invoice: {order.invoiceNumber || "Not assigned"}
+                  </MDTypography>
+                </MDBox>
+              </MDBox>
+            );
+          })}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <MDButton variant="gradient" color="info" onClick={() => setSelectedCustomer(null)}>
+            Close
+          </MDButton>
+        </DialogActions>
+      </Dialog>
       <Footer />
     </DashboardLayout>
   );

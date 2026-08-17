@@ -32,9 +32,10 @@ import {
   doc,
   getDoc,
   getDocs,
-  limit,
+  orderBy,
   query,
   serverTimestamp,
+  Timestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -70,8 +71,8 @@ const EMPTY_FORM = {
   invoiceNumber: "",
 };
 
-// A second order for the same phone within a day is nearly always a
-// double-entry rather than a genuine repeat, so it is worth querying for.
+// A second order using either of the same phone numbers within a day is often
+// a double-entry rather than a genuine repeat, so it is worth warning the user.
 const DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function SectionTitle({ children }) {
@@ -187,21 +188,32 @@ function Order() {
     }));
   };
 
-  // Equality on primaryPhone rides the automatic single-field index, so this
-  // needs no composite index; the age filter happens client-side.
-  const findSameDayOrder = async (phone) => {
-    const normalized = normalizeMyanmarPhone(phone);
-    if (!normalized) return null;
+  // Fetch the recent window once so both phone fields can be compared against
+  // both phone fields on existing orders without requiring extra indexes.
+  const findSameDayOrder = async (primaryPhone, secondaryPhone) => {
+    const normalizedPhones = [primaryPhone, secondaryPhone]
+      .map(normalizeMyanmarPhone)
+      .filter(Boolean);
+    if (normalizedPhones.length === 0) return null;
     try {
-      const snapshot = await getDocs(
-        query(collection(database, collectionName), where("primaryPhone", "==", normalized), limit(25))
-      );
       const cutoff = Date.now() - DUPLICATE_WINDOW_MS;
-      return (
-        snapshot.docs
-          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-          .find((order) => (order.createdAt?.toMillis?.() ?? 0) >= cutoff) || null
+      const snapshot = await getDocs(
+        query(
+          collection(database, collectionName),
+          where("createdAt", ">=", Timestamp.fromMillis(cutoff)),
+          orderBy("createdAt", "desc")
+        )
       );
+      const match = snapshot.docs
+        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+        .find((order) => {
+          const existingPhones = [order.primaryPhone, order.secondaryPhone]
+            .map(normalizeMyanmarPhone)
+            .filter(Boolean);
+          return normalizedPhones.some((phone) => existingPhones.includes(phone));
+        });
+
+      return match || null;
     } catch (e) {
       // A failed duplicate check must never block recording the order.
       console.error("Duplicate check failed: ", e);
@@ -363,7 +375,10 @@ function Order() {
         await update();
         return;
       }
-      const sameDay = await findSameDayOrder(formData.primaryPhone);
+      const sameDay = await findSameDayOrder(
+        formData.primaryPhone,
+        formData.secondaryPhone
+      );
       if (sameDay) {
         // Hold the save until confirmed; the dialog resumes it.
         setDuplicate(sameDay);
@@ -865,7 +880,7 @@ function Order() {
                     duplicate.primaryPhone
                   }) already has an order recorded today for ${formattedAmount(
                     duplicate.amount || 0
-                  )}.`
+                  )}. Matched by phone number.`
                 : ""}
             </MDTypography>
             <MDBox mt={1}>
