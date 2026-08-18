@@ -29,7 +29,9 @@ HeaderCell.propTypes = {
 };
 
 function StatMatrix({ title, icon, color, columns, rows, totalRow }) {
-  const gridColumns = `minmax(0, 1.4fr) repeat(${columns.length}, minmax(2.4rem, 1fr))`;
+  const gridColumns = `minmax(7rem, 1.4fr) ${columns
+    .map((column) => `minmax(${column.minWidth || "2.4rem"}, 1fr)`)
+    .join(" ")}`;
 
   return (
     <Card>
@@ -53,10 +55,11 @@ function StatMatrix({ title, icon, color, columns, rows, totalRow }) {
         </MDTypography>
       </MDBox>
 
-      <MDBox px={2} pt={2} pb={2}>
+      <MDBox px={2} pt={2} pb={2} sx={{ overflowX: "auto" }}>
         <MDBox
           display="grid"
           gridTemplateColumns={gridColumns}
+          minWidth={columns.length >= 5 ? "42rem" : 0}
           alignItems="center"
           rowGap={1.25}
           columnGap={1}
@@ -95,7 +98,7 @@ function StatMatrix({ title, icon, color, columns, rows, totalRow }) {
                   color={value > 0 ? "dark" : "secondary"}
                   sx={{ textAlign: "right" }}
                 >
-                  {value}
+                  {columns[i].format ? columns[i].format(value) : value}
                 </MDTypography>
               ))}
             </MDBox>
@@ -118,7 +121,7 @@ function StatMatrix({ title, icon, color, columns, rows, totalRow }) {
                   color={color}
                   sx={{ textAlign: "right" }}
                 >
-                  {value}
+                  {columns[i].format ? columns[i].format(value) : value}
                 </MDTypography>
               ))}
             </MDBox>
@@ -143,7 +146,12 @@ StatMatrix.propTypes = {
     "dark",
   ]),
   columns: PropTypes.arrayOf(
-    PropTypes.shape({ key: PropTypes.string, label: PropTypes.string })
+    PropTypes.shape({
+      key: PropTypes.string,
+      label: PropTypes.string,
+      minWidth: PropTypes.string,
+      format: PropTypes.func,
+    })
   ).isRequired,
   rows: PropTypes.arrayOf(
     PropTypes.shape({

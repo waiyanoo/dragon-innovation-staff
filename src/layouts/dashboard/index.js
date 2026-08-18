@@ -109,6 +109,13 @@ function Dashboard() {
     const { hanskinOrder, sugarBearOrder, mongdiesOrder } = getOrderByType(currentOrders);
     // Orders record the creator's display name in createdBy.
     const countFor = (orders, name) => orders.filter((order) => order.createdBy === name).length;
+    const salesFor = (name) =>
+      currentOrders
+        .filter((order) => order.createdBy === name)
+        .reduce(
+          (sum, order) => sum + ((+order.amount || 0) - (+order.deliveryFees || 0)),
+          0
+        );
 
     return staffNames.map((name) => {
       const hanskin = countFor(hanskinOrder, name);
@@ -116,7 +123,13 @@ function Dashboard() {
       const mongdies = countFor(mongdiesOrder, name);
       return {
         label: name,
-        values: [hanskin, sugarbear, mongdies, hanskin + sugarbear + mongdies],
+        values: [
+          hanskin,
+          sugarbear,
+          mongdies,
+          hanskin + sugarbear + mongdies,
+          salesFor(name),
+        ],
       };
     });
   }, [currentOrders, staffNames]);
@@ -313,7 +326,13 @@ function Dashboard() {
                     { key: "hanskin", label: "Hanskin" },
                     { key: "sugarbear", label: "SugarBear" },
                     { key: "mongdies", label: "Mongdies" },
-                    { key: "total", label: "Total" },
+                    { key: "total", label: "Orders" },
+                    {
+                      key: "sales",
+                      label: "Sales amount",
+                      minWidth: "7.5rem",
+                      format: formattedAmount,
+                    },
                   ]}
                   rows={individualSalesRows}
                 />
