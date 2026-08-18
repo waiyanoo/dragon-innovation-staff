@@ -30,6 +30,9 @@ import {
   getOrderByType,
 } from "../../functions/common-functions";
 import TimeFrameDropDown from "./components/TimeFrameDropDown";
+import hanskinLogo from "assets/images/brands/hanskin.png";
+import sugarbearLogo from "assets/images/brands/sugarbear.png";
+import mongdiesLogo from "assets/images/brands/mongdies.png";
 
 function Dashboard() {
   const {userData} = useAuth();
@@ -223,7 +226,8 @@ function Dashboard() {
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                icon="face"
+                image={hanskinLogo}
+                imageAlt="Hanskin"
                 title="Hanskin"
                 count={formattedAmount(orderTotal.hanskin)}
                 percentage={{
@@ -239,7 +243,8 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="warning"
-                icon="face_3"
+                image={sugarbearLogo}
+                imageAlt="SugarBear"
                 title="SugarBear"
                 count={formattedAmount(orderTotal.sugarbear)}
                 percentage={{
@@ -255,7 +260,8 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="child_care"
+                image={mongdiesLogo}
+                imageAlt="Mongdies"
                 title="Mongdies"
                 count={formattedAmount(orderTotal.mongdies)}
                 percentage={{

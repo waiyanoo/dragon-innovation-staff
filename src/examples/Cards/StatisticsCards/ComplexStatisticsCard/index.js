@@ -12,15 +12,15 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-function ComplexStatisticsCard({ color, title, count, percentage, icon, showComparison }) {
+function ComplexStatisticsCard({ color, title, count, percentage, icon, image, imageAlt, showComparison }) {
   return (
     <Card>
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2} pb={showComparison ? 1 : 3}>
         <MDBox
-          variant="gradient"
-          bgColor={color}
-          color={color === "light" ? "dark" : "white"}
-          coloredShadow={color}
+          variant={image ? undefined : "gradient"}
+          bgColor={image ? "white" : color}
+          color={image ? "dark" : color === "light" ? "dark" : "white"}
+          coloredShadow={image ? undefined : color}
           borderRadius="xl"
           display="flex"
           justifyContent="center"
@@ -28,10 +28,22 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon, showComp
           width="4rem"
           height="4rem"
           mt={-3}
+          sx={image ? { border: "1px solid", borderColor: "grey.200", boxShadow: "0 8px 20px rgba(18, 38, 63, 0.12)" } : {}}
         >
-          <Icon fontSize="medium" color="inherit">
-            {icon}
-          </Icon>
+          {image ? (
+            <MDBox
+              component="img"
+              src={image}
+              alt={imageAlt || title}
+              width="82%"
+              height="82%"
+              sx={{ objectFit: "contain" }}
+            />
+          ) : (
+            <Icon fontSize="medium" color="inherit">
+              {icon}
+            </Icon>
+          )}
         </MDBox>
         <MDBox textAlign="right" lineHeight={1.25}>
           <MDTypography variant="button" fontWeight="medium">
@@ -73,6 +85,8 @@ ComplexStatisticsCard.defaultProps = {
     label: "",
   },
   showComparison: true,
+  image: null,
+  imageAlt: "",
 };
 
 // Typechecking props for the ComplexStatisticsCard
@@ -103,7 +117,9 @@ ComplexStatisticsCard.propTypes = {
     amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     label: PropTypes.string,
   }),
-  icon: PropTypes.node.isRequired,
+  icon: PropTypes.node,
+  image: PropTypes.string,
+  imageAlt: PropTypes.string,
   showComparison: PropTypes.bool,
 };
 
