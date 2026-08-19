@@ -14,6 +14,7 @@ import Report_control_panel from "./layouts/report_control_panel";
 import ResetPassword from "./layouts/authentication/reset-password";
 import Action from "./layouts/authentication/action";
 import Waybill from "./layouts/waybill";
+import AdhocInvoice from "./layouts/adhoc-invoice";
 
 const routes = [
   {
@@ -197,6 +198,20 @@ const routes = [
     component: (
       <PrivateRoute roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}>
         <Waybill />
+      </PrivateRoute>
+    ),
+  },
+  {
+    type: "",
+    name: "Ad-hoc Invoice",
+    key: "adhoc-invoice",
+    icon: "",
+    route: "/adhoc-invoice",
+    routeToGo: "/adhoc-invoice",
+    roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"],
+    component: (
+      <PrivateRoute roles={["page_admin", "warehouse", "sales", "admin", "super_admin"]}>
+        <AdhocInvoice />
       </PrivateRoute>
     ),
   },

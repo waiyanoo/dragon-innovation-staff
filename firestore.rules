@@ -103,6 +103,15 @@ service cloud.firestore {
       allow write: if hasRole(["super_admin"]);
     }
 
+    // Customer-copy invoices generated before the warehouse creates the
+    // official Zoho Books invoice. Warehouse may read/print, but only the
+    // order-entry and admin roles can issue or revise one.
+    match /adhocInvoices/{invoiceId} {
+      allow read: if hasRole(["page_admin", "sales", "warehouse", "admin", "super_admin"]);
+      allow create, update: if hasRole(["page_admin", "sales", "admin", "super_admin"]);
+      allow delete: if false;
+    }
+
     // Everything else is denied (Firestore's default), stated explicitly.
     match /{document=**} {
       allow read, write: if false;

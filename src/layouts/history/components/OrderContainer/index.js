@@ -231,6 +231,11 @@ function OrderContainer({ brand }) {
         window.open(`/waybill?type=${orderType}&id=${order.id}`, "_blank", "noopener,noreferrer");
         break;
       }
+      case "adhoc_invoice": {
+        const orderType = segments[0] === "history" ? "retail" : "wholesale";
+        window.open(`/adhoc-invoice?type=${orderType}&id=${order.id}`, "_blank", "noopener,noreferrer");
+        break;
+      }
       case "delete":
         setDeleteTarget(order);
         break;
