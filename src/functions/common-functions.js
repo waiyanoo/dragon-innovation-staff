@@ -50,23 +50,40 @@ export const getOrderByType = (orders) => {
   return { hanskinOrder, sugarBearOrder, mongdiesOrder };
 };
 
-export const calculateForChart = (data, label) => {
-  const result = {};
-  const now = new Date();
+export const calculateForChart = (data, label, timeFrame = "thisMonth", now = new Date()) => {
+  const totals = {};
+  let labels = [];
+  let keyForDate;
+
+  if (timeFrame === "today") {
+    // Six four-hour buckets stay readable on both phones and desktops.
+    labels = ["12am", "4am", "8am", "12pm", "4pm", "8pm"];
+    keyForDate = (date) => labels[Math.floor(date.getHours() / 4)];
+  } else if (timeFrame === "thisMonth" || timeFrame === "previousMonth") {
+    const year = timeFrame === "previousMonth" && now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const month = timeFrame === "previousMonth" ? (now.getMonth() + 11) % 12 : now.getMonth();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    labels = Array.from({ length: lastDay }, (_, index) => String(index + 1));
+    keyForDate = (date) => String(date.getDate());
+  } else {
+    const ranges = {
+      previousQuarter: { startMonth: Math.floor(now.getMonth() / 3) * 3 - 3, count: 3 },
+      thisYear: { startMonth: 0, count: 12 },
+      previousYear: { startMonth: -12, count: 12 },
+    };
+    const range = ranges[timeFrame] || ranges.thisYear;
+    const monthDates = Array.from({ length: range.count }, (_, index) => new Date(now.getFullYear(), range.startMonth + index, 1));
+    labels = monthDates.map((date) => date.toLocaleString("default", { month: "short" }));
+    keyForDate = (date) => date.toLocaleString("default", { month: "short" });
+  }
+
   data.forEach((item) => {
-    const date = item.createdAt.toDate(); // convert Firestore Timestamp
-    const month = date.toLocaleString("default", { month: "short" }); // e.g., "May 2025"
-
-    if (!result[month]) result[month] = 0;
-    result[month] += +item.amount || 0;
+    if (!item.createdAt?.toDate) return;
+    const key = keyForDate(item.createdAt.toDate());
+    totals[key] = (totals[key] || 0) + (+item.amount || 0);
   });
 
-  const months = [...Array(6)].map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i);
-    return d.toLocaleString("default", { month: "short" });
-  });
-
-  return { labels: months, datasets: { label, data: months.map((m) => result[m] || 0) } };
+  return { labels, datasets: { label, data: labels.map((key) => totals[key] || 0) } };
 };
 
 const toTimestamp = (date) => Timestamp.fromDate(date);

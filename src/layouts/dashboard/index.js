@@ -180,17 +180,15 @@ function Dashboard() {
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
+    setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin", timeFrame));
+    setSugarbearChartData(calculateForChart(sugarBearOrder, "SugarBear", timeFrame));
+    setMongdiesChartData(calculateForChart(mongdiesOrder, "Mongdies", timeFrame));
     if(timeFrame === 'thisMonth')
       getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
   }
 
   const calculateDataForShipAndPack = (orders) => {
     const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
-    //Calculate for Chart
-    setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin"));
-    setSugarbearChartData(calculateForChart(sugarBearOrder, "Sugarbear"));
-    setMongdiesChartData(calculateForChart(mongdiesOrder, "mongdies"));
-
     //Calculate To Packed
     const hanskinToPacked = hanskinOrder.filter(order => order.status === 0).length;
     const sugarbearToPacked = sugarBearOrder.filter(order => order.status === 0).length;
@@ -215,6 +213,15 @@ function Dashboard() {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const chartDescription = {
+    today: "Sales throughout today",
+    thisMonth: "Daily sales this month",
+    previousMonth: "Daily sales last month",
+    previousQuarter: "Monthly sales last quarter",
+    thisYear: "Monthly sales this year",
+    previousYear: "Monthly sales last year",
+  }[timeFrame];
 
   const renderLayout = () => {
     return (
@@ -353,7 +360,7 @@ function Dashboard() {
                 <ReportsLineChart
                   color="info"
                   title="Hanskin sales"
-                  description="Monthly Performance"
+                  description={chartDescription}
                   chart={hanskinChartData}
                 />
               </MDBox>
@@ -363,7 +370,7 @@ function Dashboard() {
                 <ReportsLineChart
                   color="warning"
                   title="SugarBear sales"
-                  description="Monthly Performance"
+                  description={chartDescription}
                   chart={sugarbearChartData}
                 />
               </MDBox>
@@ -373,7 +380,7 @@ function Dashboard() {
                 <ReportsLineChart
                   color="success"
                   title="Mongdies Sales"
-                  description="Monthly Performance"
+                  description={chartDescription}
                   chart={mongdiesChartData}
                 />
               </MDBox>

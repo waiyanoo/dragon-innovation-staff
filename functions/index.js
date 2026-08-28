@@ -13,10 +13,39 @@ import { getFirestore } from 'firebase-admin/firestore';
 // import  algoliasearch  from 'algoliasearch';
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { Timestamp } from "firebase-admin/firestore";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 const adminApp = initializeApp();
 const db = getFirestore(adminApp);
+
+// Ad-hoc customer invoices are temporary. Delete expired records daily in
+// bounded batches; downloaded PDFs live on staff devices and are not stored
+// by this portal.
+export const cleanupExpiredAdhocInvoices = onSchedule({
+  schedule: "every day 02:00",
+  timeZone: "Asia/Yangon",
+}, async () => {
+  let deleted = 0;
+  const deleteMatching = async (field, cutoff) => {
+    let snapshot;
+    do {
+      snapshot = await db.collection("adhocInvoices")
+        .where(field, "<=", cutoff)
+        .limit(400)
+        .get();
+      if (snapshot.empty) break;
+      const batch = db.batch();
+      snapshot.docs.forEach((invoice) => batch.delete(invoice.ref));
+      await batch.commit();
+      deleted += snapshot.size;
+    } while (snapshot.size === 400);
+  };
+
+  await deleteMatching("expiresAt", Timestamp.now());
+  // Covers invoices saved before expiresAt was introduced.
+  await deleteMatching("updatedAt", Timestamp.fromMillis(Date.now() - 14 * 24 * 60 * 60 * 1000));
+
+  console.log(`Deleted ${deleted} expired ad-hoc invoice(s).`);
+});
 // const appId = "LUQUCJ1X7P";
 // const adminKey = "26bec2fffc79ba517291e2d15fea6dc4";
 // const indexName = "Dragon";

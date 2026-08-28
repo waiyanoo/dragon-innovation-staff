@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc, Timestamp } from "firebase/firestore";
 import { useSearchParams } from "react-router-dom";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Icon from "@mui/material/Icon";
@@ -69,11 +69,14 @@ function AdhocInvoice() {
           if (cancelled) return;
           if (invoiceSnap.exists()) {
             const invoice = invoiceSnap.data();
-            setInvoiceNumber(invoice.invoiceNumber);
-            setItems(invoice.items?.length ? invoice.items : [blankItem()]);
-            setDeliveryFees(Number(invoice.deliveryFees) || 0);
-            setAdditionalDiscount(Number(invoice.additionalDiscount) || 0);
-            setSaved(true);
+            const expiresAt = invoice.expiresAt?.toMillis?.();
+            if (!expiresAt || expiresAt > Date.now()) {
+              setInvoiceNumber(invoice.invoiceNumber);
+              setItems(invoice.items?.length ? invoice.items : [blankItem()]);
+              setDeliveryFees(Number(invoice.deliveryFees) || 0);
+              setAdditionalDiscount(Number(invoice.additionalDiscount) || 0);
+              setSaved(true);
+            }
           }
         } catch (invoiceError) {
           if (!cancelled) setInvoiceAccessError(true);
@@ -127,6 +130,7 @@ function AdhocInvoice() {
         ...calculateInvoice(validItems), deliveryFees: Math.max(0, Number(deliveryFees) || 0),
         additionalDiscount: Math.max(0, Number(additionalDiscount) || 0),
         grandTotal: calculateGrandTotal(calculateInvoice(validItems).total, deliveryFees, additionalDiscount),
+        expiresAt: Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)),
         updatedAt: serverTimestamp(), updatedBy: userData?.name || userData?.email || "Staff",
       }, { merge: true });
       setItems(validItems);
