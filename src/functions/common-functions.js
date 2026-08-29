@@ -55,11 +55,7 @@ export const calculateForChart = (data, label, timeFrame = "thisMonth", now = ne
   let labels = [];
   let keyForDate;
 
-  if (timeFrame === "today") {
-    // Six four-hour buckets stay readable on both phones and desktops.
-    labels = ["12am", "4am", "8am", "12pm", "4pm", "8pm"];
-    keyForDate = (date) => labels[Math.floor(date.getHours() / 4)];
-  } else if (timeFrame === "thisMonth" || timeFrame === "previousMonth") {
+  if (timeFrame === "today" || timeFrame === "thisMonth" || timeFrame === "previousMonth") {
     const year = timeFrame === "previousMonth" && now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
     const month = timeFrame === "previousMonth" ? (now.getMonth() + 11) % 12 : now.getMonth();
     const lastDay = new Date(year, month + 1, 0).getDate();

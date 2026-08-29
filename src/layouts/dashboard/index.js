@@ -102,7 +102,20 @@ function Dashboard() {
     const { start, end } = ranges[timeFrame];
     getDataByDateRange(start, end).then(orders => {
       calculateDataForDashboard(orders);
+      if (timeFrame === "today") {
+        const monthRange = ranges.thisMonth;
+        getDataByDateRange(monthRange.start, monthRange.end).then(monthOrders => {
+          calculateChartData(monthOrders, "today");
+        });
+      }
     });
+  }
+
+  const calculateChartData = (orders, selectedTimeFrame = timeFrame) => {
+    const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
+    setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin", selectedTimeFrame));
+    setSugarbearChartData(calculateForChart(sugarBearOrder, "SugarBear", selectedTimeFrame));
+    setMongdiesChartData(calculateForChart(mongdiesOrder, "Mongdies", selectedTimeFrame));
   }
 
   // Per-staff counts are derived rather than stored so they can't go stale
@@ -180,9 +193,7 @@ function Dashboard() {
 
     setOrderTotal( { hanskin : hanskinTotal, sugarbear : sugarBearTotal, mongdies : mongdiesTotal});
     setOrderTotalCount( { hanskin : hanskinOrder.length, sugarbear : sugarBearOrder.length, mongdies : mongdiesOrder.length});
-    setHanskinChartData(calculateForChart(hanskinOrder, "Hanskin", timeFrame));
-    setSugarbearChartData(calculateForChart(sugarBearOrder, "SugarBear", timeFrame));
-    setMongdiesChartData(calculateForChart(mongdiesOrder, "Mongdies", timeFrame));
+    if (timeFrame !== "today") calculateChartData(orders);
     if(timeFrame === 'thisMonth')
       getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
   }
@@ -215,7 +226,7 @@ function Dashboard() {
   };
 
   const chartDescription = {
-    today: "Sales throughout today",
+    today: "Daily sales this month",
     thisMonth: "Daily sales this month",
     previousMonth: "Daily sales last month",
     previousQuarter: "Monthly sales last quarter",
