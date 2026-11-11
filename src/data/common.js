@@ -44,14 +44,15 @@ export const ROLES = {
 }
 
 export const Order_Card_Actions = [
-  {label: "View", type: "view", group: "general", statuses: [0,1,2,3], roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"], allowSuper: false},
-  {label: "Print waybill", type: "waybill", group: "general", statuses: [0,1,2,3], roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"], allowSuper: false},
-  {label: "Create ad-hoc invoice", type: "adhoc_invoice", group: "general", statuses: [0,1,2,3], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: false},
-  {label: "Edit", type: "edit", group: "general", statuses: [0], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: true},
-  {label: "Packed", type: "packed", group: "lifecycle", statuses: [0], roles: ["warehouse", "admin", "super_admin"], allowSuper: false},
-  {label: "Shipped", type: "shipped", group: "lifecycle", statuses: [1], roles: ["warehouse", "admin", "super_admin"], allowSuper: false},
-  {label: "Set Invoice No.", type: "invoice", group: "lifecycle", statuses: [2], roles: ["admin", "super_admin"], allowSuper: false},
-  {label: "Delete", type: "delete", group: "danger", statuses: [0], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: true},
+  { label: "View", type: "view", group: "general", fulfilment: ["pending", "packed", "shipped", "cancelled"], roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"], allowSuper: false },
+  { label: "Print waybill", type: "waybill", group: "general", fulfilment: ["pending", "packed", "shipped"], roles: ["page_admin", "warehouse", "sales", "admin", "super_admin"], allowSuper: false },
+  { label: "Create ad-hoc invoice", type: "adhoc_invoice", group: "general", fulfilment: ["pending", "packed", "shipped"], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: false },
+  { label: "Edit", type: "edit", group: "general", fulfilment: ["pending"], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: false },
+  { label: "Mark as packed", type: "packed", group: "lifecycle", fulfilment: ["pending"], roles: ["warehouse", "admin", "super_admin"], allowSuper: false },
+  { label: "Mark as shipped", type: "shipped", group: "lifecycle", fulfilment: ["packed"], roles: ["warehouse", "admin", "super_admin"], allowSuper: false },
+  { label: "Set official invoice no.", type: "invoice", group: "lifecycle", fulfilment: ["pending", "packed", "shipped"], roles: ["admin", "super_admin"], allowSuper: false },
+  { label: "Report fulfilment issue", type: "exception", group: "lifecycle", fulfilment: ["pending", "packed"], roles: ["warehouse", "admin", "super_admin"], allowSuper: false },
+  { label: "Cancel order", type: "cancel", group: "danger", fulfilment: ["pending", "packed"], roles: ["page_admin", "sales", "admin", "super_admin"], allowSuper: false },
 ]
 
 export const Order_Card_Action_Groups = ["general", "lifecycle", "danger"]

@@ -62,7 +62,9 @@ function Reward() {
         where("createdAt", "<", endTimestamp)
       )
     );
-    let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let data = snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((order) => !order.cancelledAt && !order.isArchived && order.fulfilmentStatus !== "cancelled" && order.status !== 4);
     setOrders(data);
   };
 

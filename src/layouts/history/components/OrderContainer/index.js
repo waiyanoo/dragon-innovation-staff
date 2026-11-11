@@ -7,17 +7,17 @@ import MDTypography from "components/MDTypography";
 
 // Billing page components
 import OrderCard from "../OrderCard";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   arrayUnion,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   limit,
   orderBy,
   query,
-  updateDoc,
+  startAfter,
+  Timestamp,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -40,12 +40,21 @@ import MDButton from "../../../../components/MDButton";
 import MDInput from "../../../../components/MDInput";
 import BrandedLoader from "../../../../components/BrandedLoader";
 import EmptyState from "../../../../components/EmptyState";
-import Fuse from "fuse.js";
-import { debounce } from "lodash";
 import FilterOrders from "../Filters";
 import dayjs from "dayjs";
+import {
+  actorFrom,
+  auditPayload,
+  auditRef,
+  FULFILMENT,
+  fulfilmentFromOrder,
+  INVOICE_STATUS,
+  legacyStatusFor,
+  updateOrderWithAudit,
+} from "../../../../services/orderWorkflow";
 
 function OrderContainer({ brand }) {
+  const PAGE_SIZE = 100;
   const navigate = useNavigate();
   const location = useLocation();
   const [orders, setOrders] = useState([]);
@@ -65,44 +74,33 @@ function OrderContainer({ brand }) {
     endDate: "",
   });
   const [selectedBrand, setSelectedBrand] = useState(brand);
-  const [limitCount, setLimitCount] = useState(500);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [open, setOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [exceptionTarget, setExceptionTarget] = useState(null);
+  const [exceptionReason, setExceptionReason] = useState("");
   const [bulkTarget, setBulkTarget] = useState(null);
   const [isBulkRunning, setIsBulkRunning] = useState(false);
-  const [bulkPending, setBulkPending] = useState([]);
-  const [bulkPacked, setBulkPacked] = useState([]);
+  const [isBulkPreparing, setIsBulkPreparing] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [orderId, setOrderId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { userData } = useAuth();
+  const { authUser, userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
   const segments = location.pathname.split("/").filter(Boolean);
 
   useEffect(() => {
-    filerOrders();
-    // Refetch when the status filter changes so status-filtered views pull
-    // matching orders from the server instead of only the newest page, and
-    // when limitCount grows so "Load More" queries with the new limit.
-  }, [segments[0], checkedItems.pending, checkedItems.packed, checkedItems.shipped, limitCount]);
-
-  useEffect(() => {
-    loadBulkSets();
-  }, [selectedBrand]);
+    const timer = setTimeout(() => filerOrders(false), 350);
+    return () => clearTimeout(timer);
+  }, [segments[0], selectedBrand, checkedItems, searchKeywords]);
 
   const handleClose = () => setOpen(false);
 
-  const fuse = useMemo(
-    () =>
-      new Fuse(orders, {
-        keys: ["name", "primaryPhone", "secondaryPhone"],
-        threshold: 0.3,
-      }),
-    [orders]
-  );
-
   const handleConfirm = async () => {
-    await updateOrder(3, orderId, true);
+    await setOfficialInvoice(orderId);
     setOpen(false);
   };
 
@@ -112,49 +110,115 @@ function OrderContainer({ brand }) {
     } else {
       navigate(`/${segments[0]}/${selectedBrand}`);
     }
-  }, [selectedBrand, orders]);
+  }, [selectedBrand, segments[0]]);
 
-  const loadMore = () => {
-    // The refetch effect keyed on limitCount runs the query with the new
-    // limit; calling filerOrders() here would still use the old value.
-    setLimitCount((prev) => prev + 100);
-  };
+  const loadMore = () => filerOrders(true);
 
   const handleBrandChange = (e) => {
     const { value } = e.target;
     setSelectedBrand(value);
   };
 
-  const updateOrder = async (status = 0, id, setInvoice = false) => {
-    const docRef = doc(database, segments[0] === "history" ? "orders" : "ws_orders", id);
-    // arrayUnion appends server-side, so concurrent updates from two staff
-    // can't overwrite each other's history entries.
+  const updateOrder = async (fulfilmentStatus, id) => {
+    const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
     const dataToUpdate = {
-      status,
+      fulfilmentStatus,
+      status: legacyStatusFor(fulfilmentStatus),
       updateHistory: arrayUnion({
         updatedAt: new Date(),
         updatedBy: userData.name,
+        updatedByUid: authUser?.uid || "",
       }),
     };
-    if (setInvoice) {
-      dataToUpdate.invoiceNumber = invoiceNumber;
-    }
     try {
-      await updateDoc(docRef, dataToUpdate);
-      setSearchedOrders((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)));
-      loadBulkSets();
-      setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
+      await updateOrderWithAudit({
+        collectionName,
+        orderId: id,
+        updates: dataToUpdate,
+        actor: actorFrom(authUser, userData),
+        action: `order.${fulfilmentStatus}`,
+      });
+      setOrders((prev) => prev.map((item) => (item.id === id ? { ...item, ...dataToUpdate } : item)));
+      setSearchedOrders((prev) => prev.map((item) => (item.id === id ? { ...item, ...dataToUpdate } : item)));
+      setSnack({ open: true, message: `Order marked as ${fulfilmentStatus}.`, color: "success", icon: "check" });
       setOrderId("");
-      setInvoiceNumber("");
     } catch (e) {
       setSnack({ open: true, message: "Order update failed.", color: "error", icon: "warning" });
     }
   };
 
-  const confirmDelete = async () => {
-    const target = deleteTarget;
-    setDeleteTarget(null);
-    await deleteOrder(target.id);
+  const setOfficialInvoice = async (id) => {
+    const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
+    try {
+      await updateOrderWithAudit({
+        collectionName,
+        orderId: id,
+        updates: {
+          invoiceNumber: invoiceNumber.trim(),
+          invoiceStatus: INVOICE_STATUS.ISSUED,
+          updateHistory: arrayUnion({ updatedAt: new Date(), updatedBy: userData.name, updatedByUid: authUser?.uid || "" }),
+        },
+        actor: actorFrom(authUser, userData),
+        action: "order.invoice_issued",
+      });
+      setOrders((prev) => prev.map((item) => item.id === id ? { ...item, invoiceNumber: invoiceNumber.trim(), invoiceStatus: INVOICE_STATUS.ISSUED } : item));
+      setSearchedOrders((prev) => prev.map((item) => item.id === id ? { ...item, invoiceNumber: invoiceNumber.trim(), invoiceStatus: INVOICE_STATUS.ISSUED } : item));
+      setInvoiceNumber("");
+      setOrderId("");
+      setSnack({ open: true, message: "Official invoice number saved.", color: "success", icon: "check" });
+    } catch (e) {
+      setSnack({ open: true, message: "Invoice number could not be saved.", color: "error", icon: "warning" });
+    }
+  };
+
+  const confirmCancel = async () => {
+    const target = cancelTarget;
+    if (!target || !cancelReason.trim()) return;
+    setCancelTarget(null);
+    const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
+    try {
+      const updates = {
+        fulfilmentStatus: FULFILMENT.CANCELLED,
+        status: legacyStatusFor(FULFILMENT.CANCELLED),
+        isArchived: true,
+        cancelledAt: new Date(),
+        cancelledBy: userData.name,
+        cancelledByUid: authUser?.uid || "",
+        cancellationReason: cancelReason.trim(),
+        updateHistory: arrayUnion({ updatedAt: new Date(), updatedBy: userData.name, updatedByUid: authUser?.uid || "" }),
+      };
+      await updateOrderWithAudit({ collectionName, orderId: target.id, updates, actor: actorFrom(authUser, userData), action: "order.cancelled", metadata: { reason: cancelReason.trim() } });
+      setOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
+      setSearchedOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
+      setCancelReason("");
+      setSnack({ open: true, message: "Order cancelled and kept in the records.", color: "success", icon: "check" });
+    } catch (e) {
+      setSnack({ open: true, message: "Order could not be cancelled.", color: "error", icon: "warning" });
+    }
+  };
+
+  const confirmException = async () => {
+    const target = exceptionTarget;
+    if (!target || !exceptionReason.trim()) return;
+    setExceptionTarget(null);
+    const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
+    try {
+      const updates = {
+        exceptionStatus: "open",
+        exceptionReason: exceptionReason.trim(),
+        exceptionReportedAt: new Date(),
+        exceptionReportedBy: userData.name,
+        exceptionReportedByUid: authUser?.uid || "",
+        updateHistory: arrayUnion({ updatedAt: new Date(), updatedBy: userData.name, updatedByUid: authUser?.uid || "" }),
+      };
+      await updateOrderWithAudit({ collectionName, orderId: target.id, updates, actor: actorFrom(authUser, userData), action: "order.exception_reported", metadata: { reason: exceptionReason.trim() } });
+      setOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
+      setSearchedOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
+      setExceptionReason("");
+      setSnack({ open: true, message: "Warehouse issue reported.", color: "warning", icon: "warning" });
+    } catch (e) {
+      setSnack({ open: true, message: "Issue could not be reported.", color: "error", icon: "warning" });
+    }
   };
 
   const runBulkUpdate = async () => {
@@ -164,18 +228,28 @@ function OrderContainer({ brand }) {
 
     setIsBulkRunning(true);
     const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
-    const historyEntry = { updatedAt: new Date(), updatedBy: userData.name };
+    const historyEntry = { updatedAt: new Date(), updatedBy: userData.name, updatedByUid: authUser?.uid || "" };
 
     try {
-      // Firestore caps a batch at 500 writes, so chunk to stay well under it.
-      for (let i = 0; i < target.orders.length; i += 400) {
-        const chunk = target.orders.slice(i, i + 400);
+      // Each order also gets an audit record, so 200 orders = 400 writes.
+      for (let i = 0; i < target.orders.length; i += 200) {
+        const chunk = target.orders.slice(i, i + 200);
         const batch = writeBatch(database);
         chunk.forEach((order) => {
           batch.update(doc(database, collectionName, order.id), {
-            status: target.toStatus,
+            fulfilmentStatus: target.toStatus,
+            status: legacyStatusFor(target.toStatus),
             updateHistory: arrayUnion(historyEntry),
           });
+          batch.set(auditRef(), auditPayload({
+            actor: actorFrom(authUser, userData),
+            action: `order.bulk_${target.toStatus}`,
+            orderId: order.id,
+            collectionName,
+            before: { fulfilmentStatus: fulfilmentFromOrder(order) },
+            after: { fulfilmentStatus: target.toStatus },
+            metadata: { bulk: true },
+          }));
         });
         await batch.commit();
       }
@@ -184,11 +258,10 @@ function OrderContainer({ brand }) {
       setSearchedOrders(
         searchedOrders.map((order) =>
           updatedIds.has(order.id)
-            ? { ...order, status: target.toStatus, updateHistory: [...(order.updateHistory || []), historyEntry] }
+            ? { ...order, status: legacyStatusFor(target.toStatus), fulfilmentStatus: target.toStatus, updateHistory: [...(order.updateHistory || []), historyEntry] }
             : order
         )
       );
-      await loadBulkSets();
       setSnack({
         open: true,
         message: `${target.orders.length} order(s) marked as ${target.label}.`,
@@ -207,21 +280,10 @@ function OrderContainer({ brand }) {
     }
   };
 
-  const deleteOrder = async (id) => {
-    try {
-      await deleteDoc(doc(database, segments[0] === "history" ? "orders" : "ws_orders", id));
-      setSearchedOrders((prev) => prev.filter((item) => item.id !== id));
-      loadBulkSets();
-      setSnack({ open: true, message: "Order delete success.", color: "success", icon: "check" });
-    } catch (e) {
-      setSnack({ open: true, message: "Order delete failed.", color: "error", icon: "warning" });
-    }
-  };
-
   const handleOrderCardClick = async (e, order) => {
     switch (e) {
       case "view":
-        navigate(`/details?id=${order.id}`);
+        navigate(`/details?type=${segments[0] === "history" ? "retail" : "wholesale"}&id=${order.id}`);
         break;
       case "edit":
         navigate(`/order?id=${order.id}`);
@@ -236,14 +298,19 @@ function OrderContainer({ brand }) {
         window.open(`/adhoc-invoice?type=${orderType}&id=${order.id}`, "_blank", "noopener,noreferrer");
         break;
       }
-      case "delete":
-        setDeleteTarget(order);
+      case "cancel":
+        setCancelReason("");
+        setCancelTarget(order);
+        break;
+      case "exception":
+        setExceptionReason("");
+        setExceptionTarget(order);
         break;
       case "packed":
-        await updateOrder(1, order.id);
+        await updateOrder(FULFILMENT.PACKED, order.id);
         break;
       case "shipped":
-        await updateOrder(2, order.id);
+        await updateOrder(FULFILMENT.SHIPPED, order.id);
         break;
       case "invoice":
         setOpen(true);
@@ -254,134 +321,114 @@ function OrderContainer({ brand }) {
     }
   };
 
-  // Full pending/packed sets for the current brand, queried directly so the
-  // bulk counts are accurate regardless of the newest-page display limit or
-  // any active filter. Scoped to the brand client-side to avoid a composite
-  // index (status is on the automatic single-field index).
-  const loadBulkSets = async () => {
+  const selectedStatusCodes = () => {
+    const statuses = [];
+    if (checkedItems.pending) statuses.push(0);
+    if (checkedItems.packed) statuses.push(1);
+    if (checkedItems.shipped) statuses.push(2, 3);
+    return [...new Set(statuses)];
+  };
+
+  const requiresCompleteDataset = () => Boolean(
+    searchKeywords.trim()
+    || checkedItems.cod || checkedItems.fullPaid || checkedItems.other
+    || checkedItems.cash || checkedItems.kpay || checkedItems.bank
+    || checkedItems.startDate || checkedItems.endDate
+  );
+
+  const buildOrderConstraints = () => {
+    const constraints = [];
+    if (selectedBrand !== "all") constraints.push(where("brand", "==", selectedBrand));
+    const statuses = selectedStatusCodes();
+    if (statuses.length) constraints.push(where("status", "in", statuses));
+    if (checkedItems.startDate) constraints.push(where("createdAt", ">=", Timestamp.fromDate(new Date(checkedItems.startDate))));
+    if (checkedItems.endDate) {
+      const endExclusive = dayjs(checkedItems.endDate).add(1, "day").startOf("day").toDate();
+      constraints.push(where("createdAt", "<", Timestamp.fromDate(endExclusive)));
+    }
+    constraints.push(orderBy("createdAt", "desc"));
+    return constraints;
+  };
+
+  const fetchOrderDataset = async (complete = false, cursor = null) => {
+    const coll = segments[0] === "history" ? "orders" : "ws_orders";
+    const base = buildOrderConstraints();
+    const collected = [];
+    let pageCursor = cursor;
+    let finalSnapshot = null;
+    do {
+      const pageQuery = query(
+        collection(database, coll),
+        ...base,
+        ...(pageCursor ? [startAfter(pageCursor)] : []),
+        limit(complete ? 250 : PAGE_SIZE)
+      );
+      finalSnapshot = await getDocs(pageQuery);
+      collected.push(...finalSnapshot.docs.map((orderDoc) => ({ id: orderDoc.id, ...orderDoc.data() })));
+      pageCursor = finalSnapshot.docs.at(-1) || null;
+    } while (complete && finalSnapshot.size === 250);
+    return { orders: collected, cursor: pageCursor, pageSize: finalSnapshot?.size || 0 };
+  };
+
+  const applyClientFilters = (source, keyword = searchKeywords) => {
+    let result = [...source];
+    const paymentStatuses = [];
+    if (checkedItems.cod) paymentStatuses.push("COD");
+    if (checkedItems.fullPaid) paymentStatuses.push("Paid");
+    if (checkedItems.other) paymentStatuses.push("Other", "Partial");
+    const paymentMethods = [];
+    if (checkedItems.cash) paymentMethods.push("Cash");
+    if (checkedItems.kpay) paymentMethods.push("KPay");
+    if (checkedItems.bank) paymentMethods.push("Bank");
+    if (paymentStatuses.length) result = result.filter((order) => paymentStatuses.includes(order.paymentStatus));
+    if (paymentMethods.length) result = result.filter((order) => paymentMethods.includes(order.paymentMode));
+    const term = keyword.trim().toLowerCase();
+    if (term) {
+      result = result.filter((order) => [order.name, order.primaryPhone, order.secondaryPhone, order.invoiceNumber, order.items]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term)));
+    }
+    return result;
+  };
+
+  const prepareBulkUpdate = async (fromStatus, toStatus, label) => {
+    setIsBulkPreparing(true);
     try {
-      const coll = location.pathname.split("/").filter(Boolean)[0] === "history" ? "orders" : "ws_orders";
-      const brandRef = collection(database, coll);
-      const [pendingSnap, packedSnap] = await Promise.all([
-        getDocs(query(brandRef, where("status", "==", 0), limit(3000))),
-        getDocs(query(brandRef, where("status", "==", 1), limit(3000))),
-      ]);
-      const mapDocs = (snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      let pending = mapDocs(pendingSnap);
-      let packed = mapDocs(packedSnap);
-      if (selectedBrand !== "all") {
-        pending = pending.filter((order) => order.brand === selectedBrand);
-        packed = packed.filter((order) => order.brand === selectedBrand);
-      }
-      setBulkPending(pending);
-      setBulkPacked(packed);
-    } catch (e) {
-      console.error("Error loading bulk sets: ", e);
+      const result = await fetchOrderDataset(true);
+      const visibleMatches = applyClientFilters(result.orders)
+        .filter((order) => legacyStatusFor(fulfilmentFromOrder(order)) === fromStatus);
+      setBulkTarget({
+        toStatus,
+        label,
+        orders: visibleMatches,
+      });
+    } catch (error) {
+      setSnack({ open: true, message: "Could not prepare the bulk update.", color: "error", icon: "warning" });
+    } finally {
+      setIsBulkPreparing(false);
     }
   };
 
-  const filerOrders = async () => {
+  const filerOrders = async (append = false) => {
+    if (append && (!lastVisible || !hasMore || isLoadingMore)) return;
+    append ? setIsLoadingMore(true) : setIsLoading(true);
     try {
-      const segments = location.pathname.split("/").filter(Boolean);
-      const brandRef = collection(database, segments[0] === "history" ? "orders" : "ws_orders");
-
-      const statuses = [];
-      if (checkedItems.pending) statuses.push(0);
-      if (checkedItems.packed) statuses.push(1);
-      if (checkedItems.shipped) statuses.push(2);
-
-      // With a status filter active, query by status so ALL matching orders
-      // load regardless of age (not just the newest `limitCount`). No orderBy
-      // keeps this on the automatic single-field index; we sort client-side.
-      const q =
-        statuses.length > 0
-          ? query(brandRef, where("status", "in", statuses), limit(3000))
-          : query(brandRef, orderBy("createdAt", "desc"), limit(limitCount));
-
-      const querySnapshot = await getDocs(q);
-
-      const orderData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setOrders(
-        orderData.sort((a, b) => dayjs(b.createdAt.seconds).diff(dayjs(a.createdAt.seconds)))
-      );
+      const complete = requiresCompleteDataset();
+      const result = await fetchOrderDataset(complete, append ? lastVisible : null);
+      const sorted = result.orders.sort((a, b) => dayjs(b.createdAt?.toDate?.() || 0).diff(dayjs(a.createdAt?.toDate?.() || 0)));
+      setOrders((current) => append ? [...current, ...sorted] : sorted);
+      setLastVisible(result.cursor);
+      setHasMore(!complete && result.pageSize === PAGE_SIZE);
     } catch (e) {
       console.error("Error getting documents: ", e);
-    }
-  };
-
-  const onSearch = (value) => {
-    const filerWithChecked = (searchOrders) => {
-      let tempOrders =
-        selectedBrand === "all"
-          ? searchOrders
-          : searchOrders.filter((order) => order.brand === selectedBrand);
-      let statusFilter = [];
-      let paymentFilter = [];
-      let paymentTypeFilter = [];
-
-      checkedItems.pending ? statusFilter.push(0) : null;
-      checkedItems.packed ? statusFilter.push(1) : null;
-      checkedItems.shipped ? statusFilter.push(2) : null;
-
-      checkedItems.cod ? paymentFilter.push("COD") : null;
-      checkedItems.fullPaid ? paymentFilter.push("Paid") : null;
-      checkedItems.other ? paymentFilter.push("Other") : null;
-
-      checkedItems.cash ? paymentTypeFilter.push("Cash") : null;
-      checkedItems.kpay ? paymentTypeFilter.push("KPay") : null;
-      checkedItems.bank ? paymentTypeFilter.push("Bank") : null;
-
-      if (statusFilter.length > 0) {
-        tempOrders = tempOrders.filter((order) => statusFilter.includes(order.status));
-      }
-      if (paymentFilter.length > 0) {
-        tempOrders = tempOrders.filter((order) => paymentFilter.includes(order.paymentStatus));
-      }
-      if (paymentTypeFilter.length > 0) {
-        tempOrders = tempOrders.filter((order) => paymentTypeFilter.includes(order.paymentMode));
-      }
-      if (checkedItems.startDate !== "" && checkedItems.endDate !== "") {
-        const startDate = dayjs(checkedItems.startDate);
-        const endDate = dayjs(checkedItems.endDate);
-        tempOrders = tempOrders.filter((order) => {
-          const createdAt = dayjs.unix(order.createdAt.seconds); // convert Firestore timestamp
-          return createdAt.isBetween(startDate, endDate, "day", "[]");
-        });
-      }
-      return tempOrders.sort((a, b) => dayjs(b.createdAt.seconds).diff(dayjs(a.createdAt.seconds)));
-    };
-    if (value.trim() === "") {
-      setSearchedOrders(filerWithChecked(orders));
-    } else {
-      const result = fuse.search(value);
-      const unfilterResult = result.map((r) => r.item);
-      setSearchedOrders(filerWithChecked(unfilterResult));
+    } finally {
+      append ? setIsLoadingMore(false) : setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    debouncedSearch(searchKeywords);
-  }, [searchKeywords, checkedItems, brand, orders]);
-
-  // Keep one debounce instance for the component's lifetime (recreating it
-  // each render never lets the timer elapse) while the ref always points at
-  // the latest onSearch closure so it filters with current state.
-  const onSearchRef = useRef(onSearch);
-  onSearchRef.current = onSearch;
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((value) => {
-        onSearchRef.current(value);
-        setIsLoading(false);
-      }, 500),
-    []
-  );
-
-  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+    setSearchedOrders(applyClientFilters(orders, searchKeywords));
+  }, [orders, searchKeywords, checkedItems]);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -461,7 +508,7 @@ function OrderContainer({ brand }) {
         <MDBox px={2} pb={2}>
           <FilterOrders filerChange={(e) => setCheckedItems(e)} />
         </MDBox>
-        {userData.role === "super_admin" && (bulkPending.length > 0 || bulkPacked.length > 0) && (
+        {userData.role === "super_admin" && (
           <MDBox
             px={2}
             pb={2}
@@ -472,30 +519,18 @@ function OrderContainer({ brand }) {
             <MDButton
               variant="gradient"
               color="info"
-              disabled={bulkPending.length === 0 || isBulkRunning}
-              onClick={() =>
-                setBulkTarget({
-                  toStatus: 1,
-                  label: "Packed",
-                  orders: bulkPending,
-                })
-              }
+              disabled={isBulkRunning || isBulkPreparing}
+              onClick={() => prepareBulkUpdate(0, FULFILMENT.PACKED, "Packed")}
             >
-              Mark {bulkPending.length} pending as packed
+              Mark matching pending as packed
             </MDButton>
             <MDButton
               variant="gradient"
               color="warning"
-              disabled={bulkPacked.length === 0 || isBulkRunning}
-              onClick={() =>
-                setBulkTarget({
-                  toStatus: 2,
-                  label: "Shipped",
-                  orders: bulkPacked,
-                })
-              }
+              disabled={isBulkRunning || isBulkPreparing}
+              onClick={() => prepareBulkUpdate(1, FULFILMENT.SHIPPED, "Shipped")}
             >
-              Mark {bulkPacked.length} packed as shipped
+              Mark matching packed as shipped
             </MDButton>
           </MDBox>
         )}
@@ -516,9 +551,9 @@ function OrderContainer({ brand }) {
               ))}
             </MDBox>
             <MDBox>
-              {searchedOrders.length < limitCount ? null : (
-                <MDButton variant="gradient" color="info" fullWidth onClick={loadMore}>
-                  Load More
+              {!hasMore ? null : (
+                <MDButton variant="gradient" color="info" fullWidth onClick={loadMore} disabled={isLoadingMore}>
+                  {isLoadingMore ? "Loading more…" : "Load More"}
                 </MDButton>
               )}
               {searchedOrders.length === 0 ? (
@@ -570,26 +605,40 @@ function OrderContainer({ brand }) {
           </MDButton>
         </DialogActions>
       </Dialog>
-      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)}>
+      <Dialog open={Boolean(cancelTarget)} onClose={() => setCancelTarget(null)} fullWidth maxWidth="sm">
         <DialogTitle>
           <MDTypography variant="h5" component="span" fontWeight="medium">
-            Delete this order?
+            Cancel this order?
           </MDTypography>
         </DialogTitle>
-        <DialogContent sx={{ width: { xs: "350px", md: "450px" } }}>
+        <DialogContent>
           <MDTypography variant="body2" color="text">
-            {deleteTarget
-              ? `The order for "${deleteTarget.name}" will be permanently deleted. This cannot be undone.`
+            {cancelTarget
+              ? `The order for "${cancelTarget.name}" will remain in history but will be excluded from active sales and fulfilment.`
               : ""}
           </MDTypography>
+          <MDBox mt={2}>
+            <MDInput label="Cancellation reason" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} fullWidth required multiline minRows={2} />
+          </MDBox>
         </DialogContent>
         <DialogActions>
-          <MDButton variant="gradient" color="light" onClick={() => setDeleteTarget(null)}>
+          <MDButton variant="gradient" color="light" onClick={() => setCancelTarget(null)}>
             Cancel
           </MDButton>
-          <MDButton variant="gradient" color="error" onClick={confirmDelete}>
-            Delete
+          <MDButton variant="gradient" color="error" onClick={confirmCancel} disabled={!cancelReason.trim()}>
+            Confirm cancellation
           </MDButton>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(exceptionTarget)} onClose={() => setExceptionTarget(null)} fullWidth maxWidth="sm">
+        <DialogTitle><MDTypography variant="h5" component="span" fontWeight="medium">Report fulfilment issue</MDTypography></DialogTitle>
+        <DialogContent>
+          <MDTypography variant="body2" color="text">Explain what prevents the warehouse from packing or shipping this order. Admin staff will see it in the warehouse queue.</MDTypography>
+          <MDBox mt={2}><MDInput label="Issue details" value={exceptionReason} onChange={(event) => setExceptionReason(event.target.value)} fullWidth required multiline minRows={3} /></MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton variant="gradient" color="light" onClick={() => setExceptionTarget(null)}>Cancel</MDButton>
+          <MDButton variant="gradient" color="warning" onClick={confirmException} disabled={!exceptionReason.trim()}>Report issue</MDButton>
         </DialogActions>
       </Dialog>
       <Dialog open={Boolean(bulkTarget)} onClose={() => setBulkTarget(null)}>
@@ -602,7 +651,7 @@ function OrderContainer({ brand }) {
           <MDTypography variant="body2" color="text">
             {bulkTarget
               ? `This updates every ${
-                  bulkTarget.toStatus === 1 ? "pending" : "packed"
+                  bulkTarget.toStatus === FULFILMENT.PACKED ? "pending" : "packed"
                 } order in the current view. Narrow the brand, status, or date filters first if you only want to change some of them.`
               : ""}
           </MDTypography>

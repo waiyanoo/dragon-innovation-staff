@@ -1,5 +1,6 @@
 // @mui material components
 import Grid from "@mui/material/Grid";
+import LinearProgress from "@mui/material/LinearProgress";
 import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -17,7 +18,7 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 
 // Data
 // Dashboard components
-import { collection, getDocs, orderBy, query, Timestamp, where } from "firebase/firestore";
+import { collection, getCountFromServer, getDocs, orderBy, query, where } from "firebase/firestore";
 import { database } from "../../firebase";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
@@ -36,7 +37,7 @@ import mongdiesLogo from "assets/images/brands/mongdies.png";
 
 function Dashboard() {
   const {userData} = useAuth();
-  const [value, setValue] = useState("retail");
+  const [value, setValue] = useState(userData.role === "sales" ? "wholesale" : "retail");
   const [timeFrame, setTimeFrame] = useState('thisMonth');
   const [orderTotal, setOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
   const [previousOrderTotal, setPreviousOrderTotal] = useState({ hanskin : 0, sugarbear : 0, mongdies : 0});
@@ -47,12 +48,10 @@ function Dashboard() {
   const [hanskinChartData, setHanskinChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [sugarbearChartData, setSugarbearChartData] = useState({labels : [], datasets : {label : "", data: []}});
   const [mongdiesChartData, setMongdiesChartData] = useState({labels : [], datasets : {label : "", data: []}});
-  const [staffNames, setStaffNames] = useState([]);
+  const [staffMembers, setStaffMembers] = useState([]);
   const [currentOrders, setCurrentOrders] = useState([]);
-
-  useEffect(() => {
-    setValue(userData.role === 'sales' ? 'wholesale' : 'retail');
-  }, []);
+  const [salesLoading, setSalesLoading] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(true);
 
   // The Individual Sales table lists the page admins who take retail orders.
   // Sales users only ever see the wholesale tab, so they skip this read.
@@ -60,22 +59,24 @@ function Dashboard() {
     if (userData.role === 'sales') return;
     listUsersByRole('page_admin')
       .then((users) => {
-        setStaffNames(
+        setStaffMembers(
           users
-            .map((user) => user.name)
-            .filter(Boolean)
-            .sort((a, b) => a.localeCompare(b))
+            .filter((user) => user.name)
+            .sort((a, b) => a.name.localeCompare(b.name))
         );
       })
       .catch((e) => console.error("Error loading staff list: ", e));
-  }, []);
+  }, [userData.role]);
 
   useEffect(() => {
     if(userData){
       getCurrentOrders();
-      getSixMonthOrders();
     }
   }, [value, timeFrame]);
+
+  useEffect(() => {
+    if (userData) getOpenOrderCounts();
+  }, [value]);
 
   const getDataByDateRange = async (start, end) => {
     if (value === "wholesale") {
@@ -97,18 +98,31 @@ function Dashboard() {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   };
 
-  const getCurrentOrders = () => {
+  const getCurrentOrders = async () => {
+    setSalesLoading(true);
     const ranges = getDateRanges();
-    const { start, end } = ranges[timeFrame];
-    getDataByDateRange(start, end).then(orders => {
-      calculateDataForDashboard(orders);
+    try {
       if (timeFrame === "today") {
         const monthRange = ranges.thisMonth;
-        getDataByDateRange(monthRange.start, monthRange.end).then(monthOrders => {
-          calculateChartData(monthOrders, "today");
+        const monthOrders = await getDataByDateRange(monthRange.start, monthRange.end);
+        const todayStart = ranges.today.start.toMillis();
+        const todayEnd = ranges.today.end.toMillis();
+        const todayOrders = monthOrders.filter((order) => {
+          const createdAt = order.createdAt?.toMillis?.() || 0;
+          return createdAt >= todayStart && createdAt < todayEnd;
         });
+        calculateDataForDashboard(todayOrders);
+        calculateChartData(monthOrders, "today");
+      } else {
+        const { start, end } = ranges[timeFrame];
+        const orders = await getDataByDateRange(start, end);
+        calculateDataForDashboard(orders);
       }
-    });
+    } catch (error) {
+      console.error("Unable to load dashboard sales:", error);
+    } finally {
+      setSalesLoading(false);
+    }
   }
 
   const calculateChartData = (orders, selectedTimeFrame = timeFrame) => {
@@ -124,31 +138,32 @@ function Dashboard() {
   const individualSalesRows = useMemo(() => {
     const { hanskinOrder, sugarBearOrder, mongdiesOrder } = getOrderByType(currentOrders);
     // Orders record the creator's display name in createdBy.
-    const countFor = (orders, name) => orders.filter((order) => order.createdBy === name).length;
-    const salesFor = (name) =>
+    const belongsTo = (order, member) => order.createdByUid ? order.createdByUid === member.uid : order.createdBy === member.name;
+    const countFor = (orders, member) => orders.filter((order) => belongsTo(order, member)).length;
+    const salesFor = (member) =>
       currentOrders
-        .filter((order) => order.createdBy === name)
+        .filter((order) => belongsTo(order, member))
         .reduce(
           (sum, order) => sum + ((+order.amount || 0) - (+order.deliveryFees || 0)),
           0
         );
 
-    return staffNames.map((name) => {
-      const hanskin = countFor(hanskinOrder, name);
-      const sugarbear = countFor(sugarBearOrder, name);
-      const mongdies = countFor(mongdiesOrder, name);
+    return staffMembers.map((member) => {
+      const hanskin = countFor(hanskinOrder, member);
+      const sugarbear = countFor(sugarBearOrder, member);
+      const mongdies = countFor(mongdiesOrder, member);
       return {
-        label: name,
+        label: member.name,
         values: [
           hanskin,
           sugarbear,
           mongdies,
           hanskin + sugarbear + mongdies,
-          salesFor(name),
+          salesFor(member),
         ],
       };
     });
-  }, [currentOrders, staffNames]);
+  }, [currentOrders, staffMembers]);
 
   const getPreviousMonthOrders = (HTotal, STotal, MTotal) => {
     const ranges = getDateRanges();
@@ -173,15 +188,32 @@ function Dashboard() {
     });
   }
 
-  const getSixMonthOrders = () => {
-    const now = new Date();
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-
-    const start = Timestamp.fromDate(new Date(sixMonthsAgo));
-    const end = Timestamp.fromDate(new Date(now));
-    getDataByDateRange(start, end).then(orders => {
-      calculateDataForShipAndPack(orders);
-    })
+  const getOpenOrderCounts = async () => {
+    setStatusLoading(true);
+    const collectionName = value === "wholesale" ? "ws_orders" : "orders";
+    try {
+      const orderCollection = collection(database, collectionName);
+      const brands = ["hanskin", "sugarbear", "mongdies"];
+      const counts = await Promise.all(
+        brands.flatMap((brand) => [0, 1].map(async (status) => {
+          const snapshot = await getCountFromServer(
+            query(orderCollection, where("brand", "==", brand), where("status", "==", status))
+          );
+          return { brand, status, count: snapshot.data().count };
+        }))
+      );
+      const pending = { hanskin: 0, sugarbear: 0, mongdies: 0 };
+      const packed = { hanskin: 0, sugarbear: 0, mongdies: 0 };
+      counts.forEach(({ brand, status, count }) => {
+        (status === 0 ? pending : packed)[brand] = count;
+      });
+      setOrderToPack(pending);
+      setOrderToShip(packed);
+    } catch (error) {
+      console.error("Unable to load open order counts:", error);
+    } finally {
+      setStatusLoading(false);
+    }
   }
 
   const calculateDataForDashboard = (orders) => {
@@ -196,22 +228,6 @@ function Dashboard() {
     if (timeFrame !== "today") calculateChartData(orders);
     if(timeFrame === 'thisMonth')
       getPreviousMonthOrders(hanskinTotal, sugarBearTotal, mongdiesTotal);
-  }
-
-  const calculateDataForShipAndPack = (orders) => {
-    const {hanskinOrder, sugarBearOrder, mongdiesOrder} = getOrderByType(orders);
-    //Calculate To Packed
-    const hanskinToPacked = hanskinOrder.filter(order => order.status === 0).length;
-    const sugarbearToPacked = sugarBearOrder.filter(order => order.status === 0).length;
-    const mongdiesToPacked = mongdiesOrder.filter(order => order.status === 0).length;
-
-    //Calculate To Shiped
-    const hanskinToShipped = hanskinOrder.filter(order => order.status === 1).length;
-    const sugarbearToShipped = sugarBearOrder.filter(order => order.status === 1).length;
-    const mongdiesToShipped = mongdiesOrder.filter(order => order.status === 1).length;
-
-    setOrderToPack( { hanskin : hanskinToPacked, sugarbear : sugarbearToPacked, mongdies : mongdiesToPacked})
-    setOrderToShip( { hanskin : hanskinToShipped, sugarbear : sugarbearToShipped, mongdies : mongdiesToShipped})
   }
 
   const formattedAmount = (value) => {
@@ -240,6 +256,7 @@ function Dashboard() {
         <MDBox mb={5} display="flex" flexDirection="row" justifyContent="end" >
           <TimeFrameDropDown value={timeFrame} changeHandler={setTimeFrame}/>
         </MDBox>
+        {(salesLoading || statusLoading) && <LinearProgress color="info" sx={{ mb: 2, borderRadius: 2 }} />}
         <Grid container spacing={3}>
           <Grid size={{xs : 12, md : 6, lg : 4}}>
             <MDBox mb={1.5}>

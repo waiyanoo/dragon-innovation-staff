@@ -1,5 +1,14 @@
 rules_version = '2';
 
+// Assumed operational data model:
+// - users/{uid}: staff profile, role, status and contact fields.
+// - orders/{id}, ws_orders/{id}: customer/order PII, numeric legacy status,
+//   fulfilmentStatus, invoiceStatus, payment fields and append-only history.
+// - auditLogs/{id}: append-only actor/action/order snapshots using server time.
+// - settings, monthlyCommission, monthlyReports: administrator-owned reports.
+// - adhocInvoices/{id}: temporary customer invoice copies.
+// All collections are private to authenticated staff and default-denied below.
+
 // Role-based access rules for the staff portal.
 //
 // Roles (users/{uid}.role): page_admin, sales, warehouse, admin, super_admin.
@@ -63,7 +72,14 @@ service cloud.firestore {
     // customer) is reserved for the roles that get the Edit action in the UI.
     function onlyAdvancesStatus() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(["status", "updateHistory"]);
+        .hasOnly([
+          "status", "fulfilmentStatus", "updateHistory",
+          "exceptionStatus", "exceptionReason", "exceptionReportedAt",
+          "exceptionReportedBy", "exceptionReportedByUid", "exceptionResolvedAt"
+        ])
+        && request.resource.data.status in [0, 1, 2]
+        && (!("fulfilmentStatus" in request.resource.data)
+          || request.resource.data.fulfilmentStatus in ["pending", "packed", "shipped"]);
     }
 
     // Retail orders.
@@ -110,6 +126,27 @@ service cloud.firestore {
       allow read: if hasRole(["page_admin", "sales", "warehouse", "admin", "super_admin"]);
       allow create, update: if hasRole(["page_admin", "sales", "admin", "super_admin"]);
       allow delete: if false;
+    }
+
+    // Append-only operational trail. Staff may record actions under their own
+    // authenticated UID; only administrators may inspect the complete log.
+    match /auditLogs/{auditId} {
+      allow get, list: if hasRole(["admin", "super_admin"]);
+      allow create: if hasRole(["page_admin", "sales", "warehouse", "admin", "super_admin"])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.actorName is string
+        && request.resource.data.actorName.size() > 0
+        && request.resource.data.actorName.size() <= 120
+        && request.resource.data.action is string
+        && request.resource.data.action.size() > 0
+        && request.resource.data.action.size() <= 120
+        && request.resource.data.entityType == "order"
+        && request.resource.data.entityId is string
+        && request.resource.data.entityId.size() > 0
+        && request.resource.data.entityId.size() <= 160
+        && request.resource.data.collectionName in ["orders", "ws_orders"]
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
     }
 
     // Everything else is denied (Firestore's default), stated explicitly.

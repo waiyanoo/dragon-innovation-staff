@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import Card from "@mui/material/Card";
@@ -14,9 +14,8 @@ import PageLayout from "examples/LayoutContainers/PageLayout";
 
 import companyLogoLight from "assets/images/DragonInnovation.png";
 import companyLogoDark from "assets/images/DragonInnovationDark.png";
-import { login, logout } from "../../../services/authService";
-import { doc, getDoc } from "firebase/firestore";
-import { database } from "../../../firebase";
+import { login } from "../../../services/authService";
+import { useAuth } from "../../../context/AuthContext";
 
 const BENEFITS = [
   { icon: "assignment_turned_in", label: "One clear order record from admin to warehouse" },
@@ -31,6 +30,22 @@ function SignIn() {
   const [suspended, setSuspended] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { authUser, userData, loading: authLoading, profileError } = useAuth();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("authNotice") === "suspended") {
+      setSuspended(true);
+      sessionStorage.removeItem("authNotice");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authUser && userData && !authLoading) navigate("/dashboard");
+    if (profileError) {
+      setErrors(true);
+      setIsLoading(false);
+    }
+  }, [authUser, userData, authLoading, profileError, navigate]);
 
   const signIn = async (event) => {
     event.preventDefault();
@@ -41,15 +56,7 @@ function SignIn() {
     setSuspended(false);
 
     try {
-      const credential = await login(email, password);
-      const userSnapshot = await getDoc(doc(database, "users", credential.user.uid));
-      if (userSnapshot.exists() && userSnapshot.data().status === "suspended") {
-        await logout();
-        setSuspended(true);
-        setIsLoading(false);
-        return;
-      }
-      navigate("/dashboard");
+      await login(email, password);
     } catch {
       setErrors(true);
       setIsLoading(false);

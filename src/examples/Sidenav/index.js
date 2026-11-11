@@ -34,8 +34,25 @@ import {
   setWhiteSidenav,
 } from "context";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
+
+const routeTranslationKeys = {
+  dashboard: "navigation.dashboard",
+  profile: "navigation.profile",
+  reward: "navigation.reward",
+  order: "navigation.order",
+  "warehouse-queue": "navigation.warehouseQueue",
+  "order-history": "navigation.orderRecords",
+  "retail-history": "navigation.retail",
+  "wholesale-history": "navigation.wholesale",
+  admin: "navigation.admin",
+  summary: "navigation.summary",
+  statistics: "navigation.statistics",
+  controlPanel: "navigation.adminTools",
+};
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
+  const { t } = useTranslation();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
@@ -73,6 +90,8 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
   const renderRoutes = routes.map(({ type, name, icon, title, noCollapse, key, href, routeToGo, roles }) => {
+    const translatedName = routeTranslationKeys[key] ? t(routeTranslationKeys[key]) : name;
+    const translatedTitle = routeTranslationKeys[key] ? t(routeTranslationKeys[key]) : title;
     let returnValue;
     if (type === "collapse" && userData !== null) {
       if( roles.length > 0 && roles.includes(userData.role)) {
@@ -85,7 +104,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             sx={{ textDecoration: "none" }}
           >
             <SidenavCollapse
-              name={name}
+              name={translatedName}
               icon={icon}
               active={key === collapseName}
               noCollapse={noCollapse}
@@ -93,7 +112,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           </Link>
         ) : (
           <NavLink key={key} to={routeToGo}>
-            <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
+            <SidenavCollapse name={translatedName} icon={icon} active={key === collapseName} />
           </NavLink>
         );
       }
@@ -114,7 +133,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           mb={1}
           ml={1}
         >
-          {title}
+          {translatedTitle}
         </MDTypography>
       );
     }

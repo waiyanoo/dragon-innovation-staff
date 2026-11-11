@@ -16,6 +16,11 @@ import Divider from "@mui/material/Divider";
 import { useAuth } from "../../../../context/AuthContext";
 import { Order_Card_Actions, Order_Card_Action_Groups } from "../../../../data/common";
 import { formattedAmount, TimestampDisplay } from "../../../../functions/common-functions";
+import {
+  fulfilmentFromOrder,
+  invoiceStatusFromOrder,
+} from "../../../../services/orderWorkflow";
+import { useTranslation } from "react-i18next";
 
 function RowIcon({ name, color }) {
   return (
@@ -54,6 +59,7 @@ InfoRow.defaultProps = {
 };
 
 function OrderCard({ data, handleClick }) {
+  const { t } = useTranslation();
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
   const { userData } = useAuth();
@@ -70,17 +76,21 @@ function OrderCard({ data, handleClick }) {
   const itemsText = (data.items || "").replace(/"/g, "");
   const iconColor = darkMode ? "grey.500" : "grey.600";
 
-  const paymentLabel =
-    data.paymentMode === "Paid" ? `Paid - ${data.paymentType}` : data.paymentMode;
-  const paymentColor =
-    data.paymentMode === "Paid" ? "success" : data.paymentMode === "COD" ? "warning" : "info";
+  const fulfilmentStatus = fulfilmentFromOrder(data);
+  const invoiceStatus = invoiceStatusFromOrder(data);
+  const paymentStatus = data.paymentStatus || (data.paymentMode === "NoPay" ? "COD" : "Paid");
+  const paymentMethod = data.paymentMode === "NoPay" ? "" : (data.paymentMode || data.paymentType || "");
+  const paymentLabel = [t(`paymentStatus.${paymentStatus}`, paymentStatus), paymentStatus === "Paid" ? t(`paymentMethod.${paymentMethod}`, paymentMethod) : ""]
+    .filter(Boolean)
+    .join(" · ");
+  const paymentColor = paymentStatus === "Paid" ? "success" : paymentStatus === "COD" ? "warning" : "info";
 
   // show only actions the role can use AND that apply to the order's current
   // status (super_admin bypasses the status check where allowSuper is set)
   const visibleActions = Order_Card_Actions.filter((item) => {
     if (!item.roles.includes(userData.role)) return false;
     if (userData.role === "super_admin" && item.allowSuper) return true;
-    return item.statuses.includes(data.status);
+    return item.fulfilment.includes(fulfilmentStatus);
   });
 
   const menuItems = [];
@@ -99,7 +109,7 @@ function OrderCard({ data, handleClick }) {
           }}
           sx={group === "danger" ? { color: "error.main" } : undefined}
         >
-          {item.label}
+          {t(`orderActions.${item.type}`, item.label)}
         </MenuItem>
       );
     });
@@ -165,28 +175,15 @@ function OrderCard({ data, handleClick }) {
               {data.name}
             </MDTypography>
             <MDBadge
-              badgeContent={
-                data.status === 2
-                  ? "shipped"
-                  : data.status === 1
-                    ? "Packed"
-                    : data.status === 3
-                      ? data.invoiceNumber
-                      : "Pending"
-              }
-              color={
-                data.status === 1
-                  ? "info"
-                  : data.status === 2
-                    ? "warning"
-                    : data.status === 3
-                      ? "success"
-                      : "light"
-              }
+              badgeContent={t(`fulfilment.${fulfilmentStatus}`, fulfilmentStatus)}
+              color={fulfilmentStatus === "packed" ? "info" : fulfilmentStatus === "shipped" ? "success" : fulfilmentStatus === "cancelled" ? "error" : "light"}
               variant="gradient"
               size="md"
             />
           </MDBox>
+          {invoiceStatus === "issued" && data.invoiceNumber && (
+            <MDBadge badgeContent={`Invoice ${data.invoiceNumber}`} color="success" variant="outlined" size="sm" />
+          )}
           <MDBox>
             <IconButton
               id="dropdown-button"

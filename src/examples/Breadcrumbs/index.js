@@ -13,6 +13,7 @@ import Icon from "@mui/material/Icon";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import { useTranslation } from "react-i18next";
 
 const titleCase = (value = "") =>
   decodeURIComponent(value)
@@ -20,7 +21,18 @@ const titleCase = (value = "") =>
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 function Breadcrumbs({ icon, title, route, light }) {
+  const { t } = useTranslation();
   const routes = route.slice(0, -1);
+  const translatedRoute = (value) => {
+    const key = {
+      dashboard: "navigation.dashboard", profile: "navigation.profile", reward: "navigation.reward",
+      order: "navigation.order", "warehouse-queue": "navigation.warehouseQueue",
+      history: "navigation.retail", "wholesale-history": "navigation.wholesale",
+      summary: "navigation.summary", statistics: "navigation.statistics",
+      "report-control-panel": "navigation.adminTools", report_control_panel: "navigation.adminTools",
+    }[value];
+    return key ? t(key) : titleCase(value);
+  };
 
   return (
     <MDBox mr={{ xs: 0, xl: 8 }}>
@@ -52,7 +64,7 @@ function Breadcrumbs({ icon, title, route, light }) {
               opacity={light ? 0.8 : 0.5}
               sx={{ lineHeight: 0 }}
             >
-              {titleCase(el)}
+              {translatedRoute(el)}
             </MDTypography>
           </Link>
         ))}
@@ -62,7 +74,7 @@ function Breadcrumbs({ icon, title, route, light }) {
           color={light ? "white" : "dark"}
           sx={{ lineHeight: 0 }}
         >
-          {titleCase(title)}
+          {translatedRoute(title)}
         </MDTypography>
       </MuiBreadcrumbs>
       <MDTypography
@@ -71,7 +83,7 @@ function Breadcrumbs({ icon, title, route, light }) {
         color={light ? "white" : "dark"}
         noWrap
       >
-        {titleCase(title)}
+        {translatedRoute(title)}
       </MDTypography>
     </MDBox>
   );

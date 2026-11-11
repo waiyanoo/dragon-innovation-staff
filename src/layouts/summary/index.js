@@ -17,12 +17,24 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import {
+  collection,
+  count,
+  getAggregateFromServer,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+  sum,
+  where,
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { database } from "../../firebase";
 import MDBadge from "../../components/MDBadge";
 import MDButton from "../../components/MDButton";
 import { formattedAmount, TimestampDisplay } from "../../functions/common-functions";
+import { fulfilmentFromOrder } from "../../services/orderWorkflow";
 import { FormControl, InputLabel, Select } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 
@@ -62,37 +74,70 @@ function Tables() {
   const [isLoading, setIsLoading] = useState(true);
   const [orders, setOrders] = useState([]);
   const [dataColumns, setDataColumns] = useState([]);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totals, setTotals] = useState({ orders: 0, amount: 0, delivery: 0 });
   const [selectedBrand, setSelectedBrand] = useState("hanskin");
   const [paymentType, setPaymentType] = useState("NoPay");
 
   useEffect(() => {
-    getOrders();
+    getOrders(false);
+    getTotals();
   }, [selectedBrand, paymentType]);
 
   const handleBrandChange = (e) => setSelectedBrand(e.target.value);
   const handlePaymentChange = (e) => setPaymentType(e.target.value);
 
-  const getOrders = async () => {
-    setIsLoading(true);
+  const filters = () => [
+    where("brand", "==", selectedBrand),
+    where("paymentMode", "==", paymentType),
+  ];
+
+  const getTotals = async () => {
+    try {
+      const [allAggregate, cancelledAggregate] = await Promise.all([
+        getAggregateFromServer(query(collection(database, "orders"), ...filters()), { orders: count(), amount: sum("amount"), delivery: sum("deliveryFees") }),
+        getAggregateFromServer(query(collection(database, "orders"), ...filters(), where("status", "==", 4)), { orders: count(), amount: sum("amount"), delivery: sum("deliveryFees") }),
+      ]);
+      const all = allAggregate.data();
+      const cancelled = cancelledAggregate.data();
+      setTotals({
+        orders: (all.orders || 0) - (cancelled.orders || 0),
+        amount: (all.amount || 0) - (cancelled.amount || 0),
+        delivery: (all.delivery || 0) - (cancelled.delivery || 0),
+      });
+    } catch (error) {
+      console.error("Error loading summary totals: ", error);
+    }
+  };
+
+  const getOrders = async (append = false) => {
+    if (append && (!lastVisible || !hasMore || isLoadingMore)) return;
+    append ? setIsLoadingMore(true) : setIsLoading(true);
     try {
       const brandRef = collection(database, "orders");
-      const q = query(
-        brandRef,
-        where("brand", "==", selectedBrand),
-        where("paymentMode", "==", paymentType),
-        orderBy("createdAt", "desc")
-      );
+      const constraints = [...filters(), orderBy("createdAt", "desc")];
+      if (append && lastVisible) constraints.push(startAfter(lastVisible));
+      constraints.push(limit(50));
+      const q = query(brandRef, ...constraints);
 
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setOrders(data);
-      setDataColumns(generateRows(data));
+      const data = querySnapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((order) => order.status !== 4 && order.fulfilmentStatus !== "cancelled" && !order.cancelledAt && !order.isArchived);
+      setOrders((current) => append ? [...current, ...data] : data);
+      setDataColumns((current) => append ? [...current, ...generateRows(data)] : generateRows(data));
+      setLastVisible(querySnapshot.docs.at(-1) || null);
+      setHasMore(querySnapshot.size === 50);
     } catch (e) {
       console.error("Error getting documents: ", e);
-      setOrders([]);
-      setDataColumns([]);
+      if (!append) {
+        setOrders([]);
+        setDataColumns([]);
+      }
     } finally {
-      setIsLoading(false);
+      append ? setIsLoadingMore(false) : setIsLoading(false);
     }
   };
 
@@ -129,24 +174,8 @@ function Tables() {
       status: (
         <MDBox ml={-1}>
           <MDBadge
-            badgeContent={
-              order.status === 2
-                ? "shipped"
-                : order.status === 1
-                  ? "Packed"
-                  : order.status === 3
-                    ? order.invoiceNumber
-                    : "Pending"
-            }
-            color={
-              order.status === 1
-                ? "info"
-                : order.status === 2
-                  ? "warning"
-                  : order.status === 3
-                    ? "success"
-                    : "light"
-            }
+            badgeContent={fulfilmentFromOrder(order)}
+            color={fulfilmentFromOrder(order) === "packed" ? "info" : fulfilmentFromOrder(order) === "shipped" ? "success" : "light"}
             variant="gradient"
             size="sm"
           />
@@ -168,9 +197,6 @@ function Tables() {
         </MDButton>
       ),
     }));
-
-  const totalAmount = orders.reduce((sum, order) => sum + (+order.amount || 0), 0);
-  const totalDelivery = orders.reduce((sum, order) => sum + (+order.deliveryFees || 0), 0);
 
   return (
     <DashboardLayout>
@@ -244,13 +270,13 @@ function Tables() {
               <MDBox px={3} pt={3}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <StatCard label="Orders" value={orders.length} />
+                    <StatCard label="Orders" value={totals.orders} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <StatCard label="Total Amount" value={formattedAmount(totalAmount)} />
+                    <StatCard label="Total Amount" value={formattedAmount(totals.amount)} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <StatCard label="Delivery Fees" value={formattedAmount(totalDelivery)} />
+                    <StatCard label="Delivery Fees" value={formattedAmount(totals.delivery)} />
                   </Grid>
                 </Grid>
               </MDBox>
@@ -268,6 +294,19 @@ function Tables() {
                     showTotalEntries={true}
                     noEndBorder
                   />
+                )}
+                {!isLoading && hasMore && orders.length > 0 && (
+                  <MDBox px={3} pb={3}>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      fullWidth
+                      disabled={isLoadingMore}
+                      onClick={() => getOrders(true)}
+                    >
+                      {isLoadingMore ? "Loading more…" : "Load more orders"}
+                    </MDButton>
+                  </MDBox>
                 )}
               </MDBox>
             </Card>

@@ -7,7 +7,7 @@ import pxToRem from "assets/theme/functions/pxToRem";
 const { dark } = colors;
 
 const baseProperties = {
-  fontFamily: '"Urbanist", "Inter", Helvetica, Arial, sans-serif',
+  fontFamily: '"Urbanist", "Noto Sans Myanmar", "Inter", Helvetica, Arial, sans-serif',
   fontWeightLighter: 100,
   fontWeightLight: 300,
   fontWeightRegular: 400,

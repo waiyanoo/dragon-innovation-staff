@@ -41,7 +41,7 @@ import { csvFilename, downloadCsv } from "./exportCsv";
 import { changePercent, previousPeriod } from "./periods";
 import { formattedAmount, getDateRanges } from "../../functions/common-functions";
 import DateRangeSelector from "./components/DateRangeSelector";
-import { groupByField, groupRepeatCustomers, shareOf, summarise } from "./aggregate";
+import { activeOrdersOnly, groupByField, groupRepeatCustomers, shareOf, summarise } from "./aggregate";
 
 const TOP_CITY_COUNT = 10;
 
@@ -150,6 +150,8 @@ const repeatCustomerColumns = [
   { Header: "last order", accessor: "lastOrder", align: "left" },
 ];
 
+const statisticsCache = new Map();
+
 function Statistics() {
   const [orderType, setOrderType] = useState("retail");
   const [preset, setPreset] = useState("thisMonth");
@@ -183,6 +185,8 @@ function Statistics() {
     const collectionName = orderType === "wholesale" ? "ws_orders" : "orders";
 
     const fetchRange = async (target) => {
+      const cacheKey = `${collectionName}:${target.start.toMillis()}:${target.end.toMillis()}`;
+      if (statisticsCache.has(cacheKey)) return statisticsCache.get(cacheKey);
       const snapshot = await getDocs(
         query(
           collection(database, collectionName),
@@ -191,7 +195,10 @@ function Statistics() {
           orderBy("createdAt", "desc")
         )
       );
-      return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+      const data = activeOrdersOnly(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+      statisticsCache.set(cacheKey, data);
+      if (statisticsCache.size > 6) statisticsCache.delete(statisticsCache.keys().next().value);
+      return data;
     };
 
     const load = async () => {

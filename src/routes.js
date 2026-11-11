@@ -1,20 +1,23 @@
-import Dashboard from "layouts/dashboard";
-import Tables from "./layouts/summary";
-import Profile from "layouts/profile";
+import { lazy } from "react";
 import SignIn from "layouts/authentication/sign-in";
 import Icon from "@mui/material/Icon";
-import Order from "./layouts/order";
-import OrderHistory from "./layouts/history";
 import PrivateRoute from "./context/PrivateRoute";
-import OrderView from "./layouts/order/view";
 import Unauthorized from "./layouts/authentication/unauthorized";
-import Reward from "./layouts/reward";
-import Statistics from "./layouts/statistics";
-import Report_control_panel from "./layouts/report_control_panel";
 import ResetPassword from "./layouts/authentication/reset-password";
 import Action from "./layouts/authentication/action";
-import Waybill from "./layouts/waybill";
-import AdhocInvoice from "./layouts/adhoc-invoice";
+
+const Dashboard = lazy(() => import("layouts/dashboard"));
+const Tables = lazy(() => import("./layouts/summary"));
+const Profile = lazy(() => import("layouts/profile"));
+const Order = lazy(() => import("./layouts/order"));
+const OrderHistory = lazy(() => import("./layouts/history"));
+const OrderView = lazy(() => import("./layouts/order/view"));
+const Reward = lazy(() => import("./layouts/reward"));
+const Statistics = lazy(() => import("./layouts/statistics"));
+const Report_control_panel = lazy(() => import("./layouts/report_control_panel"));
+const Waybill = lazy(() => import("./layouts/waybill"));
+const AdhocInvoice = lazy(() => import("./layouts/adhoc-invoice"));
+const WarehouseQueue = lazy(() => import("./layouts/warehouse"));
 
 const routes = [
   {
@@ -64,6 +67,20 @@ const routes = [
         <Reward />
       </PrivateRoute>
     )
+  },
+  {
+    type: "collapse",
+    name: "Warehouse Queue",
+    key: "warehouse-queue",
+    icon: <Icon fontSize="small">warehouse</Icon>,
+    route: "/warehouse-queue",
+    routeToGo: "/warehouse-queue",
+    roles: ["warehouse", "admin", "super_admin"],
+    component: (
+      <PrivateRoute roles={["warehouse", "admin", "super_admin"]}>
+        <WarehouseQueue />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",

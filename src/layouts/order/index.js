@@ -26,7 +26,6 @@ import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import MDButton from "../../components/MDButton";
 import {
-  addDoc,
   arrayUnion,
   collection,
   doc,
@@ -36,8 +35,8 @@ import {
   query,
   serverTimestamp,
   Timestamp,
-  updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../firebase";
@@ -50,6 +49,14 @@ import MDSnackbar from "../../components/MDSnackbar";
 import { useAuth } from "../../context/AuthContext";
 import { useMaterialUIController } from "../../context";
 import Footer from "../../examples/Footer";
+import {
+  auditPayload,
+  auditRef,
+  actorFrom,
+  FULFILMENT,
+  INVOICE_STATUS,
+  updateOrderWithAudit,
+} from "../../services/orderWorkflow";
 
 const NUMERIC_INPUT_PROPS = { inputMode: "numeric", pattern: "[0-9]*" };
 
@@ -92,7 +99,7 @@ SectionTitle.propTypes = {
 function Order() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { userData } = useAuth();
+  const { authUser, userData } = useAuth();
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
   const id = searchParams.get("id");
@@ -279,17 +286,32 @@ function Order() {
       orderType: userData.role === "sales" ? "wholesale" : "retail",
       brand: brand,
       createdBy: userData.name,
+      createdByUid: authUser?.uid || "",
       createdAt: serverTimestamp(),
+      fulfilmentStatus: FULFILMENT.PENDING,
+      invoiceStatus: formData.invoiceNumber ? INVOICE_STATUS.ISSUED : INVOICE_STATUS.NOT_REQUIRED,
+      isArchived: false,
       updateHistory: [
         {
           updatedAt: new Date(),
           updatedBy: userData.name,
+          updatedByUid: authUser?.uid || "",
         },
       ],
     };
 
     try {
-      await addDoc(collection(database, collectionName), data);
+      const orderDocument = doc(collection(database, collectionName));
+      const batch = writeBatch(database);
+      batch.set(orderDocument, data);
+      batch.set(auditRef(), auditPayload({
+        actor: actorFrom(authUser, userData),
+        action: "order.created",
+        orderId: orderDocument.id,
+        collectionName,
+        after: { brand, amount: data.amount, fulfilmentStatus: data.fulfilmentStatus },
+      }));
+      await batch.commit();
       if (addAnotherRef.current) {
         setSnack({
           open: true,
@@ -325,11 +347,19 @@ function Order() {
       updateHistory: arrayUnion({
         updatedAt: new Date(),
         updatedBy: userData.name,
+        updatedByUid: authUser?.uid || "",
       }),
+      invoiceStatus: formData.invoiceNumber ? INVOICE_STATUS.ISSUED : INVOICE_STATUS.NOT_REQUIRED,
     };
 
     try {
-      await updateDoc(orderRef, data);
+      await updateOrderWithAudit({
+        collectionName,
+        orderId: orderRef.id,
+        updates: data,
+        actor: actorFrom(authUser, userData),
+        action: "order.details_updated",
+      });
       setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
       routeToHistory();
     } catch (e) {

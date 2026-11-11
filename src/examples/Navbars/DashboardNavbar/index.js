@@ -32,8 +32,11 @@ import {
 // Material Dashboard 2 React context
 import { setMiniSidenav, setTransparentNavbar, useMaterialUIController } from "context";
 import { logout } from "../../../services/authService";
+import LanguageSwitcher from "../../../components/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 function DashboardNavbar({ absolute, light, isMini }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
@@ -136,8 +139,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 color="inherit"
                 sx={navbarMobileMenu}
                 onClick={handleMiniSidenav}
-                aria-label={miniSidenav ? "Open navigation" : "Close navigation"}
-                title={miniSidenav ? "Open navigation" : "Close navigation"}
+                aria-label={miniSidenav ? t("actions.openNavigation") : t("actions.closeNavigation")}
+                title={miniSidenav ? t("actions.openNavigation") : t("actions.closeNavigation")}
               >
                 <Icon sx={iconsStyle} fontSize="medium">
                   {miniSidenav ? "menu_open" : "menu"}
@@ -149,13 +152,14 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 color="inherit"
                 sx={navbarIconButton}
                 onClick={handleLogout}
-                aria-label="Sign out"
-                title="Sign out"
+                aria-label={t("actions.signOut")}
+                title={t("actions.signOut")}
               >
                 <Icon sx={iconsStyle} fontSize="medium">
                   logout
                 </Icon>
               </IconButton>
+              <LanguageSwitcher />
               {/*<IconButton*/}
               {/*  size="small"*/}
               {/*  disableRipple*/}

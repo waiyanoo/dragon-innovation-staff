@@ -11,10 +11,20 @@ export function AuthProvider({ children }) {
   const [authUser, setAuthUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
   const auth = getAuth();
 
   const userProfile = async (user) => {
-    if (user) {
+    if (!user) {
+      setUserData(null);
+      setProfileError(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setProfileError(null);
+    try {
       const userRef = doc(database, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -22,6 +32,7 @@ export function AuthProvider({ children }) {
         const data = userSnap.data();
         // Suspended accounts are denied access at the app layer.
         if (data.status === "suspended") {
+          sessionStorage.setItem("authNotice", "suspended");
           await signOut(auth);
           setAuthUser(null);
           setUserData(null);
@@ -43,33 +54,32 @@ export function AuthProvider({ children }) {
         await setDoc(userRef, newUser);
         setUserData(newUser);
       }
-    } else {
-      setUserData(null);
+    } catch (error) {
+      console.error("Unable to load user profile:", error);
+      setProfileError("We could not load your staff profile. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if(!user){
         setAuthUser(null);
+        setUserData(null);
+        setProfileError(null);
         setLoading(false);
       } else {
         setAuthUser(user);
-        userProfile(user);
+        await userProfile(user);
       }
     });
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if(userData === null || !userData) {
-      setLoading(true);
-    }else{
-      setLoading(false);
-    }
-  }, [userData])
+  const retryProfile = () => userProfile(auth.currentUser);
 
-  return <AuthContext.Provider value={{ authUser, userData, loading }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ authUser, userData, loading, profileError, retryProfile }}>{children}</AuthContext.Provider>;
 }
 
 AuthProvider.propTypes = {

@@ -23,18 +23,18 @@ import { calculateCommissionEach, getPreviousMonthID } from "../../../../functio
 function ReportsPanel() {
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
   const [settings, setSettings] = useState({});
-  const [snapshot, setSnapshot] = useState(null);
 
   useEffect(() => {
     fetchSettings();
-    getOrderSnapShot();
   }, []);
 
   const generateSalesReport = async () => {
     const snap = await getOrderSnapShot();
     const reportData = {};
     snap.forEach((docSnap) => {
-      const { brand, amount = 0, createdBy } = docSnap.data();
+      const order = docSnap.data();
+      if (order.cancelledAt || order.isArchived || order.fulfilmentStatus === "cancelled" || order.status === 4) return;
+      const { brand, amount = 0, createdBy } = order;
       if (!brand) return;
       if (!reportData[brand]) {
         reportData[brand] = {
@@ -66,23 +66,26 @@ function ReportsPanel() {
     });
   };
 
-  const generateCommissionReport = () => {
-    if (!snapshot || !settings.targets) {
+  const generateCommissionReport = async () => {
+    if (!settings.targets) {
       setSnack({
         open: true,
-        message: "Data is still loading. Please try again.",
+        message: "Commission settings are still loading. Please try again.",
         color: "error",
         icon: "warning",
       });
       return;
     }
+    const snapshot = await getOrderSnapShot();
     const commissionData = {
       hanskin: { totalAmount: 0, commissionData: {} },
       sugarbear: { totalAmount: 0, commissionData: {} },
       mongdies: { totalAmount: 0, commissionData: {} },
     };
     snapshot.forEach((docSnap) => {
-      const { brand, amount = 0 } = docSnap.data();
+      const order = docSnap.data();
+      if (order.cancelledAt || order.isArchived || order.fulfilmentStatus === "cancelled" || order.status === 4) return;
+      const { brand, amount = 0 } = order;
       if (!brand) return;
       if (!commissionData[brand]) {
         commissionData[brand] = {
@@ -139,7 +142,6 @@ function ReportsPanel() {
       orderBy("createdAt", "desc")
     );
     const snap = await getDocs(q);
-    setSnapshot(snap);
     return snap;
   };
 

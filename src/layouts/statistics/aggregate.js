@@ -13,6 +13,10 @@ const collapseSpace = (value) => String(value || "").trim().replace(/\s+/g, " ")
 
 export const netSales = (order) => (+order.amount || 0) - (+order.deliveryFees || 0);
 
+export const activeOrdersOnly = (orders) => orders.filter((order) =>
+  !order.cancelledAt && !order.isArchived && order.fulfilmentStatus !== "cancelled" && order.status !== 4
+);
+
 /**
  * Group orders by a text field, returning rows sorted by order count.
  *

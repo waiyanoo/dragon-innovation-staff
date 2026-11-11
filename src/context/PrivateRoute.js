@@ -3,13 +3,24 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import PropTypes from "prop-types";
 import BrandedLoader from "../components/BrandedLoader";
+import BrandedErrorState from "../components/BrandedErrorState";
+import MDBox from "../components/MDBox";
 
 export default function PrivateRoute({ children, roles }) {
-  const { authUser, loading, userData } = useAuth();
+  const { authUser, loading, userData, profileError, retryProfile } = useAuth();
 
   if (loading) return <BrandedLoader label="Preparing your workspace…" fullPage />;
+  if (profileError) return (
+    <MDBox minHeight="100vh" display="grid" sx={{ placeItems: "center" }}>
+      <BrandedErrorState
+        title="Could not load your profile"
+        description={profileError}
+        onRetry={retryProfile}
+      />
+    </MDBox>
+  );
   if(authUser)
-    if(!roles.includes(userData.role)) return <Navigate to="/unauthorized" replace />
+    if(!userData || !roles.includes(userData.role)) return <Navigate to="/unauthorized" replace />
 
   return authUser ? children : <Navigate to="/authentication/sign-in" replace />;
 }

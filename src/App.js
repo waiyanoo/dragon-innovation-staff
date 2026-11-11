@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 // react-router components
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -12,6 +12,7 @@ import MDBox from "components/MDBox";
 
 // Material Dashboard 2 React components
 import ErrorBoundary from "components/ErrorBoundary";
+import BrandedLoader from "components/BrandedLoader";
 
 // Material Dashboard 2 React example components
 import Sidenav from "examples/Sidenav";
@@ -32,8 +33,10 @@ import { setMiniSidenav, setOpenConfigurator, useMaterialUIController } from "co
 // Images
 import companyLogoDark from "assets/images/DragonInnovationDark.png";
 import { AuthProvider } from "./context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export default function App() {
+  const { t } = useTranslation();
   const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
@@ -119,7 +122,7 @@ export default function App() {
             <Sidenav
               color={sidenavColor}
               brand={companyLogoDark}
-              brandName="Staff Portal"
+              brandName={t("navigation.staffPortal")}
               routes={routes}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
@@ -130,10 +133,12 @@ export default function App() {
             usable so the user can walk away from it. resetKey clears the
             error once they navigate. */}
         <ErrorBoundary resetKey={pathname}>
-          <Routes>
-            {getRoutes(routes)}
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
+          <Suspense fallback={<BrandedLoader label={t("common.loadingPage")} fullPage />}>
+            <Routes>
+              {getRoutes(routes)}
+              <Route path="*" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </ThemeProvider>
     </AuthProvider>

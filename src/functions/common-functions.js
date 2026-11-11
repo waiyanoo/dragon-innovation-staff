@@ -43,9 +43,10 @@ export const getOrderAmountByType = (hanskinOrder, sugarBearOrder, mongdiesOrder
 };
 
 export const getOrderByType = (orders) => {
-  const hanskinOrder = orders.filter((order) => order.brand === "hanskin");
-  const sugarBearOrder = orders.filter((order) => order.brand === "sugarbear");
-  const mongdiesOrder = orders.filter((order) => order.brand === "mongdies");
+  const activeOrders = orders.filter((order) => !order.cancelledAt && !order.isArchived && order.fulfilmentStatus !== "cancelled" && order.status !== 4);
+  const hanskinOrder = activeOrders.filter((order) => order.brand === "hanskin");
+  const sugarBearOrder = activeOrders.filter((order) => order.brand === "sugarbear");
+  const mongdiesOrder = activeOrders.filter((order) => order.brand === "mongdies");
 
   return { hanskinOrder, sugarBearOrder, mongdiesOrder };
 };

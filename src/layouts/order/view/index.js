@@ -10,6 +10,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { database } from "../../../firebase";
 import Footer from "../../../examples/Footer";
 import BrandedLoader from "../../../components/BrandedLoader";
+import { fulfilmentFromOrder, invoiceStatusFromOrder } from "../../../services/orderWorkflow";
 
 
 
@@ -18,6 +19,7 @@ function OrderView() {
   const [searchParams] = useSearchParams();
 
   const id  = searchParams.get('id');
+  const orderCollection = searchParams.get("type") === "wholesale" ? "ws_orders" : "orders";
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const formattedAmount = new Intl.NumberFormat("en-MM", {
@@ -39,6 +41,14 @@ function OrderView() {
     },{
       name: "invoiceNumber",
       display: "Invoice Number",
+    },{
+      name: "fulfilmentStatus",
+      display: "Fulfilment Status",
+      functional: fulfilmentFromOrder(order || {}),
+    },{
+      name: "invoiceStatus",
+      display: "Invoice Status",
+      functional: invoiceStatusFromOrder(order || {}),
     },{
       name: "primaryPhone",
       display: "Primary Phone",
@@ -78,6 +88,12 @@ function OrderView() {
     },{
       name: "remark",
       display: "Remark",
+    },{
+      name: "exceptionReason",
+      display: "Fulfilment Issue",
+    },{
+      name: "cancellationReason",
+      display: "Cancellation Reason",
     },
   ]
 
@@ -85,7 +101,7 @@ function OrderView() {
 
   useEffect(() => {
     async function fetchOrder() {
-      const docRef = doc(database, 'orders', id);
+      const docRef = doc(database, orderCollection, id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setOrder(docSnap.data());
@@ -98,7 +114,7 @@ function OrderView() {
     if(id){
       fetchOrder();
     }
-  }, [id]);
+  }, [id, orderCollection]);
 
   if (loading) {
     return <BrandedLoader label="Loading order details…" fullPage />;
