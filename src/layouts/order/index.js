@@ -11,6 +11,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Autocomplete,
+  Alert,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -26,7 +27,6 @@ import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import MDButton from "../../components/MDButton";
 import {
-  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -55,8 +55,8 @@ import {
   actorFrom,
   FULFILMENT,
   INVOICE_STATUS,
-  updateOrderWithAudit,
 } from "../../services/orderWorkflow";
+import { canChangeOrder, canRequestOrderChange, EDIT_FIELDS, submitOrderChange } from "../../services/orderChanges";
 
 const NUMERIC_INPUT_PROPS = { inputMode: "numeric", pattern: "[0-9]*" };
 
@@ -105,7 +105,9 @@ function Order() {
   const id = searchParams.get("id");
 
   const [brand, setBrand] = useState("hanskin");
-  const [orderRef, setOrderRef] = useState(null);
+  const [originalOrder, setOriginalOrder] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [changeReason, setChangeReason] = useState("");
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -121,27 +123,38 @@ function Order() {
   const [pasteSummary, setPasteSummary] = useState("");
 
   useEffect(() => {
+    let current = true;
     const targetCollection = userData.role === "sales" ? "ws_orders" : "orders";
     setCollectionName(targetCollection);
+    setOriginalOrder(null);
+    setLoadError("");
+    setChangeReason("");
+    setFormData(EMPTY_FORM);
+    setBrand("hanskin");
     async function fetchOrder() {
-      const docRef = doc(database, targetCollection, id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setOrderRef(docRef);
-        const data = docSnap.data();
-        setFormData(data);
-        if (data.brand) {
-          setBrand(data.brand);
+      try {
+        if (!canRequestOrderChange(userData.role, targetCollection)) {
+          throw new Error("Only Page Admin and Wholesale staff can submit order edit requests.");
         }
-      } else {
-        navigate(`/order`);
+        const docSnap = await getDoc(doc(database, targetCollection, id));
+        if (!current) return;
+        const data = docSnap.data();
+        if (!canChangeOrder(data, "edit")) {
+          throw new Error("This order is unavailable or no longer eligible for an edit request.");
+        }
+        setOriginalOrder(data);
+        setFormData({ ...EMPTY_FORM, ...data });
+        setBrand(data.brand || "hanskin");
+      } catch (error) {
+        if (current) setLoadError(error.message);
       }
     }
 
     if (id) {
       fetchOrder();
     }
-  }, [id]);
+    return () => { current = false; };
+  }, [id, userData.role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -332,38 +345,36 @@ function Order() {
   };
 
   const update = async () => {
-    // Drop the local copy of updateHistory and append via arrayUnion instead:
-    // pushing into formData.updateHistory mutates React state in place (the
-    // spread is shallow), so a retry after a failure appended twice, and
-    // writing the whole array back clobbers concurrent updates.
-    const { updateHistory, ...formFields } = formData;
-    const data = {
-      ...formFields,
-      primaryPhone: normalizeMyanmarPhone(formData.primaryPhone),
-      secondaryPhone: normalizeMyanmarPhone(formData.secondaryPhone),
-      amount: Number(formData.amount) || 0,
-      deliveryFees: Number(formData.deliveryFees) || 0,
-      brand: brand,
-      updateHistory: arrayUnion({
-        updatedAt: new Date(),
-        updatedBy: userData.name,
-        updatedByUid: authUser?.uid || "",
-      }),
-      invoiceStatus: formData.invoiceNumber ? INVOICE_STATUS.ISSUED : INVOICE_STATUS.NOT_REQUIRED,
+    const editableValues = (form, formBrand) => {
+      const d = { ...EMPTY_FORM, ...form };
+      return {
+        ...d,
+        primaryPhone: normalizeMyanmarPhone(d.primaryPhone),
+        secondaryPhone: normalizeMyanmarPhone(d.secondaryPhone),
+        amount: Number(d.amount) || 0,
+        deliveryFees: Number(d.deliveryFees) || 0,
+        brand: formBrand,
+      };
     };
+    const oldValues = editableValues(originalOrder, originalOrder.brand || "hanskin");
+    const newValues = editableValues(formData, brand);
+    const proposed = Object.fromEntries(Object.keys(EDIT_FIELDS)
+      .filter((key) => oldValues[key] !== newValues[key])
+      .map((key) => [key, newValues[key]]));
 
     try {
-      await updateOrderWithAudit({
-        collectionName,
-        orderId: orderRef.id,
-        updates: data,
+      await submitOrderChange({
+        orderCollection: collectionName,
+        orderId: id,
+        original: originalOrder,
+        kind: "edit",
+        reason: changeReason,
+        proposed,
         actor: actorFrom(authUser, userData),
-        action: "order.details_updated",
       });
-      setSnack({ open: true, message: "Order update success.", color: "success", icon: "check" });
-      routeToHistory();
+      routeToHistory({ state: { showOrderRequests: true } }, originalOrder.brand || brand);
     } catch (e) {
-      setSnack({ open: true, message: "Order update failed.", color: "error", icon: "warning" });
+      setSnack({ open: true, message: e.code === "permission-denied" ? "The edit request was not accepted. Check the order and your access." : e.message, color: "error", icon: "warning" });
       setIsLoading(false);
     }
   };
@@ -372,7 +383,7 @@ function Order() {
     e.preventDefault(); // prevent page reload
     // ref guard: state updates are async, so a second tap can arrive
     // before the disabled re-render on slow devices
-    if (isSubmittingRef.current) return;
+    if (isSubmittingRef.current || (id && (!originalOrder || !changeReason.trim()))) return;
 
     // Select does not take part in native form validation, so check it here.
     if (!formData.state) {
@@ -437,10 +448,10 @@ function Order() {
   // figure while it is being typed rather than after the fact.
   const productSales = (Number(formData.amount) || 0) - (Number(formData.deliveryFees) || 0);
 
-  const routeToHistory = () => {
+  const routeToHistory = (options, targetBrand = brand) => {
     if (userData.role === "sales") {
-      navigate(`/wholesale-history/${brand}`);
-    } else navigate(`/history/${brand}`);
+      navigate(`/wholesale-history/${targetBrand}`, options);
+    } else navigate(`/history/${targetBrand}`, options);
   };
 
   const closeSnack = () => {
@@ -481,11 +492,14 @@ function Order() {
                 textAlign="center"
               >
                 <MDTypography variant="h5" fontWeight="medium" color="white">
-                  {id ? "Edit Order" : "New Order"}
+                  {id ? "Request Order Edit" : "New Order"}
                 </MDTypography>
               </MDBox>
               <MDBox pt={3} pb={3} px={3}>
-                <MDBox component="form" onSubmit={handleSubmit} role="form">
+                {id && !originalOrder ? (
+                  <Alert severity={loadError ? "error" : "info"}>{loadError || "Loading order…"}</Alert>
+                ) : <MDBox component="form" onSubmit={handleSubmit} role="form">
+                  {id && <Alert severity="info" sx={{ mb: 2 }}>The saved order stays unchanged until a Super Admin approves your request.</Alert>}
                   <Grid container columnSpacing={2}>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <MDBox mb={2}>
@@ -518,6 +532,7 @@ function Order() {
                             variant="outlined"
                             value={formData.invoiceNumber}
                             onChange={handleChange}
+                            disabled={Boolean(id)}
                             fullWidth
                           />
                         </MDBox>
@@ -852,6 +867,7 @@ function Order() {
                       borderColor: "grey.300",
                     }}
                   >
+                    {id && <MDInput label="Reason for the edit" value={changeReason} onChange={(e) => setChangeReason(e.target.value)} fullWidth required multiline minRows={2} inputProps={{ maxLength: 500 }} sx={{ mb: 2 }} />}
                     <MDBox display="flex" flexDirection={{ xs: "column", sm: "row" }} gap={1.5}>
                       {!id && (
                         // Both buttons submit so native required-field
@@ -875,24 +891,24 @@ function Order() {
                         variant="gradient"
                         color="info"
                         fullWidth
-                        disabled={isLoading}
+                        disabled={isLoading || Boolean(id && !changeReason.trim())}
                         startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
                         onClick={() => {
                           addAnotherRef.current = false;
                         }}
                       >
-                        {isLoading ? (id ? "Updating…" : "Creating…") : id ? "Update" : "Create"}
+                        {isLoading ? (id ? "Submitting…" : "Creating…") : id ? "Submit Edit Request" : "Create"}
                       </MDButton>
                     </MDBox>
                     {isLoading && (
                       <MDBox mt={1} textAlign="center">
                         <MDTypography variant="caption" color="text">
-                          Saving your order — don&apos;t close this page.
+                          {id ? "Submitting your request…" : "Saving your order — don't close this page."}
                         </MDTypography>
                       </MDBox>
                     )}
                   </MDBox>
-                </MDBox>
+                </MDBox>}
               </MDBox>
             </Card>
           </Grid>

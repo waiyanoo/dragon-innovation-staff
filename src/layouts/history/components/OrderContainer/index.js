@@ -7,7 +7,7 @@ import MDTypography from "components/MDTypography";
 
 // Billing page components
 import OrderCard from "../OrderCard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   arrayUnion,
   collection,
@@ -41,6 +41,8 @@ import MDInput from "../../../../components/MDInput";
 import BrandedLoader from "../../../../components/BrandedLoader";
 import EmptyState from "../../../../components/EmptyState";
 import FilterOrders from "../Filters";
+import OrderChangeRequests from "../../../../components/OrderChangeRequests";
+import { canRequestOrderChange, submitOrderChange } from "../../../../services/orderChanges";
 import dayjs from "dayjs";
 import {
   actorFrom,
@@ -80,6 +82,9 @@ function OrderContainer({ brand }) {
   const [open, setOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [isSubmittingVoid, setIsSubmittingVoid] = useState(false);
+  const voidSubmitting = useRef(false);
+  const [showRequests, setShowRequests] = useState(Boolean(location.state?.showOrderRequests));
   const [exceptionTarget, setExceptionTarget] = useState(null);
   const [exceptionReason, setExceptionReason] = useState("");
   const [bulkTarget, setBulkTarget] = useState(null);
@@ -91,6 +96,7 @@ function OrderContainer({ brand }) {
   const { authUser, userData } = useAuth();
   const [snack, setSnack] = useState({ open: false, message: "", color: "success", icon: "check" });
   const segments = location.pathname.split("/").filter(Boolean);
+  const mayRequest = canRequestOrderChange(userData.role, segments[0] === "history" ? "orders" : "ws_orders");
 
   useEffect(() => {
     const timer = setTimeout(() => filerOrders(false), 350);
@@ -173,27 +179,20 @@ function OrderContainer({ brand }) {
 
   const confirmCancel = async () => {
     const target = cancelTarget;
-    if (!target || !cancelReason.trim()) return;
-    setCancelTarget(null);
+    if (!mayRequest || !target || !cancelReason.trim() || voidSubmitting.current) return;
+    voidSubmitting.current = true;
+    setIsSubmittingVoid(true);
     const collectionName = segments[0] === "history" ? "orders" : "ws_orders";
     try {
-      const updates = {
-        fulfilmentStatus: FULFILMENT.CANCELLED,
-        status: legacyStatusFor(FULFILMENT.CANCELLED),
-        isArchived: true,
-        cancelledAt: new Date(),
-        cancelledBy: userData.name,
-        cancelledByUid: authUser?.uid || "",
-        cancellationReason: cancelReason.trim(),
-        updateHistory: arrayUnion({ updatedAt: new Date(), updatedBy: userData.name, updatedByUid: authUser?.uid || "" }),
-      };
-      await updateOrderWithAudit({ collectionName, orderId: target.id, updates, actor: actorFrom(authUser, userData), action: "order.cancelled", metadata: { reason: cancelReason.trim() } });
-      setOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
-      setSearchedOrders((prev) => prev.map((item) => item.id === target.id ? { ...item, ...updates } : item));
+      await submitOrderChange({ orderCollection: collectionName, orderId: target.id, original: target, kind: "void", reason: cancelReason, actor: actorFrom(authUser, userData) });
+      setCancelTarget(null);
       setCancelReason("");
-      setSnack({ open: true, message: "Order cancelled and kept in the records.", color: "success", icon: "check" });
+      setShowRequests(true);
     } catch (e) {
-      setSnack({ open: true, message: "Order could not be cancelled.", color: "error", icon: "warning" });
+      setSnack({ open: true, message: e.code === "permission-denied" ? "The void request was not accepted. Check the order and your access." : e.message, color: "error", icon: "warning" });
+    } finally {
+      voidSubmitting.current = false;
+      setIsSubmittingVoid(false);
     }
   };
 
@@ -507,6 +506,7 @@ function OrderContainer({ brand }) {
         </MDBox>
         <MDBox px={2} pb={2}>
           <FilterOrders filerChange={(e) => setCheckedItems(e)} />
+          {mayRequest && <MDButton variant="outlined" color="info" sx={{ mt: 2 }} onClick={() => setShowRequests(true)}>My Order Requests</MDButton>}
         </MDBox>
         {userData.role === "super_admin" && (
           <MDBox
@@ -605,28 +605,33 @@ function OrderContainer({ brand }) {
           </MDButton>
         </DialogActions>
       </Dialog>
-      <Dialog open={Boolean(cancelTarget)} onClose={() => setCancelTarget(null)} fullWidth maxWidth="sm">
+      <Dialog open={mayRequest && showRequests} onClose={() => setShowRequests(false)} fullWidth maxWidth="sm">
+        <DialogTitle>My Order Requests</DialogTitle>
+        <DialogContent dividers>{showRequests && mayRequest && <OrderChangeRequests />}</DialogContent>
+        <DialogActions><MDButton onClick={() => setShowRequests(false)}>Close</MDButton></DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(cancelTarget)} onClose={() => { if (!isSubmittingVoid) setCancelTarget(null); }} fullWidth maxWidth="sm">
         <DialogTitle>
           <MDTypography variant="h5" component="span" fontWeight="medium">
-            Cancel this order?
+            Request to void this order?
           </MDTypography>
         </DialogTitle>
         <DialogContent>
           <MDTypography variant="body2" color="text">
             {cancelTarget
-              ? `The order for "${cancelTarget.name}" will remain in history but will be excluded from active sales and fulfilment.`
+              ? `The order for "${cancelTarget.name}" stays active until a Super Admin approves. An approved void keeps the order in history but excludes it from active sales and fulfilment.`
               : ""}
           </MDTypography>
           <MDBox mt={2}>
-            <MDInput label="Cancellation reason" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} fullWidth required multiline minRows={2} />
+            <MDInput label="Reason for the void" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} fullWidth required multiline minRows={2} disabled={isSubmittingVoid} inputProps={{ maxLength: 500 }} />
           </MDBox>
         </DialogContent>
         <DialogActions>
-          <MDButton variant="gradient" color="light" onClick={() => setCancelTarget(null)}>
+          <MDButton variant="gradient" color="light" onClick={() => setCancelTarget(null)} disabled={isSubmittingVoid}>
             Cancel
           </MDButton>
-          <MDButton variant="gradient" color="error" onClick={confirmCancel} disabled={!cancelReason.trim()}>
-            Confirm cancellation
+          <MDButton variant="gradient" color="error" onClick={confirmCancel} disabled={isSubmittingVoid || !cancelReason.trim()}>
+            {isSubmittingVoid ? "Submitting…" : "Submit Void Request"}
           </MDButton>
         </DialogActions>
       </Dialog>

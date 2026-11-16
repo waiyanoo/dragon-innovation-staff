@@ -28,6 +28,8 @@ const {
   getDocs,
   addDoc,
   deleteDoc,
+  serverTimestamp,
+  writeBatch,
 } = require("firebase/firestore");
 
 const RULES_PATH = process.env.RULES_PATH || path.join(__dirname, "..", "firestore.rules");
@@ -85,6 +87,8 @@ async function main() {
     await setDoc(doc(db, "ws_orders", "w1"), {
       brand: "hanskin", amount: 1000, createdBy: "Sales", status: 0,
     });
+    await setDoc(doc(db, "orders", "approval1"), { status: 0, amount: 1000, name: "Test Customer" });
+    await setDoc(doc(db, "ws_orders", "approval2"), { status: 1, amount: 1000 });
     await setDoc(doc(db, "settings", "v1"), { targets: {} });
     await setDoc(doc(db, "monthlyCommission", "2026_07"), { hanskin: {} });
     await setDoc(doc(db, "monthlyReports", "2026_07"), { hanskin: {} });
@@ -187,10 +191,18 @@ async function main() {
     assertSucceeds(updateDoc(doc(warehouse, "ws_orders", "w1"), { status: 1 })));
   await t("warehouse CANNOT edit wholesale order amount", () =>
     assertFails(updateDoc(doc(warehouse, "ws_orders", "w1"), { amount: 999999 })));
-  await t("admin CAN edit retail order details", () =>
-    assertSucceeds(updateDoc(doc(adminUser, "orders", "o1"), { amount: 5000, address: "new addr" })));
-  await t("sales CAN edit wholesale order details", () =>
-    assertSucceeds(updateDoc(doc(sales, "ws_orders", "w1"), { amount: 5000 })));
+  await t("admin CANNOT directly edit retail order details", () =>
+    assertFails(updateDoc(doc(adminUser, "orders", "o1"), { amount: 5000, address: "new addr" })));
+  await t("sales CANNOT directly edit wholesale order details", () =>
+    assertFails(updateDoc(doc(sales, "ws_orders", "w1"), { amount: 5000 })));
+  await t("page admin CANNOT directly edit or delete retail orders", async () => {
+    await assertFails(updateDoc(doc(pageAdmin, "orders", "approval1"), { amount: 5000 }));
+    await assertFails(deleteDoc(doc(pageAdmin, "orders", "approval1")));
+  });
+  await t("admin can still set an official invoice", () =>
+    assertSucceeds(updateDoc(doc(adminUser, "orders", "o1"), { invoiceNumber: "TEST-1", invoiceStatus: "issued" })));
+  await t("an already-shipped order cannot be reverted to packed", () =>
+    assertFails(updateDoc(doc(adminUser, "orders", "o1"), { status: 1, fulfilmentStatus: "packed" })));
   await t("warehouse CANNOT delete a retail order", () =>
     assertFails(deleteDoc(doc(warehouse, "orders", "o1"))));
   await t("admin CAN create a retail order", () =>
@@ -199,6 +211,66 @@ async function main() {
     assertFails(getDocs(collection(pendingUser, "orders"))));
   await t("anonymous CANNOT read orders", () =>
     assertFails(getDocs(collection(anon, "orders"))));
+
+  const requestPath = (db, id) => doc(db, "orderChangeRequests", id);
+  const edit = () => ({
+    orderCollection: "orders", orderId: "approval1", kind: "edit", reason: "Customer correction",
+    changes: { amount: 2000 }, base: { status: 0, fulfilment: "", invoice: "", revision: "", historyLength: 0 },
+    requesterUid: "pageadmin1", status: "pending", createdAt: serverTimestamp(),
+  });
+  const decision = (status = "approved") => ({ status, reviewerUid: "superadmin", reviewedAt: serverTimestamp() });
+  const approve = (id, orderCollection, orderId, updates) => {
+    const batch = writeBatch(superAdmin);
+    batch.update(requestPath(superAdmin, id), decision());
+    batch.update(doc(superAdmin, orderCollection, orderId), { ...updates, lastChangeRequestId: id });
+    return batch.commit();
+  };
+  await t("only eligible submitters can open requests; no identity or schema spoofing", async () => {
+    await assertFails(setDoc(requestPath(adminUser, "bad"), { ...edit(), requesterUid: "adminuser" }));
+    await assertFails(setDoc(requestPath(sales, "bad"), { ...edit(), requesterUid: "salesuser" }));
+    await assertFails(setDoc(requestPath(pageAdmin, "bad"), { ...edit(), requesterUid: "pageadmin2" }));
+    await assertFails(setDoc(requestPath(pageAdmin, "bad"), { ...edit(), reason: "   " }));
+    await assertFails(setDoc(requestPath(pageAdmin, "bad"), { ...edit(), changes: { status: 4 } }));
+    await assertFails(setDoc(requestPath(pageAdmin, "bad"), { ...edit(), changes: { amount: -1 } }));
+    await assertFails(setDoc(requestPath(pageAdmin, "bad"), { ...edit(), orderId: "o1" }));
+  });
+  await t("Page Admin submits and sees their own requests without changing the order", async () => {
+    await assertSucceeds(setDoc(requestPath(pageAdmin, "edit1"), edit()));
+    await assertSucceeds(setDoc(requestPath(pageAdmin, "stale"), edit()));
+    const original = await getDoc(doc(pageAdmin, "orders", "approval1"));
+    if (original.data().amount !== 1000) throw new Error("Order changed before approval");
+    await assertSucceeds(getDocs(query(collection(pageAdmin, "orderChangeRequests"), where("requesterUid", "==", "pageadmin1"))));
+    await assertFails(getDocs(collection(pageAdmin, "orderChangeRequests")));
+    await assertFails(getDoc(requestPath(legacyPageAdmin, "edit1")));
+    await assertFails(getDocs(collection(anon, "orderChangeRequests")));
+  });
+  await t("only Super Admin may decide and approval must atomically apply exactly the requested edit", async () => {
+    await assertFails(updateDoc(requestPath(pageAdmin, "edit1"), decision("rejected")));
+    await assertFails(updateDoc(requestPath(adminUser, "edit1"), decision("rejected")));
+    await assertFails(updateDoc(requestPath(superAdmin, "edit1"), decision()));
+    await assertFails(updateDoc(doc(superAdmin, "orders", "approval1"), { amount: 2000, lastChangeRequestId: "edit1" }));
+    await assertFails(approve("edit1", "orders", "approval1", { amount: 3000 }));
+    await assertFails(approve("edit1", "orders", "approval1", { amount: 2000, isArchived: true }));
+    await assertSucceeds(approve("edit1", "orders", "approval1", { amount: 2000 }));
+    await assertFails(approve("edit1", "orders", "approval1", { amount: 2000 }));
+    await assertFails(approve("stale", "orders", "approval1", { amount: 2000 }));
+    await assertFails(updateDoc(requestPath(superAdmin, "stale"), { ...decision("rejected"), reason: "Changed" }));
+    await assertSucceeds(updateDoc(requestPath(superAdmin, "stale"), decision("rejected")));
+  });
+  await t("Wholesale can request a packed order void; approval archives but does not delete it", async () => {
+    await assertSucceeds(setDoc(requestPath(sales, "void1"), {
+      ...edit(), kind: "void", changes: {}, orderCollection: "ws_orders", orderId: "approval2", requesterUid: "salesuser",
+      base: { ...edit().base, status: 1 },
+    }));
+    await assertFails(updateDoc(doc(sales, "ws_orders", "approval2"), { status: 4 }));
+    await assertSucceeds(approve("void1", "ws_orders", "approval2", {
+      status: 4, fulfilmentStatus: "cancelled", isArchived: true,
+      cancelledAt: serverTimestamp(), cancelledByUid: "superadmin", cancellationReason: "Customer correction",
+    }));
+    await assertFails(updateDoc(doc(warehouse, "ws_orders", "approval2"), { status: 2, fulfilmentStatus: "shipped" }));
+    const snapshot = await getDoc(doc(sales, "ws_orders", "approval2"));
+    if (snapshot.data()?.status !== 4) throw new Error("Voided order was not retained");
+  });
 
   // --- Settings / reports ---
   await t("page_admin CAN read commission settings", () =>

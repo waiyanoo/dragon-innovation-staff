@@ -12,6 +12,7 @@ import { useState } from "react";
 import ReportsPanel from "./components/ReportsPanel";
 import UserManagement from "./components/UserManagement";
 import CommissionSettings from "./components/CommissionSettings";
+import OrderChangeRequests from "../../components/OrderChangeRequests";
 
 function Report_control_panel() {
   const [tab, setTab] = useState("reports");
@@ -25,10 +26,11 @@ function Report_control_panel() {
         </MDBox>
         <TabContext value={tab}>
           <MDBox px={2}>
-            <TabList onChange={(e, value) => setTab(value)} aria-label="Admin tools sections">
+            <TabList onChange={(e, value) => setTab(value)} aria-label="Admin tools sections" variant="scrollable" scrollButtons="auto">
               <Tab label="Reports" value="reports" />
               <Tab label="Users" value="users" />
               <Tab label="Commission" value="commission" />
+              <Tab label="Order Approvals" value="approvals" />
             </TabList>
           </MDBox>
           <TabPanel value="reports" sx={{ px: { xs: 0, sm: 1 } }}>
@@ -39,6 +41,9 @@ function Report_control_panel() {
           </TabPanel>
           <TabPanel value="commission" sx={{ px: { xs: 0, sm: 1 } }}>
             {tab === "commission" && <CommissionSettings />}
+          </TabPanel>
+          <TabPanel value="approvals" sx={{ px: { xs: 0, sm: 1 } }}>
+            {tab === "approvals" && <OrderChangeRequests review />}
           </TabPanel>
         </TabContext>
       </MDBox>

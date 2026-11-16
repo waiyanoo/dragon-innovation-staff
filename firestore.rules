@@ -7,6 +7,9 @@ rules_version = '2';
 // - auditLogs/{id}: append-only actor/action/order snapshots using server time.
 // - settings, monthlyCommission, monthlyReports: administrator-owned reports.
 // - adhocInvoices/{id}: temporary customer invoice copies.
+// - orderChangeRequests/{id}: immutable order scope, requester UID, reason,
+//   allowlisted edit map, order baseline, and server creation time; pending
+//   until a different super admin sets the decision, reviewer UID and time.
 // All collections are private to authenticated staff and default-denied below.
 
 // Role-based access rules for the staff portal.
@@ -71,33 +74,154 @@ service cloud.firestore {
     // writes these two fields. Editing order details (amount, address,
     // customer) is reserved for the roles that get the Edit action in the UI.
     function onlyAdvancesStatus() {
-      return request.resource.data.diff(resource.data).affectedKeys()
+      let d = request.resource.data;
+      let old = resource.data;
+      let keys = d.diff(old).affectedKeys();
+      return keys
         .hasOnly([
           "status", "fulfilmentStatus", "updateHistory",
           "exceptionStatus", "exceptionReason", "exceptionReportedAt",
           "exceptionReportedBy", "exceptionReportedByUid", "exceptionResolvedAt"
         ])
-        && request.resource.data.status in [0, 1, 2]
-        && (!("fulfilmentStatus" in request.resource.data)
-          || request.resource.data.fulfilmentStatus in ["pending", "packed", "shipped"]);
+        && resource.data.status in [0, 1, 2, 3]
+        && resource.data.get("isArchived", false) != true
+        && resource.data.get("cancelledAt", null) == null
+        && resource.data.get("fulfilmentStatus", "") != "cancelled"
+        && (!keys.hasAny(["status", "fulfilmentStatus"])
+          || (old.status == 0 && d.status == 1 && d.get("fulfilmentStatus", "packed") == "packed")
+          || (old.status == 1 && d.status == 2 && d.get("fulfilmentStatus", "shipped") == "shipped"));
+    }
+
+    function invoiceUpdateOnly() {
+      let d = request.resource.data;
+      return resource.data.status in [0, 1, 2, 3]
+        && resource.data.get("isArchived", false) != true
+        && resource.data.get("cancelledAt", null) == null
+        && resource.data.get("fulfilmentStatus", "") != "cancelled"
+        && d.diff(resource.data).affectedKeys().hasOnly(["invoiceNumber", "invoiceStatus", "updateHistory"])
+        && d.invoiceStatus == "issued" && boundedText(d.invoiceNumber, 160) && d.invoiceNumber.size() > 0;
+    }
+
+    function validNewOrder() {
+      let d = request.resource.data;
+      return d.status == 0 && d.get("fulfilmentStatus", "pending") == "pending"
+        && d.get("isArchived", false) == false
+        && !d.keys().hasAny(["lastChangeRequestId", "cancelledAt", "cancelledBy", "cancelledByUid", "cancellationReason"]);
     }
 
     // Retail orders.
     match /orders/{orderId} {
       allow read: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
-      allow create: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]);
-      allow update: if hasRole(["page_admin", "admin", "super_admin"])
-        || (hasRole(["warehouse"]) && onlyAdvancesStatus());
-      allow delete: if hasRole(["page_admin", "admin", "super_admin"]);
+      allow create: if hasRole(["page_admin", "warehouse", "admin", "super_admin"]) && validNewOrder();
+      allow update: if (hasRole(["warehouse", "admin", "super_admin"]) && onlyAdvancesStatus())
+        || (hasRole(["admin", "super_admin"]) && invoiceUpdateOnly())
+        || (hasRole(["super_admin"]) && appliesApprovedChange("orders", orderId));
+      allow delete: if false;
     }
 
     // Wholesale orders.
     match /ws_orders/{orderId} {
       allow read: if hasRole(["sales", "warehouse", "admin", "super_admin"]);
-      allow create: if hasRole(["sales", "admin", "super_admin"]);
-      allow update: if hasRole(["sales", "admin", "super_admin"])
-        || (hasRole(["warehouse"]) && onlyAdvancesStatus());
-      allow delete: if hasRole(["sales", "admin", "super_admin"]);
+      allow create: if hasRole(["sales", "admin", "super_admin"]) && validNewOrder();
+      allow update: if (hasRole(["warehouse", "admin", "super_admin"]) && onlyAdvancesStatus())
+        || (hasRole(["admin", "super_admin"]) && invoiceUpdateOnly())
+        || (hasRole(["super_admin"]) && appliesApprovedChange("ws_orders", orderId));
+      allow delete: if false;
+    }
+
+    function boundedText(value, max) {
+      return value is string && value.size() <= max;
+    }
+
+    function validOrderEdits(c) {
+      return c is map && c.size() > 0
+        && c.keys().hasOnly(["name", "primaryPhone", "secondaryPhone", "address", "state", "city",
+          "items", "amount", "deliveryFees", "deliveryType", "paymentStatus", "paymentMode", "remark", "brand"])
+        && boundedText(c.get("name", ""), 250) && boundedText(c.get("primaryPhone", ""), 30)
+        && boundedText(c.get("secondaryPhone", ""), 30) && boundedText(c.get("address", ""), 4000)
+        && boundedText(c.get("state", ""), 100) && boundedText(c.get("city", ""), 200)
+        && boundedText(c.get("items", ""), 12000) && boundedText(c.get("remark", ""), 4000)
+        && boundedText(c.get("deliveryType", ""), 40) && boundedText(c.get("paymentStatus", ""), 40)
+        && boundedText(c.get("paymentMode", ""), 40)
+        && c.get("brand", "hanskin") in ["hanskin", "sugarbear", "mongdies"]
+        && c.get("amount", 0) is number && c.get("amount", 0) >= 0 && c.get("amount", 0) <= 100000000000
+        && c.get("deliveryFees", 0) is number && c.get("deliveryFees", 0) >= 0 && c.get("deliveryFees", 0) <= 100000000000;
+    }
+
+    function canSubmitChange(orderCollection) {
+      return (orderCollection == "orders" && hasRole(["page_admin"]))
+        || (orderCollection == "ws_orders" && hasRole(["sales"]));
+    }
+
+    function orderPath(c) {
+      return /databases/$(database)/documents/$(c.orderCollection)/$(c.orderId);
+    }
+
+    function sameEligibleOrder(order, c) {
+      return order.get("isArchived", false) != true && order.get("cancelledAt", null) == null
+        && order.get("status", 0) in (c.kind == "edit" ? [0] : [0, 1])
+        && order.get("fulfilmentStatus", "") in (c.kind == "edit" ? ["", "pending"] : ["", "pending", "packed"])
+        && c.base == {
+          "status": order.get("status", 0),
+          "fulfilment": order.get("fulfilmentStatus", null) == null ? "" : order.fulfilmentStatus,
+          "invoice": order.get("invoiceNumber", null) == null ? "" : order.invoiceNumber,
+          "revision": order.get("lastChangeRequestId", ""),
+          "historyLength": order.get("updateHistory", []).size()
+        };
+    }
+
+    function validChange(c) {
+      return c.orderCollection in ["orders", "ws_orders"]
+        && boundedText(c.orderId, 160) && c.orderId.matches("^[A-Za-z0-9_-]+$")
+        && boundedText(c.requesterUid, 128) && c.requesterUid.size() > 0
+        && boundedText(c.reason, 500) && c.reason.matches("(?s).*[^\\s].*")
+        && c.createdAt is timestamp && c.base is map
+        && ((c.kind == "edit" && validOrderEdits(c.changes)) || (c.kind == "void" && c.changes == {}));
+    }
+
+    function appliesApprovedChange(orderCollection, orderId) {
+      let d = request.resource.data;
+      let requestId = d.lastChangeRequestId;
+      let path = /databases/$(database)/documents/orderChangeRequests/$(requestId);
+      let c = getAfter(path).data;
+      let keys = d.diff(resource.data).affectedKeys();
+      return boundedText(requestId, 160) && requestId.matches("^[A-Za-z0-9_-]+$")
+        && requestId != resource.data.get("lastChangeRequestId", "")
+        && get(path).data.status == "pending" && c.status == "approved"
+        && c.reviewerUid == request.auth.uid && c.reviewedAt == request.time
+        && c.requesterUid != request.auth.uid && c.orderCollection == orderCollection && c.orderId == orderId
+        && sameEligibleOrder(resource.data, c)
+        && ((c.kind == "edit"
+          && keys.hasOnly(c.changes.keys().concat(["lastChangeRequestId", "updateHistory"]))
+          && d.diff(c.changes).unchangedKeys().hasAll(c.changes.keys()))
+          || (c.kind == "void"
+            && keys.hasOnly(["lastChangeRequestId", "updateHistory", "status", "fulfilmentStatus",
+              "isArchived", "cancelledAt", "cancelledByUid", "cancellationReason"])
+            && d.status == 4 && d.fulfilmentStatus == "cancelled" && d.isArchived == true
+            && d.cancelledAt == request.time && d.cancelledByUid == request.auth.uid
+            && d.cancellationReason == c.reason));
+    }
+
+    match /orderChangeRequests/{requestId} {
+      allow read: if hasRole(["super_admin"])
+        || (hasRole(["page_admin", "sales"]) && resource.data.requesterUid == request.auth.uid);
+      allow create: if canSubmitChange(request.resource.data.orderCollection)
+        && request.resource.data.keys().hasOnly(["orderCollection", "orderId", "kind", "reason",
+          "changes", "base", "requesterUid", "status", "createdAt"])
+        && validChange(request.resource.data)
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.status == "pending" && request.resource.data.createdAt == request.time
+        && sameEligibleOrder(get(orderPath(request.resource.data)).data, request.resource.data);
+      allow update: if hasRole(["super_admin"]) && resource.data.status == "pending"
+        && resource.data.requesterUid != request.auth.uid
+        && validChange(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "reviewerUid", "reviewedAt"])
+        && request.resource.data.reviewerUid == request.auth.uid && request.resource.data.reviewedAt == request.time
+        && (request.resource.data.status == "rejected"
+          || (request.resource.data.status == "approved"
+            && get(orderPath(resource.data)).data.get("lastChangeRequestId", "") != requestId
+            && getAfter(orderPath(resource.data)).data.lastChangeRequestId == requestId));
+      allow delete: if false;
     }
 
     // Commission targets (settings/v1): read by the reward page, edited only
