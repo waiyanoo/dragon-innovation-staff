@@ -128,7 +128,7 @@ function Waybill() {
           color: "#171717",
           border: "2px solid #171717",
           boxShadow: "0 18px 45px rgba(42, 11, 16, 0.18)",
-          fontFamily: 'Arial, "Noto Sans Myanmar", sans-serif',
+          fontFamily: 'Arial, "Noto Sans Myanmar Variable", sans-serif',
           "& .waybill-section": { borderTop: "1.5px solid #171717" },
           "& .waybill-grid": { display: "grid", gridTemplateColumns: "1fr 1fr" },
           "& .waybill-grid > *:nth-of-type(odd)": { borderRight: "1.5px solid #171717" },

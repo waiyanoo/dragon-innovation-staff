@@ -3,6 +3,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "App";
 import "./i18n";
+// Bundle fonts with the app so clients never need to reach Google's font CDN.
+import "@fontsource-variable/urbanist/wght.css";
+import "@fontsource-variable/urbanist/wght-italic.css";
+import "@fontsource-variable/noto-sans-myanmar/wght.css";
+import "material-icons/iconfont/filled.css";
 
 // Material Dashboard 2 React Context Provider
 import { MaterialUIControllerProvider } from "context";

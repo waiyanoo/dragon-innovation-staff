@@ -220,7 +220,7 @@ function AdhocInvoice() {
         </MDBox>
       </MDBox>
 
-      <MDBox ref={invoiceRef} id="adhoc-invoice-print" mx="auto" mb={4} sx={{ width: "min(210mm, calc(100% - 24px))", minHeight: "297mm", bgcolor: "#fff", color: "#171717", boxShadow: "0 18px 45px rgba(42,11,16,.15)", p: "16mm", fontFamily: 'Arial, "Noto Sans Myanmar", sans-serif' }}>
+      <MDBox ref={invoiceRef} id="adhoc-invoice-print" mx="auto" mb={4} sx={{ width: "min(210mm, calc(100% - 24px))", minHeight: "297mm", bgcolor: "#fff", color: "#171717", boxShadow: "0 18px 45px rgba(42,11,16,.15)", p: "16mm", fontFamily: 'Arial, "Noto Sans Myanmar Variable", sans-serif' }}>
         <MDBox display="flex" justifyContent="space-between" alignItems="flex-start" pb={3} borderBottom="3px solid #D7192D">
           <MDBox><MDBox component="img" src={companyLogo} alt="Dragon Innovation" width={92} sx={{ objectFit: "contain" }} /></MDBox>
           <MDBox textAlign="right"><MDTypography sx={{ fontSize: 30, fontWeight: 900, color: "#D7192D" }}>INVOICE</MDTypography><MDTypography sx={{ fontSize: 12, fontWeight: 700 }}>{invoiceNumber}</MDTypography></MDBox>
