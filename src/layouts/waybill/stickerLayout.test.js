@@ -1,5 +1,5 @@
 import {
-  DEFAULT_STICKER_SETTINGS, sanitizeStickerSettings, stickerOrderValues, stickerSheetSize, stickerOrigin, STICKER_FIELDS, STICKER_TEXT_X,
+  DEFAULT_STICKER_SETTINGS, sanitizeStickerSettings, stickerOrderValues, stickerSheetSize, stickerOrigin, STICKER_FIELDS, STICKER_TEXT_X, codCollectionLabel, stickerRemark,
 } from "./stickerLayout";
 
 test("default alignment uses the physically verified Canon G1010 correction", () => {
@@ -43,4 +43,18 @@ test("template uses measured dotted-line coordinates, not approximate text-box p
   expect(STICKER_TEXT_X).toBe(35);
   expect(STICKER_FIELDS.flatMap(({ lines }) => lines)).toEqual([25, 33, 43, 53, 63, 71]);
   expect(STICKER_FIELDS.find(({ key }) => key === "address").height).toBe(30);
+});
+
+test("COD uses the full order amount, including any recorded delivery fees", () => {
+  const order = Object.freeze({ paymentStatus: "COD", paymentMode: "Cash", amount: "119000", deliveryFees: 3000 });
+  expect(codCollectionLabel(order)).toBe("COD — Collect: 119,000 MMK");
+  expect(stickerRemark(order, "Call first")).toBe("COD — Collect: 119,000 MMK · Call first");
+  expect(stickerRemark(order, "")).toBe("COD — Collect: 119,000 MMK");
+});
+
+test("non-COD stickers keep remarks without a collection instruction", () => {
+  for (const paymentStatus of ["Paid", "Other", undefined]) {
+    expect(codCollectionLabel({ paymentStatus, amount: 119000 })).toBe("");
+    expect(stickerRemark({ paymentStatus }, "Call first")).toBe("Call first");
+  }
 });

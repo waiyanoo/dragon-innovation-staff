@@ -27,6 +27,13 @@ export const stickerOrigin = (settings) => {
   const sheet = stickerSheetSize(settings);
   return { x: (sheet.width - 120) / 2, y: (sheet.height - 90) / 2 };
 };
+export const codCollectionLabel = (order) => order.paymentStatus === "COD"
+  ? `COD — Collect: ${(Number(order.amount) || 0).toLocaleString("en-US")} MMK`
+  : "";
+
+export const stickerRemark = (order, remark) =>
+  [codCollectionLabel(order), remark].filter(Boolean).join(" · ");
+
 export const stickerOrderValues = (order) => ({
   name: order.name || "",
   phone: [...new Set([order.primaryPhone, order.secondaryPhone].filter(Boolean))].join(" / "),

@@ -81,7 +81,7 @@ function Waybill() {
     );
   }
 
-  const unpaidCod = order.paymentStatus === "COD" && order.paymentMode === "NoPay";
+  const unpaidCod = order.paymentStatus === "COD";
   const collectAmount = unpaidCod ? Number(order.amount) || 0 : 0;
   const printedAt = new Date();
   const orderReference = order.invoiceNumber || "Not assigned";
