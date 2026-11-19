@@ -18,6 +18,7 @@ const Report_control_panel = lazy(() => import("./layouts/report_control_panel")
 const Waybill = lazy(() => import("./layouts/waybill"));
 const AdhocInvoice = lazy(() => import("./layouts/adhoc-invoice"));
 const WarehouseQueue = lazy(() => import("./layouts/warehouse"));
+const OrderApprovals = lazy(() => import("./layouts/order-approvals"));
 
 const routes = [
   {
@@ -186,6 +187,19 @@ const routes = [
         roles={["admin", "super_admin"]}
       >
         <Statistics />
+      </PrivateRoute>
+    ),
+  },{
+    type: "collapse",
+    name: "Order Approvals",
+    key: "order-approvals",
+    icon: <Icon fontSize="small">fact_check</Icon>,
+    route: "/order-approvals",
+    routeToGo: "/order-approvals",
+    roles: ["super_admin"],
+    component: (
+      <PrivateRoute roles={["super_admin"]}>
+        <OrderApprovals />
       </PrivateRoute>
     ),
   },{

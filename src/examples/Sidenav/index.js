@@ -49,6 +49,7 @@ const routeTranslationKeys = {
   summary: "navigation.summary",
   statistics: "navigation.statistics",
   controlPanel: "navigation.adminTools",
+  "order-approvals": "navigation.orderApprovals",
 };
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {

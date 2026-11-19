@@ -9,9 +9,14 @@ import { actorFrom, fulfilmentFromOrder } from "../../services/orderWorkflow";
 import { canChangeOrder, decideOrderChange, EDIT_FIELDS, loadOrderForReview, matchesOrderBasis, ORDER_CHANGES } from "../../services/orderChanges";
 import BrandedLoader from "../BrandedLoader";
 import MDButton from "../MDButton";
+import { useMaterialUIController } from "../../context";
+import ChangeComparison from "./ChangeComparison";
 
 export default function OrderChangeRequests({ review = false }) {
   const { authUser, userData } = useAuth();
+  const [{ darkMode }] = useMaterialUIController();
+  const reviewText = darkMode ? "#F3F4F6" : "#243042";
+  const secondaryText = darkMode ? "#C0CAD8" : "#536175";
   const uid = authUser?.uid;
   const reviewer = review && userData.role === "super_admin";
   const [requests, setRequests] = useState(null);
@@ -77,13 +82,16 @@ export default function OrderChangeRequests({ review = false }) {
         const isSelected = selected?.id === entry.id;
         const type = entry.orderCollection === "orders" ? "retail" : "wholesale";
         return (
-          <Paper key={entry.id} variant="outlined" sx={{ p: 2, minWidth: 0, overflowWrap: "anywhere" }}>
+          <Paper key={entry.id} variant="outlined" sx={{ p: { xs: 2, md: 3 }, minWidth: 0, overflowWrap: "anywhere", borderRadius: 3 }}>
             <Stack direction="row" flexWrap="wrap" spacing={1} useFlexGap alignItems="center">
-              <Typography variant="subtitle2">{entry.kind === "void" ? "Void Request" : "Edit Request"} · {type === "retail" ? "Retail" : "Wholesale"}</Typography>
+              <Typography sx={{ color: reviewText, fontSize: 17, fontWeight: 700 }}>{entry.kind === "void" ? "Void Request" : "Edit Request"} · {type === "retail" ? "Retail" : "Wholesale"}</Typography>
               <Chip size="small" label={entry.status === "pending" ? "Pending approval" : entry.status === "approved" ? "Approved" : "Rejected"} color={entry.status === "approved" ? "success" : entry.status === "rejected" ? "error" : "warning"} />
             </Stack>
-            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", mt: 1 }}>{entry.reason}</Typography>
-            <Typography variant="caption" component="div" color="text.secondary">{entry.createdAt?.toDate().toLocaleString()}</Typography>
+            <Box sx={{ my: 2, pl: 1.5, borderLeft: "3px solid", borderColor: darkMode ? "#687587" : "#C3CCD8" }}>
+              <Typography sx={{ color: secondaryText, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", mb: 0.5 }}>Reason for Request</Typography>
+              <Typography sx={{ color: reviewText, fontSize: 14, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{entry.reason}</Typography>
+            </Box>
+            <Typography variant="caption" component="div" sx={{ color: secondaryText, mb: 1.5 }}>Submitted {entry.createdAt?.toDate().toLocaleString()}</Typography>
             <MDButton component={Link} to={`/details?type=${type}&id=${entry.orderId}`} color="info" variant="text" size="small">View Order</MDButton>
             {reviewer && <MDButton variant="outlined" color="info" size="small" disabled={busy} onClick={() => { setDetails(null); setSelected(isSelected ? null : entry); setMessage(null); }}>{isSelected ? "Close Review" : "Review Request"}</MDButton>}
             {reviewer && isSelected && (
@@ -91,19 +99,28 @@ export default function OrderChangeRequests({ review = false }) {
                 {!details && <BrandedLoader />}
                 {details?.error && <Alert severity="error">Could not load the order. Close and reopen this review to try again.</Alert>}
                 {details && !details.error && <>
-                  <Typography variant="body2">Requested by: {details.name}</Typography>
-                  {details.order && <Typography variant="body2">{details.order.name || "Customer"} · {fulfilmentFromOrder(details.order)} · {Number(details.order.amount || 0).toLocaleString()} MMK</Typography>}
+                  <Box sx={{
+                    display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "1fr 1fr" }, gap: 2,
+                    p: 2, borderRadius: 2, bgcolor: darkMode ? "#202936" : "#F7F8FA",
+                    border: "1px solid", borderColor: darkMode ? "#465366" : "#E0E5EB",
+                  }}>
+                    <Box>
+                      <Typography sx={{ color: secondaryText, fontSize: 11, fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase" }}>Requested By</Typography>
+                      <Typography sx={{ color: reviewText, fontSize: 15, fontWeight: 700, mt: 0.5 }}>{details.name}</Typography>
+                    </Box>
+                    {details.order && <Box>
+                      <Typography sx={{ color: secondaryText, fontSize: 11, fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase" }}>Customer / Saved Order</Typography>
+                      <Typography sx={{ color: reviewText, fontSize: 15, fontWeight: 700, mt: 0.5 }}>{details.order.name || "Customer"}</Typography>
+                      <Typography sx={{ color: secondaryText, fontSize: 13, mt: 0.5, textTransform: "capitalize" }}>{fulfilmentFromOrder(details.order)} · {Number(details.order.amount || 0).toLocaleString()} MMK</Typography>
+                    </Box>}
+                  </Box>
                   {!eligible && <Alert severity="warning">The order has changed or is no longer eligible. Reject this request and ask for a new one.</Alert>}
                   {details.order?.invoiceNumber && <Alert severity="warning">Official invoice: {details.order.invoiceNumber}. Approval does not update Zoho Books or issue refunds.</Alert>}
                   {entry.kind === "void" && details.order && <Alert severity="info">Voiding removes the order from active fulfilment and sales. It stays in order history.</Alert>}
                   {entry.kind === "edit" && details.order && Object.entries(entry.changes).map(([key, value]) => (
-                    <Box key={key} sx={{ whiteSpace: "pre-wrap" }}>
-                      <Typography variant="subtitle2">{EDIT_FIELDS[key]}</Typography>
-                      <Typography variant="body2" color="text.secondary">Current: {String(details.order[key] ?? "") || "—"}</Typography>
-                      <Typography variant="body2">Proposed: {String(value) || "—"}</Typography>
-                    </Box>
+                    <ChangeComparison key={key} field={key} label={EDIT_FIELDS[key]} current={details.order[key]} proposed={value} darkMode={darkMode} />
                   ))}
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ pt: 2, borderTop: "1px solid", borderColor: darkMode ? "#465366" : "#E0E5EB" }}>
                     <MDButton variant="outlined" color="error" disabled={busy} onClick={() => decide("rejected")}>Reject Request</MDButton>
                     <MDButton variant="gradient" color="success" disabled={busy || !eligible} onClick={() => decide("approved")}>
                       {busy ? "Saving…" : entry.kind === "void" ? "Approve Void" : "Approve Edit"}

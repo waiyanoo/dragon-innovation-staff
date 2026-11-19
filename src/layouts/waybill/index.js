@@ -14,6 +14,8 @@ import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import { BRAND_LABELS } from "../../data/common";
 import { formattedAmount } from "../../functions/common-functions";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import PreprintedSticker from "./PreprintedSticker";
 
 const deliveryLabels = { 1: "Doorstep", 2: "Car Gate", 3: "Pickup" };
 
@@ -40,6 +42,7 @@ function Waybill() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [printFormat, setPrintFormat] = useState("waybill");
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +90,7 @@ function Waybill() {
 
   return (
     <>
-      <GlobalStyles
+      {printFormat === "waybill" && <GlobalStyles
         styles={{
           "@page": { size: "A5 portrait", margin: 0 },
           "@media print": {
@@ -105,19 +108,26 @@ function Waybill() {
             ".waybill-controls": { display: "none !important" },
           },
         }}
-      />
+      />}
 
-      <MDBox className="waybill-controls" display="flex" justifyContent="center" gap={1.5} py={2} px={2}>
+      <MDBox className="waybill-controls" display="flex" flexWrap="wrap" justifyContent="center" gap={1.5} py={2} px={2}>
+        <FormControl size="small" sx={{ minWidth: 260 }}>
+          <InputLabel id="waybill-format-label">Print Format</InputLabel>
+          <Select labelId="waybill-format-label" label="Print Format" value={printFormat} onChange={(event) => setPrintFormat(event.target.value)} sx={{ minHeight: 42 }}>
+            <MenuItem value="waybill">Standard Waybill (A5)</MenuItem>
+            <MenuItem value="sticker">Preprinted Sticker (120 × 90 mm)</MenuItem>
+          </Select>
+        </FormControl>
         <MDButton variant="outlined" color="dark" onClick={() => window.close()}>
           Close
         </MDButton>
-        <MDButton variant="gradient" color="info" onClick={() => window.print()}>
+        {printFormat === "waybill" && <MDButton variant="gradient" color="info" onClick={async () => { await document.fonts?.ready; window.print(); }}>
           <Icon sx={{ mr: 0.75 }}>print</Icon>
           Print waybill
-        </MDButton>
+        </MDButton>}
       </MDBox>
 
-      <MDBox
+      {printFormat === "sticker" ? <PreprintedSticker key={order.id} order={order} /> : <MDBox
         id="waybill-print"
         mx="auto"
         mb={3}
@@ -216,7 +226,7 @@ function Waybill() {
             Please verify the receiver, phone number, collection amount and parcel contents before dispatch.
           </MDTypography>
         </MDBox>
-      </MDBox>
+      </MDBox>}
     </>
   );
 }

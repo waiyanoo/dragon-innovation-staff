@@ -30,6 +30,7 @@ function Breadcrumbs({ icon, title, route, light }) {
       history: "navigation.retail", "wholesale-history": "navigation.wholesale",
       summary: "navigation.summary", statistics: "navigation.statistics",
       "report-control-panel": "navigation.adminTools", report_control_panel: "navigation.adminTools",
+      "order-approvals": "navigation.orderApprovals",
     }[value];
     return key ? t(key) : titleCase(value);
   };

@@ -9,7 +9,7 @@ const resources = {
         dashboard: "Dashboard", profile: "Profile", reward: "Reward", order: "Order",
         warehouseQueue: "Warehouse Queue", orderRecords: "Order Records", retail: "Retail",
         wholesale: "Wholesale", admin: "For Admin", summary: "Summary",
-        statistics: "Statistics", adminTools: "Admin Tools", staffPortal: "Staff Portal",
+        statistics: "Statistics", adminTools: "Admin Tools", orderApprovals: "Order Approvals", staffPortal: "Staff Portal",
       },
       actions: {
         view: "View", edit: "Edit", save: "Save", cancel: "Cancel", close: "Close",
@@ -31,7 +31,7 @@ const resources = {
         order: "အော်ဒါအသစ်", warehouseQueue: "ဂိုဒေါင်လုပ်ငန်းစာရင်း",
         orderRecords: "အော်ဒါမှတ်တမ်းများ", retail: "လက်လီ", wholesale: "လက်ကား",
         admin: "စီမံခန့်ခွဲမှု", summary: "အနှစ်ချုပ်", statistics: "စာရင်းအင်း",
-        adminTools: "စီမံခန့်ခွဲရေးကိရိယာများ", staffPortal: "ဝန်ထမ်းစနစ်",
+        adminTools: "စီမံခန့်ခွဲရေးကိရိယာများ", orderApprovals: "အော်ဒါခွင့်ပြုချက်များ", staffPortal: "ဝန်ထမ်းစနစ်",
       },
       actions: {
         view: "ကြည့်ရန်", edit: "ပြင်ဆင်ရန်", save: "သိမ်းရန်", cancel: "ပယ်ဖျက်ရန်",
